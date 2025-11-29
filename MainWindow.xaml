@@ -1,0 +1,51 @@
+﻿<Window x:Class="PharmaDistributionApp.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        Title="Hệ Thống Phân Phối Dược Phẩm" Height="700" Width="1200"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        TextElement.FontWeight="Regular"
+        TextElement.FontSize="13"
+        TextOptions.TextFormattingMode="Ideal"
+        TextOptions.TextRenderingMode="Auto"
+        Background="{DynamicResource MaterialDesignPaper}">
+
+    <Grid>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Border Grid.Column="0" Background="#4C70BA">
+            <StackPanel>
+                <TextBlock Text="PHARMA PRO" 
+                           Foreground="White" 
+                           FontSize="24" FontWeight="Bold" 
+                           HorizontalAlignment="Center" 
+                           Margin="0,30,0,30"/>
+
+                <Button Content="Trang chủ" Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" HorizontalContentAlignment="Left" Padding="20,0"/>
+                <Button Content="Kho hàng" Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" HorizontalContentAlignment="Left" Padding="20,0"/>
+                <Button Content="Nhập hàng" Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" HorizontalContentAlignment="Left" Padding="20,0"/>
+                <Button Content="Xuất hàng" Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" HorizontalContentAlignment="Left" Padding="20,0"/>
+                <Button Content="Báo cáo" Style="{StaticResource MaterialDesignFlatButton}" Foreground="White" HorizontalContentAlignment="Left" Padding="20,0"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Column="1" Background="#F0F2F5">
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center">
+                <materialDesign:PackIcon Kind="HospitalBuilding" Width="100" Height="100" Foreground="#4C70BA" HorizontalAlignment="Center"/>
+                <TextBlock Text="Chào mừng quay trở lại!" 
+                           FontSize="30" FontWeight="Bold" 
+                           Foreground="#333" Margin="0,20"/>
+                <TextBlock Text="Chọn một chức năng từ menu bên trái để bắt đầu." 
+                           FontSize="16" Foreground="Gray"/>
+            </StackPanel>
+        </Grid>
+    </Grid>
+</Window>
