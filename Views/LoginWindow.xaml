@@ -36,67 +36,36 @@
             </Border.Effect>
 
             <StackPanel VerticalAlignment="Center" Margin="60,0">
+                <TextBlock Text="Đăng nhập" FontSize="32" FontWeight="Bold" Foreground="#4267B2" Margin="0,0,0,30"/>
 
-                <TextBlock Text="Đăng nhập" 
-                           FontSize="32" FontWeight="Bold" 
-                           Foreground="#4267B2" 
-                           Margin="0,0,0,30"/>
-
-                <TextBlock Text="ID / Tên đăng nhập" Foreground="Gray" Margin="0,0,0,5"/>
+                <TextBlock Text="ID" Foreground="Gray" Margin="0,0,0,5"/>
                 <TextBox x:Name="txtUsername"
                          Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         materialDesign:HintAssist.IsFloating="False" 
-                         materialDesign:HintAssist.Hint="Tên đăng nhập"
-                         BorderBrush="#DDDDDD"
-                         Padding="10" Height="50" FontSize="14"/>
-
-                <TextBlock Text="Email" Foreground="Gray" Margin="0,15,0,5"/>
-                <TextBox x:Name="txtEmail"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
                          materialDesign:HintAssist.IsFloating="False"
-                         materialDesign:HintAssist.Hint="Email"
-                         BorderBrush="#DDDDDD"
-                         Padding="10" Height="50" FontSize="14"
-                         Margin="0,15,0,0"/>
+                         materialDesign:HintAssist.Hint="ID / Email"
+                         BorderBrush="#DDDDDD" Padding="10" Height="50" FontSize="14"/>
 
                 <TextBlock Text="Mật khẩu" Foreground="Gray" Margin="0,15,0,5"/>
                 <PasswordBox x:Name="txtPassword"
-                         Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
-                         materialDesign:HintAssist.IsFloating="False"
-                         materialDesign:HintAssist.Hint="Mật khẩu"
-                         BorderBrush="#DDDDDD"
-                         Padding="10" Height="50" FontSize="14"
-                         Margin="0,15,0,0"/>
+                             Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
+                             materialDesign:HintAssist.IsFloating="False"
+                             materialDesign:HintAssist.Hint="Mật khẩu"
+                             BorderBrush="#DDDDDD" Padding="10" Height="50" FontSize="14"/>
 
                 <Grid Margin="0,15">
-                    <CheckBox Content="Remember me" 
-                              Style="{StaticResource MaterialDesignCheckBox}"
-                              Foreground="#333"/>
-                    <TextBlock Text="Forgot password?" 
-                               HorizontalAlignment="Right" 
-                               Foreground="#4267B2" 
-                               Cursor="Hand"/>
+                    <CheckBox Content="Remember me" Style="{StaticResource MaterialDesignCheckBox}" Foreground="#333"/>
+                    <TextBlock Text="Forgot password?" HorizontalAlignment="Right" Foreground="#4267B2" Cursor="Hand"/>
                 </Grid>
 
-                <Button x:Name="btnLogin"
-                        Content="Đăng Nhập"
-                        Height="50"
-                        FontSize="18"
-                        FontWeight="Bold"
-                        Background="#4C70BA" BorderBrush="{x:Null}"
-                        Click="btnLogin_Click"
-                        Margin="0,20,0,0">
+                <TextBlock x:Name="txbErrorMessage" Text="Sai tài khoản hoặc mật khẩu" Foreground="Red" FontSize="14" Visibility="Collapsed" Margin="0,0,0,10"/>
+
+                <Button x:Name="btnLogin" Content="Đăng Nhập" Height="50" FontSize="18" FontWeight="Bold" Background="#4C70BA" BorderBrush="{x:Null}" Click="btnLogin_Click">
                     <Button.Resources>
                         <CornerRadius x:Key="ButtonCornerRadius">10</CornerRadius>
                     </Button.Resources>
                 </Button>
 
-                <Button Content="Thoát"
-                        Style="{StaticResource MaterialDesignFlatButton}"
-                        Foreground="Gray"
-                        Click="btnExit_Click"
-                        Margin="0,10,0,0"/>
-
+                <Button Content="Thoát" Style="{StaticResource MaterialDesignFlatButton}" Foreground="Gray" Click="btnExit_Click" Margin="0,10,0,0"/>
             </StackPanel>
         </Border>
     </Grid>
