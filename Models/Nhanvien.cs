@@ -23,7 +23,5 @@ public partial class Nhanvien
 
     public virtual ICollection<Hdxuat> Hdxuats { get; set; } = new List<Hdxuat>();
 
-    public virtual ICollection<Taikhoan> Taikhoans { get; set; } = new List<Taikhoan>();
-
     public virtual ICollection<Thanhtoan> Thanhtoans { get; set; } = new List<Thanhtoan>();
 }

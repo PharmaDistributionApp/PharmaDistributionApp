@@ -19,7 +19,5 @@ public partial class Lohang
 
     public virtual ICollection<Cthdxuat> Cthdxuats { get; set; } = new List<Cthdxuat>();
 
-    public virtual Sanpham MaspNavigation { get; set; } = null!;
-
     public virtual ICollection<Tonkho> Tonkhos { get; set; } = new List<Tonkho>();
 }

@@ -1,6 +1,6 @@
 ﻿using System.Linq;
 using System.Windows;
-using PharmaDistributionApp.Models; // Đảm bảo đúng namespace
+using PharmaDistributionApp.Models;
 
 namespace PharmaDistributionApp.Views
 {
@@ -11,13 +11,14 @@ namespace PharmaDistributionApp.Views
             InitializeComponent();
         }
 
+        // Xử lý nút Đăng nhập
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
             txbErrorMessage.Visibility = Visibility.Collapsed;
-            string inputID = txtUsername.Text;
+            string input = txtUsername.Text.Trim();
             string pass = txtPassword.Password;
 
-            if (string.IsNullOrEmpty(inputID) || string.IsNullOrEmpty(pass))
+            if (string.IsNullOrEmpty(input) || string.IsNullOrEmpty(pass))
             {
                 txbErrorMessage.Text = "Vui lòng nhập đầy đủ thông tin";
                 txbErrorMessage.Visibility = Visibility.Visible;
@@ -28,7 +29,12 @@ namespace PharmaDistributionApp.Views
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    var user = context.Taikhoans.FirstOrDefault(u => u.Tentk == inputID && u.Matkhau == pass);
+                    // Tìm user bằng LINQ JOIN (như đã sửa trước đó)
+                    var user = (from tk in context.Taikhoans
+                                join nv in context.Nhanviens on tk.Manv equals nv.Manv
+                                where (tk.Tentk == input || tk.Manv == input || nv.Email == input)
+                                      && tk.Matkhau == pass
+                                select tk).FirstOrDefault();
 
                     if (user != null)
                     {
@@ -45,7 +51,7 @@ namespace PharmaDistributionApp.Views
                     }
                     else
                     {
-                        txbErrorMessage.Text = "Sai tài khoản hoặc mật khẩu";
+                        txbErrorMessage.Text = "Sai thông tin đăng nhập hoặc mật khẩu";
                         txbErrorMessage.Visibility = Visibility.Visible;
                     }
                 }
@@ -56,9 +62,31 @@ namespace PharmaDistributionApp.Views
             }
         }
 
+        // --- CÁC NÚT ĐIỀU KHIỂN CỬA SỔ ---
+
+        // 1. Nút Thoát (Close)
         private void btnExit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
+        }
+
+        // 2. Nút Thu nhỏ (Minimize)
+        private void btnMinimize_Click(object sender, RoutedEventArgs e)
+        {
+            this.WindowState = WindowState.Minimized;
+        }
+
+        // 3. Nút Phóng to (Maximize)
+        private void btnMaximize_Click(object sender, RoutedEventArgs e)
+        {
+            if (this.WindowState == WindowState.Normal)
+            {
+                this.WindowState = WindowState.Maximized;
+            }
+            else
+            {
+                this.WindowState = WindowState.Normal;
+            }
         }
     }
 }
