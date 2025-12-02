@@ -4,6 +4,9 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        
+        xmlns:views="clr-namespace:PharmaDistributionApp.Views" 
+        
         mc:Ignorable="d"
         Title="Login" Height="600" Width="900"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
@@ -30,69 +33,26 @@
         <Border Grid.Column="0" Background="#90B0D5" CornerRadius="20,0,0,20"/>
 
         <Border Grid.Column="1" Background="White" 
-                CornerRadius="30,20,20,30" Margin="-30,0,0,0">
+                CornerRadius="30,0,20,0" Margin="-30,0,0,0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.2"/>
             </Border.Effect>
 
             <Grid>
-                <StackPanel Orientation="Horizontal" 
-                            HorizontalAlignment="Right" 
-                            VerticalAlignment="Top" 
-                            Margin="0,10,15,0">
-
-                    <Button x:Name="btnMinimize" Click="btnMinimize_Click"
-                            Style="{StaticResource MaterialDesignIconButton}"
-                            ToolTip="Thu nhỏ" Foreground="Gray" Width="30" Height="30">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,10,15,0" Panel.ZIndex="1">
+                    <Button x:Name="btnMinimize" Click="btnMinimize_Click" Style="{StaticResource MaterialDesignIconButton}" Foreground="Gray" Width="30" Height="30">
                         <materialDesign:PackIcon Kind="WindowMinimize" />
                     </Button>
-
-                    <Button x:Name="btnMaximize" Click="btnMaximize_Click"
-                            Style="{StaticResource MaterialDesignIconButton}"
-                            ToolTip="Phóng to" Foreground="Gray" Width="30" Height="30">
+                    <Button x:Name="btnMaximize" Click="btnMaximize_Click" Style="{StaticResource MaterialDesignIconButton}" Foreground="Gray" Width="30" Height="30">
                         <materialDesign:PackIcon Kind="WindowMaximize" />
                     </Button>
-
-                    <Button x:Name="btnClose" Click="btnExit_Click"
-                            Style="{StaticResource MaterialDesignIconButton}"
-                            ToolTip="Đóng" Foreground="Red" Width="30" Height="30">
+                    <Button x:Name="btnClose" Click="btnExit_Click" Style="{StaticResource MaterialDesignIconButton}" Foreground="Red" Width="30" Height="30">
                         <materialDesign:PackIcon Kind="WindowClose" />
                     </Button>
                 </StackPanel>
 
-                <StackPanel VerticalAlignment="Center" Margin="60,0">
-                    <TextBlock Text="Đăng nhập" FontSize="32" FontWeight="Bold" Foreground="#4267B2" Margin="0,0,0,30"/>
+                <views:LoginControl />
 
-                    <TextBlock Text="ID" Foreground="Gray" Margin="0,0,0,5"/>
-                    <TextBox x:Name="txtUsername"
-                             Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                             materialDesign:HintAssist.IsFloating="False"
-                             materialDesign:HintAssist.Hint="ID / Tên tài khoản / Email"
-                             VerticalContentAlignment="Center" 
-                             BorderBrush="#DDDDDD" Padding="10" Height="50" FontSize="14"/>
-
-                    <TextBlock Text="Mật khẩu" Foreground="Gray" Margin="0,15,0,5"/>
-                    <PasswordBox x:Name="txtPassword"
-                                 Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
-                                 materialDesign:HintAssist.IsFloating="False"
-                                 materialDesign:HintAssist.Hint="Mật khẩu"
-                                 VerticalContentAlignment="Center"
-                                 BorderBrush="#DDDDDD" Padding="10" Height="50" FontSize="14"/>
-
-                    <Grid Margin="0,15">
-                        <CheckBox Content="Remember me" Style="{StaticResource MaterialDesignCheckBox}" Foreground="#333"/>
-                        <TextBlock Text="Forgot password?" HorizontalAlignment="Right" Foreground="#4267B2" Cursor="Hand"/>
-                    </Grid>
-
-                    <TextBlock x:Name="txbErrorMessage" Text="Sai tài khoản hoặc mật khẩu" Foreground="Red" FontSize="14" Visibility="Collapsed" Margin="0,0,0,10"/>
-
-                    <Button x:Name="btnLogin" IsDefault="True" Content="Đăng Nhập" Height="50" FontSize="18" FontWeight="Bold" Background="#4C70BA" BorderBrush="{x:Null}" Click="btnLogin_Click">
-                        <Button.Resources>
-                            <CornerRadius x:Key="ButtonCornerRadius">10</CornerRadius>
-                        </Button.Resources>
-                    </Button>
-
-                </StackPanel>
             </Grid>
         </Border>
     </Grid>
