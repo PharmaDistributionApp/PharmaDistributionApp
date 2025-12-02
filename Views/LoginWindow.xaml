@@ -30,7 +30,7 @@
         <Border Grid.Column="0" Background="#90B0D5" CornerRadius="20,0,0,20"/>
 
         <Border Grid.Column="1" Background="White" 
-                CornerRadius="30,0,20,0" Margin="-30,0,0,0">
+                CornerRadius="30,20,20,30" Margin="-30,0,0,0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.2"/>
             </Border.Effect>
