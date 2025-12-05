@@ -1,10 +1,13 @@
-﻿public partial class Taikhoan
+﻿using System;
+using System.Collections.Generic;
+
+namespace PharmaDistributionApp.Models;
+
+public partial class Taikhoan
 {
-    public int Idtk { get; set; }
-    public string Tentk { get; set; } = null!;
+    public string Manv { get; set; } = null!; // Khóa chính
+    public string? Tentk { get; set; }        // Tên đăng nhập
     public string Matkhau { get; set; } = null!;
     public string? Quyenhan { get; set; }
     public int? Trangthai { get; set; }
-    public string Manv { get; set; } = null!;
-
 }

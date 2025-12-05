@@ -29,10 +29,12 @@ namespace PharmaDistributionApp.Views
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    // Logic tìm kiếm thông minh (ID hoặc Email hoặc Mã NV)
+                    // LOGIC TÌM KIẾM ĐA NĂNG:
                     var user = (from tk in context.Taikhoans
                                 join nv in context.Nhanviens on tk.Manv equals nv.Manv
-                                where (tk.Tentk == input || tk.Manv == input || nv.Email == input)
+                                where (tk.Manv == input ||    // Trùng Mã NV
+                                       tk.Tentk == input ||   // Trùng Tên TK
+                                       nv.Email == input)     // Trùng Email
                                       && tk.Matkhau == pass
                                 select tk).FirstOrDefault();
 
@@ -45,21 +47,16 @@ namespace PharmaDistributionApp.Views
                             return;
                         }
 
-                        // Mở màn hình chính
+                        // Đăng nhập thành công
                         MainWindow main = new MainWindow();
                         main.Show();
 
-                        // ĐÓNG CỬA SỔ CHA (LOGIN WINDOW)
-                        // Lệnh này tìm cửa sổ đang chứa UserControl này và đóng nó lại
-                        Window parentWindow = Window.GetWindow(this);
-                        if (parentWindow != null)
-                        {
-                            parentWindow.Close();
-                        }
+                        Window parent = Window.GetWindow(this);
+                        if (parent != null) parent.Close();
                     }
                     else
                     {
-                        txbErrorMessage.Text = "Sai thông tin đăng nhập hoặc mật khẩu";
+                        txbErrorMessage.Text = "Sai tên tài khoản/mã nhân viên hoặc mật khẩu";
                         txbErrorMessage.Visibility = Visibility.Visible;
                     }
                 }

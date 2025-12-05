@@ -6,20 +6,17 @@ namespace PharmaDistributionApp.Models;
 
 public partial class QuanlyphanphoiduocphamContext : DbContext
 {
-    public QuanlyphanphoiduocphamContext()
-    {
-    }
+    public QuanlyphanphoiduocphamContext() { }
+    public QuanlyphanphoiduocphamContext(DbContextOptions<QuanlyphanphoiduocphamContext> options) : base(options) { }
 
-    public QuanlyphanphoiduocphamContext(DbContextOptions<QuanlyphanphoiduocphamContext> options)
-        : base(options)
-    {
-    }
+    // --- KHAI BÁO CÁC BẢNG (Dùng tên Class mới của bạn) ---
+    public virtual DbSet<Hoadonnhap> Hoadonnhaps { get; set; } // Class Hoadonnhap
+    public virtual DbSet<Hoadonxuat> Hoadonxuats { get; set; } // Class Hoadonxuat
+    public virtual DbSet<Phieunhap> Phieunhaps { get; set; }   // Class Phieunhap
+    public virtual DbSet<Phieuxuat> Phieuxuats { get; set; }   // Class Phieuxuat
 
-    // Khai báo các bảng
     public virtual DbSet<Cthdnhap> Cthdnhaps { get; set; }
     public virtual DbSet<Cthdxuat> Cthdxuats { get; set; }
-    public virtual DbSet<Hdnhap> Hdnhaps { get; set; }
-    public virtual DbSet<Hdxuat> Hdxuats { get; set; }
     public virtual DbSet<Khachhang> Khachhangs { get; set; }
     public virtual DbSet<Kho> Khos { get; set; }
     public virtual DbSet<Loaisp> Loaisps { get; set; }
@@ -28,182 +25,222 @@ public partial class QuanlyphanphoiduocphamContext : DbContext
     public virtual DbSet<Nhanvien> Nhanviens { get; set; }
     public virtual DbSet<Sanpham> Sanphams { get; set; }
     public virtual DbSet<Taikhoan> Taikhoans { get; set; }
-    public virtual DbSet<Thanhtoan> Thanhtoans { get; set; }
     public virtual DbSet<Tonkho> Tonkhos { get; set; }
+    public virtual DbSet<Thanhtoan> Thanhtoans { get; set; }
 
-    // 1. Cấu hình kết nối SQLite
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         => optionsBuilder.UseSqlite("Data Source=PharmaDB.db");
 
-    // 2. Cấu hình bảng và khóa chính (Đã xóa các kiểu dữ liệu lỗi của SQL Server)
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.Entity<Cthdnhap>(entity =>
+        // 1. BẢNG HÓA ĐƠN NHẬP (Class Hoadonnhap -> Bảng HOADONNHAP)
+        modelBuilder.Entity<Hoadonnhap>(entity =>
         {
-            entity.HasKey(e => new { e.Sohdnhap, e.Masp, e.Malo }); // Khóa chính phức hợp
-            entity.ToTable("CTHDNHAP");
-            entity.Property(e => e.Sohdnhap).HasMaxLength(8).HasColumnName("SOHDNHAP");
-            entity.Property(e => e.Masp).HasMaxLength(6).HasColumnName("MASP");
-            entity.Property(e => e.Malo).HasMaxLength(6).HasColumnName("MALO");
-            entity.Property(e => e.Dongianhap).HasColumnName("DONGIANHAP"); // SQLite tự hiểu là số thực
-            entity.Property(e => e.Soluong).HasColumnName("SOLUONG");
-            entity.Property(e => e.Thanhtien).HasColumnName("THANHTIEN");
-        });
-
-        modelBuilder.Entity<Cthdxuat>(entity =>
-        {
-            entity.HasKey(e => new { e.Sohdxuat, e.Masp, e.Malo });
-            entity.ToTable("CTHDXUAT");
-            entity.Property(e => e.Sohdxuat).HasMaxLength(8).HasColumnName("SOHDXUAT");
-            entity.Property(e => e.Masp).HasMaxLength(6).HasColumnName("MASP");
-            entity.Property(e => e.Malo).HasMaxLength(6).HasColumnName("MALO");
-            entity.Property(e => e.Dongiaban).HasColumnName("DONGIABAN");
-            entity.Property(e => e.Soluong).HasColumnName("SOLUONG");
-            entity.Property(e => e.Thanhtien).HasColumnName("THANHTIEN");
-        });
-
-        modelBuilder.Entity<Hdnhap>(entity =>
-        {
+            entity.ToTable("HOADONNHAP");
             entity.HasKey(e => e.Sohdnhap);
-            entity.ToTable("HDNHAP");
-            entity.Property(e => e.Sohdnhap).HasMaxLength(8).HasColumnName("SOHDNHAP");
-            entity.Property(e => e.Ghichu).HasMaxLength(200).HasColumnName("GHICHU");
-            entity.Property(e => e.Mancc).HasMaxLength(6).HasColumnName("MANCC");
-            entity.Property(e => e.Manv).HasMaxLength(6).HasColumnName("MANV");
-            entity.Property(e => e.Ngaynhap).HasColumnName("NGAYNHAP");
+            entity.Property(e => e.Sohdnhap).HasColumnName("SOHDNHAP");
+            entity.Property(e => e.Ngaylap).HasColumnName("NGAYLAP");
             entity.Property(e => e.Tongtien).HasColumnName("TONGTIEN");
+            entity.Property(e => e.Manv).HasColumnName("MANV");
+            entity.Property(e => e.Mancc).HasColumnName("MANCC");
+            entity.Property(e => e.Ghichu).HasColumnName("GHICHU");
         });
 
-        modelBuilder.Entity<Hdxuat>(entity =>
+        // 2. BẢNG HÓA ĐƠN XUẤT (Class Hoadonxuat -> Bảng HOADONXUAT)
+        modelBuilder.Entity<Hoadonxuat>(entity =>
         {
+            entity.ToTable("HOADONXUAT");
             entity.HasKey(e => e.Sohdxuat);
-            entity.ToTable("HDXUAT");
-            entity.Property(e => e.Sohdxuat).HasMaxLength(8).HasColumnName("SOHDXUAT");
-            entity.Property(e => e.Makh).HasMaxLength(6).HasColumnName("MAKH");
-            entity.Property(e => e.Manv).HasMaxLength(6).HasColumnName("MANV");
-            entity.Property(e => e.Ngayxuat).HasColumnName("NGAYXUAT");
+            entity.Property(e => e.Sohdxuat).HasColumnName("SOHDXUAT");
+            entity.Property(e => e.Ngaylap).HasColumnName("NGAYLAP");
             entity.Property(e => e.Tongtien).HasColumnName("TONGTIEN");
             entity.Property(e => e.Vat).HasColumnName("VAT");
+            entity.Property(e => e.Manv).HasColumnName("MANV");
+            entity.Property(e => e.Makh).HasColumnName("MAKH");
         });
 
-        modelBuilder.Entity<Khachhang>(entity =>
+        // 3. BẢNG PHIẾU NHẬP KHO (Class Phieunhap -> Bảng PHIEUNHAP)
+        modelBuilder.Entity<Phieunhap>(entity =>
         {
-            entity.HasKey(e => e.Makh);
-            entity.ToTable("KHACHHANG");
-            entity.Property(e => e.Makh).HasMaxLength(6).HasColumnName("MAKH");
-            entity.Property(e => e.Diachi).HasMaxLength(200).HasColumnName("DIACHI");
-            entity.Property(e => e.Doanhso).HasDefaultValue(0m).HasColumnName("DOANHSO");
-            entity.Property(e => e.Loaikh).HasMaxLength(50).HasColumnName("LOAIKH");
-            entity.Property(e => e.Masothue).HasMaxLength(20).HasColumnName("MASOTHUE");
-            entity.Property(e => e.Ngdk).HasColumnName("NGDK");
-            entity.Property(e => e.Sdt).HasMaxLength(20).HasColumnName("SDT");
-            entity.Property(e => e.Tenkh).HasMaxLength(100).HasColumnName("TENKH");
+            entity.ToTable("PHIEUNHAP");
+            entity.HasKey(e => e.Mapn);
+            entity.Property(e => e.Mapn).HasColumnName("MAPN");
+            entity.Property(e => e.Sohdnhap).HasColumnName("SOHDNHAP");
+            entity.Property(e => e.Makho).HasColumnName("MAKHO");
+            entity.Property(e => e.Manv).HasColumnName("MANV");
+            entity.Property(e => e.Ngaynhap).HasColumnName("NGAYNHAP");
+            entity.Property(e => e.Ghichu).HasColumnName("GHICHU");
         });
 
-        modelBuilder.Entity<Kho>(entity =>
+        // 4. BẢNG PHIẾU XUẤT KHO (Class Phieuxuat -> Bảng PHIEUXUAT)
+        modelBuilder.Entity<Phieuxuat>(entity =>
         {
-            entity.HasKey(e => e.Makho);
-            entity.ToTable("KHO");
-            entity.Property(e => e.Makho).HasMaxLength(6).HasColumnName("MAKHO");
-            entity.Property(e => e.Diachi).HasMaxLength(200).HasColumnName("DIACHI");
-            entity.Property(e => e.Tenkho).HasMaxLength(100).HasColumnName("TENKHO");
+            entity.ToTable("PHIEUXUAT");
+            entity.HasKey(e => e.Mapx);
+            entity.Property(e => e.Mapx).HasColumnName("MAPX");
+            entity.Property(e => e.Sohdxuat).HasColumnName("SOHDXUAT");
+            entity.Property(e => e.Makho).HasColumnName("MAKHO");
+            entity.Property(e => e.Manv).HasColumnName("MANV");
+            entity.Property(e => e.Ngayxuat).HasColumnName("NGAYXUAT");
+            entity.Property(e => e.Lydo).HasColumnName("LYDO");
         });
 
-        modelBuilder.Entity<Loaisp>(entity =>
+        // 5. CÁC BẢNG KHÁC (Giữ nguyên)
+        modelBuilder.Entity<Taikhoan>(entity => { entity.ToTable("TAIKHOAN"); entity.HasKey(e => e.Tentk); });
+        modelBuilder.Entity<Nhanvien>(entity => { entity.ToTable("NHANVIEN"); entity.HasKey(e => e.Manv); });
+        modelBuilder.Entity<Sanpham>(entity => { entity.ToTable("SANPHAM"); entity.HasKey(e => e.Masp); });
+        modelBuilder.Entity<Lohang>(entity => { entity.ToTable("LOHANG"); entity.HasKey(e => e.Malo); });
+        modelBuilder.Entity<Tonkho>(entity => { entity.ToTable("TONKHO"); entity.HasKey(e => new { e.Makho, e.Masp, e.Malo }); });
+
+        // Cấu hình thêm cho các bảng còn lại nếu cần (Khachhang, Nhacungcap...) giống mẫu trên
+        modelBuilder.Entity<Cthdnhap>(entity =>
         {
-            entity.HasKey(e => e.Maloai);
-            entity.ToTable("LOAISP");
-            entity.Property(e => e.Maloai).HasMaxLength(6).HasColumnName("MALOAI");
-            entity.Property(e => e.Tenloai).HasMaxLength(100).HasColumnName("TENLOAI");
+            entity.ToTable("CTHDNHAP");
+            // Quan trọng: Định nghĩa khóa chính tổ hợp
+            entity.HasKey(e => new { e.Sohdnhap, e.Masp, e.Malo });
+
+            entity.Property(e => e.Sohdnhap).HasColumnName("SOHDNHAP");
+            entity.Property(e => e.Masp).HasColumnName("MASP");
+            entity.Property(e => e.Malo).HasColumnName("MALO");
+            entity.Property(e => e.Soluong).HasColumnName("SOLUONG");
+            entity.Property(e => e.Dongianhap).HasColumnName("DONGIANHAP");
+            entity.Property(e => e.Thanhtien).HasColumnName("THANHTIEN");
         });
 
-        modelBuilder.Entity<Lohang>(entity =>
+        // 2. Cấu hình Khóa chính cho CHI TIẾT XUẤT (Gồm 3 cột)
+        modelBuilder.Entity<Cthdxuat>(entity =>
         {
-            entity.HasKey(e => e.Malo);
-            entity.ToTable("LOHANG");
-            entity.Property(e => e.Malo).HasMaxLength(6).HasColumnName("MALO");
-            entity.Property(e => e.Hsd).HasColumnName("HSD");
-            entity.Property(e => e.Masp).HasMaxLength(6).HasColumnName("MASP");
-            entity.Property(e => e.Nsx).HasColumnName("NSX");
-            entity.Property(e => e.Sohieu).HasMaxLength(50).HasColumnName("SOHIEU");
-        });
+            entity.ToTable("CTHDXUAT");
+            // Quan trọng: Định nghĩa khóa chính tổ hợp
+            entity.HasKey(e => new { e.Sohdxuat, e.Masp, e.Malo });
 
-        modelBuilder.Entity<Nhacungcap>(entity =>
-        {
-            entity.HasKey(e => e.Mancc);
-            entity.ToTable("NHACUNGCAP");
-            entity.Property(e => e.Mancc).HasMaxLength(6).HasColumnName("MANCC");
-            entity.Property(e => e.Diachi).HasMaxLength(200).HasColumnName("DIACHI");
-            entity.Property(e => e.Email).HasMaxLength(100).HasColumnName("EMAIL");
-            entity.Property(e => e.Masothue).HasMaxLength(20).HasColumnName("MASOTHUE");
-            entity.Property(e => e.Sdt).HasMaxLength(20).HasColumnName("SDT");
-            entity.Property(e => e.Tenncc).HasMaxLength(100).HasColumnName("TENNCC");
-        });
-
-        modelBuilder.Entity<Nhanvien>(entity =>
-        {
-            entity.HasKey(e => e.Manv);
-            entity.ToTable("NHANVIEN");
-            entity.Property(e => e.Manv).HasMaxLength(6).HasColumnName("MANV");
-            entity.Property(e => e.Chucvu).HasMaxLength(50).HasColumnName("CHUCVU");
-            entity.Property(e => e.Diachi).HasMaxLength(200).HasColumnName("DIACHI");
-            entity.Property(e => e.Email).HasMaxLength(100).HasColumnName("EMAIL");
-            entity.Property(e => e.Ngaysinh).HasColumnName("NGAYSINH");
-            entity.Property(e => e.Sdt).HasMaxLength(20).HasColumnName("SDT");
-            entity.Property(e => e.Tennv).HasMaxLength(100).HasColumnName("TENNV");
-        });
-
-        modelBuilder.Entity<Sanpham>(entity =>
-        {
-            entity.HasKey(e => e.Masp);
-            entity.ToTable("SANPHAM");
-            entity.Property(e => e.Masp).HasMaxLength(6).HasColumnName("MASP");
-            entity.Property(e => e.Dvt).HasMaxLength(50).HasColumnName("DVT");
-            entity.Property(e => e.Giaban).HasColumnName("GIABAN");
-            entity.Property(e => e.Hoatchat).HasMaxLength(200).HasColumnName("HOATCHAT");
-            entity.Property(e => e.Maloai).HasMaxLength(6).HasColumnName("MALOAI");
-            entity.Property(e => e.Nuocsx).HasMaxLength(100).HasColumnName("NUOCSX");
-            entity.Property(e => e.Tensp).HasMaxLength(200).HasColumnName("TENSP");
-            entity.Property(e => e.Trangthai).HasDefaultValue(1).HasColumnName("TRANGTHAI");
+            entity.Property(e => e.Sohdxuat).HasColumnName("SOHDXUAT");
+            entity.Property(e => e.Masp).HasColumnName("MASP");
+            entity.Property(e => e.Malo).HasColumnName("MALO");
+            entity.Property(e => e.Soluong).HasColumnName("SOLUONG");
+            entity.Property(e => e.Dongiaban).HasColumnName("DONGIABAN");
+            entity.Property(e => e.Thanhtien).HasColumnName("THANHTIEN");
         });
 
         modelBuilder.Entity<Taikhoan>(entity =>
         {
-            entity.HasKey(e => e.Idtk);
             entity.ToTable("TAIKHOAN");
-            entity.Property(e => e.Idtk).HasColumnName("IDTK");
-            entity.Property(e => e.Manv).HasMaxLength(6).HasColumnName("MANV");
-            entity.Property(e => e.Matkhau).HasMaxLength(100).HasColumnName("MATKHAU");
-            entity.Property(e => e.Quyenhan).HasMaxLength(30).HasColumnName("QUYENHAN");
-            entity.Property(e => e.Tentk).HasMaxLength(50).HasColumnName("TENTK");
+
+            // Cấu hình MANV là Khóa Chính
+            entity.HasKey(e => e.Manv);
+
+            entity.Property(e => e.Manv).HasColumnName("MANV");
+            entity.Property(e => e.Tentk).HasColumnName("TENTK"); // Map cột TENTK
+            entity.Property(e => e.Matkhau).HasColumnName("MATKHAU");
+            entity.Property(e => e.Quyenhan).HasColumnName("QUYENHAN");
             entity.Property(e => e.Trangthai).HasColumnName("TRANGTHAI");
         });
 
-        modelBuilder.Entity<Thanhtoan>(entity =>
+        // 2. NHÂN VIÊN
+        modelBuilder.Entity<Nhanvien>(entity =>
         {
-            entity.HasKey(e => e.Matt);
-            entity.ToTable("THANHTOAN");
-            entity.Property(e => e.Matt).HasMaxLength(8).HasColumnName("MATT");
-            entity.Property(e => e.Ghichu).HasMaxLength(200).HasColumnName("GHICHU");
-            entity.Property(e => e.Manv).HasMaxLength(6).HasColumnName("MANV");
-            entity.Property(e => e.Ngaythanhtoan).HasColumnName("NGAYTHANHTOAN");
-            entity.Property(e => e.Phuongthuc).HasMaxLength(50).HasColumnName("PHUONGTHUC");
-            entity.Property(e => e.Sohdxuat).HasMaxLength(8).HasColumnName("SOHDXUAT");
-            entity.Property(e => e.Sotien).HasColumnName("SOTIEN");
+            entity.ToTable("NHANVIEN");
+            entity.HasKey(e => e.Manv);
+            entity.Property(e => e.Manv).HasColumnName("MANV");
+            entity.Property(e => e.Tennv).HasColumnName("TENNV");
+            entity.Property(e => e.Chucvu).HasColumnName("CHUCVU");
+            entity.Property(e => e.Email).HasColumnName("EMAIL");
+            entity.Property(e => e.Sdt).HasColumnName("SDT");
+            entity.Property(e => e.Diachi).HasColumnName("DIACHI");
         });
 
+        // 3. KHÁCH HÀNG (Bạn đang bị lỗi cái này)
+        modelBuilder.Entity<Khachhang>(entity =>
+        {
+            entity.ToTable("KHACHHANG");
+            entity.HasKey(e => e.Makh);
+            entity.Property(e => e.Makh).HasColumnName("MAKH");
+            entity.Property(e => e.Tenkh).HasColumnName("TENKH");
+            entity.Property(e => e.Sdt).HasColumnName("SDT");
+            entity.Property(e => e.Diachi).HasColumnName("DIACHI");
+            entity.Property(e => e.Loaikh).HasColumnName("LOAIKH");
+        });
+
+        // 4. NHÀ CUNG CẤP
+        modelBuilder.Entity<Nhacungcap>(entity =>
+        {
+            entity.ToTable("NHACUNGCAP");
+            entity.HasKey(e => e.Mancc);
+            entity.Property(e => e.Mancc).HasColumnName("MANCC");
+            entity.Property(e => e.Tenncc).HasColumnName("TENNCC");
+            entity.Property(e => e.Sdt).HasColumnName("SDT");
+            entity.Property(e => e.Email).HasColumnName("EMAIL");
+            entity.Property(e => e.Diachi).HasColumnName("DIACHI");
+        });
+
+        // 5. KHO
+        modelBuilder.Entity<Kho>(entity =>
+        {
+            entity.ToTable("KHO");
+            entity.HasKey(e => e.Makho);
+            entity.Property(e => e.Makho).HasColumnName("MAKHO");
+            entity.Property(e => e.Tenkho).HasColumnName("TENKHO");
+            entity.Property(e => e.Diachi).HasColumnName("DIACHI");
+        });
+
+        // 6. LOẠI SẢN PHẨM
+        modelBuilder.Entity<Loaisp>(entity =>
+        {
+            entity.ToTable("LOAISP");
+            entity.HasKey(e => e.Maloai);
+            entity.Property(e => e.Maloai).HasColumnName("MALOAI");
+            entity.Property(e => e.Tenloai).HasColumnName("TENLOAI");
+        });
+
+        // 7. SẢN PHẨM
+        modelBuilder.Entity<Sanpham>(entity =>
+        {
+            entity.ToTable("SANPHAM");
+            entity.HasKey(e => e.Masp);
+            entity.Property(e => e.Masp).HasColumnName("MASP");
+            entity.Property(e => e.Tensp).HasColumnName("TENSP");
+            entity.Property(e => e.Dvt).HasColumnName("DVT");
+            entity.Property(e => e.Giaban).HasColumnName("GIABAN");
+            entity.Property(e => e.Hoatchat).HasColumnName("HOATCHAT");
+            entity.Property(e => e.Nuocsx).HasColumnName("NUOCSX");
+            entity.Property(e => e.Maloai).HasColumnName("MALOAI");
+        });
+
+        // 8. LÔ HÀNG
+        modelBuilder.Entity<Lohang>(entity =>
+        {
+            entity.ToTable("LOHANG");
+            entity.HasKey(e => e.Malo);
+            entity.Property(e => e.Malo).HasColumnName("MALO");
+            entity.Property(e => e.Masp).HasColumnName("MASP");
+            entity.Property(e => e.Sohieu).HasColumnName("SOHIEU");
+            entity.Property(e => e.Nsx).HasColumnName("NSX");
+            entity.Property(e => e.Hsd).HasColumnName("HSD");
+        });
+
+        // 9. TỒN KHO (Khóa tổ hợp 3 cột)
         modelBuilder.Entity<Tonkho>(entity =>
         {
-            entity.HasKey(e => new { e.Masp, e.Malo, e.Makho });
             entity.ToTable("TONKHO");
-            entity.Property(e => e.Masp).HasMaxLength(6).HasColumnName("MASP");
-            entity.Property(e => e.Malo).HasMaxLength(6).HasColumnName("MALO");
-            entity.Property(e => e.Makho).HasMaxLength(6).HasColumnName("MAKHO");
+            entity.HasKey(e => new { e.Makho, e.Masp, e.Malo });
+            entity.Property(e => e.Makho).HasColumnName("MAKHO");
+            entity.Property(e => e.Masp).HasColumnName("MASP");
+            entity.Property(e => e.Malo).HasColumnName("MALO");
             entity.Property(e => e.Soluongton).HasColumnName("SOLUONGTON");
         });
 
-        OnModelCreatingPartial(modelBuilder);
+        // 10. THANH TOÁN
+        modelBuilder.Entity<Thanhtoan>(entity =>
+        {
+            entity.ToTable("THANHTOAN");
+            entity.HasKey(e => e.Matt);
+            entity.Property(e => e.Matt).HasColumnName("MATT");
+            entity.Property(e => e.Sohdxuat).HasColumnName("SOHDXUAT");
+            entity.Property(e => e.Sotien).HasColumnName("SOTIEN");
+            entity.Property(e => e.Ngaythanhtoan).HasColumnName("NGAYTHANHTOAN");
+            entity.Property(e => e.Phuongthuc).HasColumnName("PHUONGTHUC");
+            entity.Property(e => e.Ghichu).HasColumnName("GHICHU");
+            entity.Property(e => e.Manv).HasColumnName("MANV");
+        });
     }
-
-    partial void OnModelCreatingPartial(ModelBuilder modelBuilder);
 }

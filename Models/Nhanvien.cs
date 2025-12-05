@@ -19,9 +19,9 @@ public partial class Nhanvien
 
     public string? Chucvu { get; set; }
 
-    public virtual ICollection<Hdnhap> Hdnhaps { get; set; } = new List<Hdnhap>();
+    public virtual ICollection<Hoadonnhap> Hdnhaps { get; set; } = new List<Hoadonnhap>();
 
-    public virtual ICollection<Hdxuat> Hdxuats { get; set; } = new List<Hdxuat>();
+    public virtual ICollection<Hoadonxuat> Hdxuats { get; set; } = new List<Hoadonxuat>();
 
     public virtual ICollection<Thanhtoan> Thanhtoans { get; set; } = new List<Thanhtoan>();
 }

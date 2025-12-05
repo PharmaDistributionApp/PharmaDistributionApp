@@ -21,5 +21,5 @@ public partial class Thanhtoan
 
     public virtual Nhanvien ManvNavigation { get; set; } = null!;
 
-    public virtual Hdxuat SohdxuatNavigation { get; set; } = null!;
+    public virtual Hoadonxuat SohdxuatNavigation { get; set; } = null!;
 }
