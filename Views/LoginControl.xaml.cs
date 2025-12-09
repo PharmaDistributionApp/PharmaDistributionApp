@@ -13,6 +13,20 @@ namespace PharmaDistributionApp.Views
         public LoginControl()
         {
             InitializeComponent();
+            LoadRememberedUser();
+        }
+
+        private void LoadRememberedUser()
+        {
+            // Kiểm tra xem lần trước user có tick "Remember me" không
+            if (Properties.Settings.Default.IsRemembered)
+            {
+                txtUsername.Text = Properties.Settings.Default.SavedUsername;
+                chkRemember.IsChecked = true;
+
+                // Mẹo: Tự động focus vào ô mật khẩu để nhập luôn cho lẹ
+                txtPassword.Focus();
+            }
         }
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)
@@ -30,21 +44,21 @@ namespace PharmaDistributionApp.Views
 
             try
             {
-                // --- CÂU LỆNH SQL JOIN ĐỂ LẤY THÊM EMAIL ---
-                // T = Bảng TAIKHOAN, N = Bảng NHANVIEN
-                // Lấy tất cả cột của Tài khoản (T.*) và lấy thêm cột Email của Nhân viên (N.EMAIL)
+                // --- SỬA 1: CẬP NHẬT CÂU SQL ĐỂ CHECK CẢ EMAIL ---
+                // Thêm đoạn: OR N.EMAIL = @user
                 string sql = @"
-                    SELECT T.*, N.EMAIL, N.TENNV 
-                    FROM TAIKHOAN T
-                    JOIN NHANVIEN N ON T.MANV = N.MANV
-                    WHERE (T.MANV = @user OR T.TENTK = @user) 
-                    AND T.MATKHAU = @pass";
+            SELECT T.*, N.EMAIL, N.TENNV 
+            FROM TAIKHOAN T
+            JOIN NHANVIEN N ON T.MANV = N.MANV
+            WHERE (T.MANV = @user OR T.TENTK = @user OR N.EMAIL = @user) 
+            AND T.MATKHAU = @pass";
 
                 SQLiteParameter[] parameters = {
-                    new SQLiteParameter("@user", input),
-                    new SQLiteParameter("@pass", pass)
-                };
+            new SQLiteParameter("@user", input),
+            new SQLiteParameter("@pass", pass)
+        };
 
+                // Lưu ý: Đảm bảo class Database của bạn hỗ trợ trả về DataTable
                 DataTable dt = Database.GetTable(sql, parameters);
 
                 if (dt.Rows.Count > 0)
@@ -58,15 +72,26 @@ namespace PharmaDistributionApp.Views
                         return;
                     }
 
-                    // --- LẤY THÔNG TIN NGƯỜI DÙNG ---
-                    string userEmail = row["EMAIL"].ToString(); // Đã lấy được Email!
-                    string tenNhanVien = row["TENNV"].ToString(); // Lấy được cả tên nhân viên
+                    // --- SỬA 2: LƯU TRẠNG THÁI "REMEMBER ME" ---
+                    if (chkRemember.IsChecked == true)
+                    {
+                        Properties.Settings.Default.SavedUsername = input; // Lưu tên vừa nhập
+                        Properties.Settings.Default.IsRemembered = true;   // Lưu trạng thái
+                    }
+                    else
+                    {
+                        Properties.Settings.Default.SavedUsername = "";    // Xóa tên
+                        Properties.Settings.Default.IsRemembered = false;  // Xóa trạng thái
+                    }
+                    // Lệnh quan trọng để ghi xuống ổ cứng
+                    Properties.Settings.Default.Save();
+
+                    // --- LẤY THÔNG TIN & CHUYỂN MÀN HÌNH ---
+                    string userEmail = row["EMAIL"].ToString();
+                    string tenNhanVien = row["TENNV"].ToString();
                     string quyenHan = row["QUYENHAN"].ToString();
 
-                    // --- ĐĂNG NHẬP THÀNH CÔNG ---
-
-                    // Bạn có thể truyền thông tin này sang MainWindow
-                    // Ví dụ: new MainWindow(tenNhanVien, userEmail)
+                    // Mở màn hình chính
                     MainWindow main = new MainWindow();
                     main.Show();
 
@@ -75,7 +100,7 @@ namespace PharmaDistributionApp.Views
                 }
                 else
                 {
-                    ShowError("Sai ID hoặc mật khẩu");
+                    ShowError("Sai ID, Tên tài khoản, Email hoặc Mật khẩu");
                 }
             }
             catch (Exception ex)

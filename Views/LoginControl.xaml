@@ -13,7 +13,6 @@
                  materialDesign:HintAssist.IsFloating="True"
                  materialDesign:HintAssist.Hint="ID / Tên tài khoản"
                  BorderBrush="#DDDDDD" Padding="10" Height="50" FontSize="14">
-
             <TextBox.Resources>
                 <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#4C70BA"/>
             </TextBox.Resources>
@@ -31,17 +30,19 @@
         </PasswordBox>
 
         <Grid Margin="0,15">
-            <CheckBox Content="Ghi nhớ đăng nhập" Style="{StaticResource MaterialDesignCheckBox}" Foreground="#333">
-                <CheckBox.Resources>
-                    <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#4C70BA"/>
-                </CheckBox.Resources>
-            </CheckBox>
+            <CheckBox x:Name="chkRemember" 
+                      Content="Ghi nhớ đăng nhập" 
+                      Style="{StaticResource MaterialDesignCheckBox}" 
+                      Foreground="#333"/>
+            
             <TextBlock Text="Quên mật khẩu" HorizontalAlignment="Right" Foreground="#4267B2" Cursor="Hand" MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"/>
         </Grid>
 
         <TextBlock x:Name="txbErrorMessage" Text="Sai tài khoản hoặc mật khẩu" Foreground="Red" FontSize="14" Visibility="Collapsed" Margin="0,0,0,10"/>
 
-        <Button x:Name="btnLogin" Content="Đăng Nhập" Height="50" FontSize="18" FontWeight="Bold" Background="#4C70BA" BorderBrush="{x:Null}" Click="btnLogin_Click">
+        <Button x:Name="btnLogin" 
+                IsDefault="True"
+                Content="Đăng Nhập" Height="50" FontSize="18" FontWeight="Bold" Background="#4C70BA" BorderBrush="{x:Null}" Click="btnLogin_Click">
             <Button.Resources>
                 <CornerRadius x:Key="ButtonCornerRadius">10</CornerRadius>
             </Button.Resources>

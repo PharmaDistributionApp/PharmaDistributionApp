@@ -31,7 +31,7 @@
         <Border Grid.Column="0" Background="#90B0D5" CornerRadius="20,0,0,20"/>
 
         <Border Grid.Column="1" Background="White" 
-                CornerRadius="30,0,20,0" Margin="-30,0,0,0">
+                CornerRadius="30,20,20,30" Margin="-30,0,0,0">
             <Border.Effect>
                 <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.2"/>
             </Border.Effect>
@@ -40,15 +40,29 @@
 
         </Border>
 
-        <Button Grid.Column="1"
-            HorizontalAlignment="Right" 
-            VerticalAlignment="Top"
-            Margin="0,10,15,0"
-            Width="30" Height="30"
-            Style="{StaticResource MaterialDesignIconForegroundButton}"
-            ToolTip="Thoát ứng dụng"
-            Click="btnExit_Click">
-            <materialDesign:PackIcon Kind="Close" Width="20" Height="20" Foreground="Gray"/>
-        </Button>
+        <StackPanel Grid.Column="1" 
+                    Orientation="Horizontal" 
+                    HorizontalAlignment="Right" 
+                    VerticalAlignment="Top" 
+                    Margin="0,10,15,0">
+
+            <Button x:Name="btnMinimize"
+                    Click="btnMinimize_Click"
+                    Style="{StaticResource MaterialDesignIconForegroundButton}"
+                    ToolTip="Thu nhỏ"
+                    Width="30" Height="30" 
+                    Margin="0,0,5,0">
+                <materialDesign:PackIcon Kind="WindowMinimize" Width="30" Height="10" Foreground="Gray" VerticalAlignment="Center"/>
+            </Button>
+
+            <Button x:Name="btnClose"
+                    Click="btnExit_Click"
+                    Style="{StaticResource MaterialDesignIconForegroundButton}"
+                    ToolTip="Thoát ứng dụng"
+                    Width="30" Height="30">
+                <materialDesign:PackIcon Kind="Close" Width="20" Height="20" Foreground="Gray"/>
+            </Button>
+
+        </StackPanel>
     </Grid>
 </Window>
