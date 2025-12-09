@@ -1,103 +1,57 @@
-﻿using System.Linq;
-using System.Windows;
-using PharmaDistributionApp.Models;
-using System.Windows.Media;
+﻿using System.Windows;
+using System.Windows.Input;
 
 namespace PharmaDistributionApp.Views
 {
     public partial class LoginWindow : Window
     {
-        private Brush defaultBorderBrush = (Brush)new BrushConverter().ConvertFrom("#DDDDDD");
         public LoginWindow()
         {
             InitializeComponent();
+
+            // Mặc định nạp màn hình Đăng nhập vào chỗ trống
+            NavigateToLogin();
         }
 
-        private void btnLogin_Click(object sender, RoutedEventArgs e)
+        // 1. Chuyển sang màn hình Đăng nhập
+        public void NavigateToLogin()
         {
-            txbErrorMessage.Visibility = Visibility.Collapsed;
-            string inputID = txtUsername.Text;
-            string pass = txtPassword.Password;
-            bool hasError = false;
-            txbErrorMessage.Text = "Vui lòng nhập đầy đủ thông tin";
-
-            if (string.IsNullOrEmpty(inputID))
-            {
-                txtUsername.BorderBrush = Brushes.Red;
-                hasError = true;
-                txbErrorMessage.Visibility = Visibility.Visible;
-
-            }
-
-            if (string.IsNullOrEmpty(pass))
-            {
-                txtPassword.BorderBrush = Brushes.Red;
-                hasError = true;
-                txbErrorMessage.Visibility = Visibility.Visible;
-            }
-
-            if (hasError) return;
-
-            try
-            {
-                using (var context = new QuanlyphanphoiduocphamContext())
-                {
-                    var user = context.Taikhoans.FirstOrDefault(u => u.Tentk == inputID && u.Matkhau == pass);
-
-                    if (user != null)
-                    {
-                        if (user.Trangthai == 0)
-                        {
-                            txbErrorMessage.Text = "Tài khoản đã bị khóa!";
-                            txbErrorMessage.Visibility = Visibility.Visible;
-                            return;
-                        }
-
-                        MainWindow main = new MainWindow();
-                        main.Show();
-                        this.Close();
-                    }
-                    else
-                    {
-                        txbErrorMessage.Text = "Sai tài khoản hoặc mật khẩu";
-                        txbErrorMessage.Visibility = Visibility.Visible;
-                    }
-                }
-            }
-            catch (System.Exception ex)
-            {
-                MessageBox.Show("Lỗi kết nối: " + ex.Message);
-            }
+            MainContent.Content = new LoginControl();
         }
-        
+
+        // 2. Chuyển sang màn hình Quên mật khẩu
+        public void NavigateToForgotPass()
+        {
+            MainContent.Content = new ForgotPasswordWindow();
+        }
+
+        // 3. Chuyển sang màn hình Nhập mã xác nhận (QUAN TRỌNG: Đã sửa)
+        // Hàm này phải nhận MÃ CODE thực tế từ ForgotPasswordWindow truyền sang
+        public void NavigateToVerify(string code, string email)
+        {
+            // Truyền code thật và email vào màn hình VerifyCodeWindow
+            MainContent.Content = new VerifyCodeWindow(code, email);
+        }
+
+        // 4. Chuyển sang màn hình Đặt lại mật khẩu
+        public void NavigateToReset(string email)
+        {
+            MainContent.Content = new ResetPasswordWindow(email);
+        }
+
+        // --- CÁC HÀM XỬ LÝ SỰ KIỆN CỬA SỔ ---
+
+        // Xử lý kéo thả cửa sổ (Vì WindowStyle=None)
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
+        }
+
+        // Xử lý thoát chung cho cả ứng dụng (Nút X ở góc trên bên phải)
         private void btnExit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();
-        }
-
-        private void TextBlock_MouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
-        {
-            PharmaDistributionApp.Views.ForgotPasswordWindow p = new PharmaDistributionApp.Views.ForgotPasswordWindow();
-            p.Show();
-            this.Close();
-        }
-
-        private void txtUsername_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
-        {
-            if (txtUsername.BorderBrush == Brushes.Red)
-            {
-                txtUsername.BorderBrush = defaultBorderBrush;
-            }
-            txbErrorMessage.Visibility = Visibility.Collapsed;
-        }
-
-        private void txtPassword_PasswordChanged(object sender, RoutedEventArgs e)
-        {
-            if (txtPassword.BorderBrush == Brushes.Red)
-            {
-                txtPassword.BorderBrush = defaultBorderBrush;
-            }
-            txbErrorMessage.Visibility = Visibility.Collapsed;
         }
     }
 }

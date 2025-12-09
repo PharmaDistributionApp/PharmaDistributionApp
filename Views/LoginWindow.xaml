@@ -8,7 +8,8 @@
         Title="Login" Height="600" Width="900"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
-        FontFamily="{DynamicResource MaterialDesignFont}">
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        MouseDown="Window_MouseDown">
 
     <Window.Resources>
         <ResourceDictionary>
@@ -35,41 +36,10 @@
                 <DropShadowEffect BlurRadius="20" ShadowDepth="0" Opacity="0.2"/>
             </Border.Effect>
 
-            <StackPanel VerticalAlignment="Center" Margin="60,0">
-                <TextBlock Text="Đăng nhập" FontSize="32" FontWeight="Bold" Foreground="#4267B2" Margin="0,0,0,30"/>
+            <ContentControl x:Name="MainContent" Margin="20"/>
 
-                <TextBlock Text="ID" Foreground="Gray" Margin="0,0,0,5"/>
-                <TextBox x:Name="txtUsername"
-                         Style="{StaticResource MaterialDesignOutlinedTextBox}"
-                         materialDesign:HintAssist.IsFloating="False"
-                         materialDesign:HintAssist.Hint="ID / Email"
-                         BorderBrush="#DDDDDD" Padding="10" Height="50" FontSize="14"
-                         TextChanged="txtUsername_TextChanged"/>
-
-                <TextBlock Text="Mật khẩu" Foreground="Gray" Margin="0,15,0,5"/>
-                <PasswordBox x:Name="txtPassword"
-                             Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
-                             materialDesign:HintAssist.IsFloating="False"
-                             materialDesign:HintAssist.Hint="Mật khẩu"
-                             BorderBrush="#DDDDDD" Padding="10" Height="50" FontSize="14"
-                             PasswordChanged="txtPassword_PasswordChanged"/>
-
-                <Grid Margin="0,15">
-                    <CheckBox Content="Remember me" Style="{StaticResource MaterialDesignCheckBox}" Foreground="#333"/>
-                    <TextBlock Text="Forgot password?" HorizontalAlignment="Right" Foreground="#4267B2" Cursor="Hand" MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"/>
-                </Grid>
-
-                <TextBlock x:Name="txbErrorMessage" Text="Sai tài khoản hoặc mật khẩu" Foreground="Red" FontSize="14" Visibility="Collapsed" Margin="0,0,0,10"/>
-
-                <Button x:Name="btnLogin" Content="Đăng Nhập" Height="50" FontSize="18" FontWeight="Bold" Background="#4C70BA" BorderBrush="{x:Null}" Click="btnLogin_Click">
-                    <Button.Resources>
-                        <CornerRadius x:Key="ButtonCornerRadius">10</CornerRadius>
-                    </Button.Resources>
-                </Button>
-
-                <Button Content="Thoát" Style="{StaticResource MaterialDesignFlatButton}" Foreground="Gray" Click="btnExit_Click" Margin="0,10,0,0"/>
-            </StackPanel>
         </Border>
+
         <Button Grid.Column="1"
             HorizontalAlignment="Right" 
             VerticalAlignment="Top"
@@ -78,7 +48,6 @@
             Style="{StaticResource MaterialDesignIconForegroundButton}"
             ToolTip="Thoát ứng dụng"
             Click="btnExit_Click">
-
             <materialDesign:PackIcon Kind="Close" Width="20" Height="20" Foreground="Gray"/>
         </Button>
     </Grid>
