@@ -44,13 +44,17 @@ namespace PharmaDistributionApp.Views
 
             try
             {
-                // --- SỬA 1: CẬP NHẬT CÂU SQL ĐỂ CHECK CẢ EMAIL ---
-                // Thêm đoạn: OR N.EMAIL = @user
+                // --- LOGIC ĐĂNG NHẬP THÔNG MINH ---
+                // Cho phép nhập: Mã NV (NV001) HOẶC Email HOẶC Tên thật (Huỳnh Long Bảo Khanh)
                 string sql = @"
             SELECT T.*, N.EMAIL, N.TENNV 
             FROM TAIKHOAN T
             JOIN NHANVIEN N ON T.MANV = N.MANV
-            WHERE (T.MANV = @user OR T.TENTK = @user OR N.EMAIL = @user) 
+            WHERE (
+                    T.MANV = @user      -- Cách 1: Nhập Mã NV
+                 OR N.EMAIL = @user     -- Cách 2: Nhập Email
+                 OR N.TENNV = @user     -- Cách 3: Nhập Họ tên thật
+                  ) 
             AND T.MATKHAU = @pass";
 
                 SQLiteParameter[] parameters = {
@@ -58,7 +62,6 @@ namespace PharmaDistributionApp.Views
             new SQLiteParameter("@pass", pass)
         };
 
-                // Lưu ý: Đảm bảo class Database của bạn hỗ trợ trả về DataTable
                 DataTable dt = Database.GetTable(sql, parameters);
 
                 if (dt.Rows.Count > 0)
@@ -72,26 +75,23 @@ namespace PharmaDistributionApp.Views
                         return;
                     }
 
-                    // --- SỬA 2: LƯU TRẠNG THÁI "REMEMBER ME" ---
+                    // --- LƯU REMEMBER ME ---
                     if (chkRemember.IsChecked == true)
                     {
-                        Properties.Settings.Default.SavedUsername = input; // Lưu tên vừa nhập
-                        Properties.Settings.Default.IsRemembered = true;   // Lưu trạng thái
+                        Properties.Settings.Default.SavedUsername = input;
+                        Properties.Settings.Default.IsRemembered = true;
                     }
                     else
                     {
-                        Properties.Settings.Default.SavedUsername = "";    // Xóa tên
-                        Properties.Settings.Default.IsRemembered = false;  // Xóa trạng thái
+                        Properties.Settings.Default.SavedUsername = "";
+                        Properties.Settings.Default.IsRemembered = false;
                     }
-                    // Lệnh quan trọng để ghi xuống ổ cứng
                     Properties.Settings.Default.Save();
 
-                    // --- LẤY THÔNG TIN & CHUYỂN MÀN HÌNH ---
-                    string userEmail = row["EMAIL"].ToString();
+                    // Lấy thông tin hiển thị
                     string tenNhanVien = row["TENNV"].ToString();
-                    string quyenHan = row["QUYENHAN"].ToString();
 
-                    // Mở màn hình chính
+                    // Mở Main Window
                     MainWindow main = new MainWindow();
                     main.Show();
 
@@ -100,7 +100,7 @@ namespace PharmaDistributionApp.Views
                 }
                 else
                 {
-                    ShowError("Sai ID, Tên tài khoản, Email hoặc Mật khẩu");
+                    ShowError("Sai thông tin đăng nhập hoặc mật khẩu");
                 }
             }
             catch (Exception ex)

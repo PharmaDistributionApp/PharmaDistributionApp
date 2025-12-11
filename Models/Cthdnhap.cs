@@ -21,5 +21,5 @@ public partial class Cthdnhap
 
     public virtual Sanpham MaspNavigation { get; set; } = null!;
 
-    public virtual Hdnhap SohdnhapNavigation { get; set; } = null!;
+    public virtual Hoadonnhap SohdnhapNavigation { get; set; } = null!;
 }

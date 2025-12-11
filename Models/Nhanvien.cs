@@ -18,12 +18,4 @@ public partial class Nhanvien
     public DateOnly? Ngaysinh { get; set; }
 
     public string? Chucvu { get; set; }
-
-    public virtual ICollection<Hdnhap> Hdnhaps { get; set; } = new List<Hdnhap>();
-
-    public virtual ICollection<Hdxuat> Hdxuats { get; set; } = new List<Hdxuat>();
-
-    public virtual ICollection<Taikhoan> Taikhoans { get; set; } = new List<Taikhoan>();
-
-    public virtual ICollection<Thanhtoan> Thanhtoans { get; set; } = new List<Thanhtoan>();
 }
