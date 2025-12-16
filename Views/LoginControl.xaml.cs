@@ -114,8 +114,7 @@ namespace PharmaDistributionApp.Views
                 Properties.Settings.Default.Save();
 
                 // Chuyển màn hình
-                string tenNhanVien = row["TENNV"].ToString();
-
+                MainWindow.CurrentMaNV = row["MANV"].ToString(); // Lưu MANV vào biến tĩnh
                 MainWindow main = new MainWindow();
                 main.Show();
 

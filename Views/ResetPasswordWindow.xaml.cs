@@ -77,7 +77,6 @@ namespace PharmaDistributionApp.Views
 
                 if (rows > 0)
                 {
-                    MessageBox.Show("Đặt lại mật khẩu thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
                     var parentWindow = Window.GetWindow(this) as LoginWindow;
                     if (parentWindow != null)
                     {
