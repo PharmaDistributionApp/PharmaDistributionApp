@@ -38,15 +38,24 @@ public partial class QuanlyphanphoiduocphamContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        // 1. CẤU HÌNH CÁC BẢNG CÓ KHÓA TỔ HỢP (ĐÂY LÀ CHỖ SỬA LỖI CỦA BẠN)
+        // --- 3. CẤU HÌNH CÁC BẢNG QUAN TRỌNG ---
 
-        // Bảng Chi tiết nhập (Khóa chính gồm 3 cột)
+        // BẢNG TÀI KHOẢN (Manv là khóa chính)
+        modelBuilder.Entity<Taikhoan>(entity =>
+        {
+            entity.ToTable("TAIKHOAN");
+            entity.HasKey(e => e.Manv);
+            entity.Property(e => e.Manv).HasColumnName("MANV");
+            entity.Property(e => e.Matkhau).HasColumnName("MATKHAU");
+            entity.Property(e => e.Quyenhan).HasColumnName("QUYENHAN");
+            entity.Property(e => e.Trangthai).HasColumnName("TRANGTHAI");
+        });
+
+        // BẢNG CHI TIẾT (Sửa lỗi "requires a primary key")
         modelBuilder.Entity<Cthdnhap>(entity =>
         {
             entity.ToTable("CTHDNHAP");
-            // DÒNG QUAN TRỌNG NHẤT: Khai báo khóa chính tổ hợp
-            entity.HasKey(e => new { e.Sohdnhap, e.Masp, e.Malo });
-
+            entity.HasKey(e => new { e.Sohdnhap, e.Masp, e.Malo }); // Khóa tổ hợp
             entity.Property(e => e.Sohdnhap).HasColumnName("SOHDNHAP");
             entity.Property(e => e.Masp).HasColumnName("MASP");
             entity.Property(e => e.Malo).HasColumnName("MALO");
@@ -55,12 +64,10 @@ public partial class QuanlyphanphoiduocphamContext : DbContext
             entity.Property(e => e.Thanhtien).HasColumnName("THANHTIEN");
         });
 
-        // Bảng Chi tiết xuất (Cũng cần khóa tổ hợp)
         modelBuilder.Entity<Cthdxuat>(entity =>
         {
             entity.ToTable("CTHDXUAT");
-            entity.HasKey(e => new { e.Sohdxuat, e.Masp, e.Malo }); // Quan trọng
-
+            entity.HasKey(e => new { e.Sohdxuat, e.Masp, e.Malo }); // Khóa tổ hợp
             entity.Property(e => e.Sohdxuat).HasColumnName("SOHDXUAT");
             entity.Property(e => e.Masp).HasColumnName("MASP");
             entity.Property(e => e.Malo).HasColumnName("MALO");
@@ -69,39 +76,27 @@ public partial class QuanlyphanphoiduocphamContext : DbContext
             entity.Property(e => e.Thanhtien).HasColumnName("THANHTIEN");
         });
 
-        // Bảng Tồn kho (Cũng cần khóa tổ hợp)
         modelBuilder.Entity<Tonkho>(entity =>
         {
             entity.ToTable("TONKHO");
-            entity.HasKey(e => new { e.Masp, e.Malo, e.Makho }); // Quan trọng
-
+            entity.HasKey(e => new { e.Masp, e.Malo, e.Makho }); // Khóa tổ hợp
             entity.Property(e => e.Masp).HasColumnName("MASP");
             entity.Property(e => e.Malo).HasColumnName("MALO");
             entity.Property(e => e.Makho).HasColumnName("MAKHO");
             entity.Property(e => e.Soluongton).HasColumnName("SOLUONGTON");
         });
 
-        // 2. CẤU HÌNH CÁC BẢNG CÒN LẠI (Khóa đơn)
-        modelBuilder.Entity<Taikhoan>(entity => {
-            entity.ToTable("TAIKHOAN");
-            entity.HasKey(e => e.Manv); // Khóa chính là MANV
-            entity.Property(e => e.Manv).HasColumnName("MANV");
-            entity.Property(e => e.Matkhau).HasColumnName("MATKHAU");
-            entity.Property(e => e.Quyenhan).HasColumnName("QUYENHAN");
-            entity.Property(e => e.Trangthai).HasColumnName("TRANGTHAI");
-        });
+        // CÁC BẢNG KHÁC (Map tên cột cho chuẩn)
+        modelBuilder.Entity<Hoadonnhap>(e => { e.ToTable("HOADONNHAP"); e.HasKey(x => x.Sohdnhap); e.Property(x => x.Sohdnhap).HasColumnName("SOHDNHAP"); e.Property(x => x.Ngaylap).HasColumnName("NGAYLAP"); e.Property(x => x.Tongtien).HasColumnName("TONGTIEN"); e.Property(x => x.Manv).HasColumnName("MANV"); e.Property(x => x.Mancc).HasColumnName("MANCC"); e.Property(x => x.Ghichu).HasColumnName("GHICHU"); });
+        modelBuilder.Entity<Hoadonxuat>(e => { e.ToTable("HOADONXUAT"); e.HasKey(x => x.Sohdxuat); e.Property(x => x.Sohdxuat).HasColumnName("SOHDXUAT"); e.Property(x => x.Ngaylap).HasColumnName("NGAYLAP"); e.Property(x => x.Tongtien).HasColumnName("TONGTIEN"); e.Property(x => x.Vat).HasColumnName("VAT"); e.Property(x => x.Manv).HasColumnName("MANV"); e.Property(x => x.Makh).HasColumnName("MAKH"); });
+        modelBuilder.Entity<Phieunhap>(e => { e.ToTable("PHIEUNHAP"); e.HasKey(x => x.Mapn); e.Property(x => x.Mapn).HasColumnName("MAPN"); e.Property(x => x.Sohdnhap).HasColumnName("SOHDNHAP"); e.Property(x => x.Makho).HasColumnName("MAKHO"); e.Property(x => x.Manv).HasColumnName("MANV"); e.Property(x => x.Ngaynhap).HasColumnName("NGAYNHAP"); e.Property(x => x.Ghichu).HasColumnName("GHICHU"); });
+        modelBuilder.Entity<Phieuxuat>(e => { e.ToTable("PHIEUXUAT"); e.HasKey(x => x.Mapx); e.Property(x => x.Mapx).HasColumnName("MAPX"); e.Property(x => x.Sohdxuat).HasColumnName("SOHDXUAT"); e.Property(x => x.Makho).HasColumnName("MAKHO"); e.Property(x => x.Manv).HasColumnName("MANV"); e.Property(x => x.Ngayxuat).HasColumnName("NGAYXUAT"); e.Property(x => x.Lydo).HasColumnName("LYDO"); });
 
-        modelBuilder.Entity<Nhanvien>(e => { e.ToTable("NHANVIEN"); e.HasKey(x => x.Manv); e.Property(x => x.Manv).HasColumnName("MANV"); e.Property(x => x.Avatar).HasColumnName("AVATAR"); });
-        modelBuilder.Entity<Hoadonnhap>(e => { e.ToTable("HOADONNHAP"); e.HasKey(x => x.Sohdnhap); e.Property(x => x.Sohdnhap).HasColumnName("SOHDNHAP"); });
-        modelBuilder.Entity<Hoadonxuat>(e => { e.ToTable("HOADONXUAT"); e.HasKey(x => x.Sohdxuat); e.Property(x => x.Sohdxuat).HasColumnName("SOHDXUAT"); });
-        modelBuilder.Entity<Phieunhap>(e => { e.ToTable("PHIEUNHAP"); e.HasKey(x => x.Mapn); e.Property(x => x.Mapn).HasColumnName("MAPN"); });
-        modelBuilder.Entity<Phieuxuat>(e => { e.ToTable("PHIEUXUAT"); e.HasKey(x => x.Mapx); e.Property(x => x.Mapx).HasColumnName("MAPX"); });
-        modelBuilder.Entity<Sanpham>(e => { e.ToTable("SANPHAM"); e.HasKey(x => x.Masp); e.Property(x => x.Masp).HasColumnName("MASP"); });
-        modelBuilder.Entity<Kho>(e => { e.ToTable("KHO"); e.HasKey(x => x.Makho); e.Property(x => x.Makho).HasColumnName("MAKHO"); });
-        modelBuilder.Entity<Lohang>(e => { e.ToTable("LOHANG"); e.HasKey(x => x.Malo); e.Property(x => x.Malo).HasColumnName("MALO"); });
-        modelBuilder.Entity<Loaisp>(e => { e.ToTable("LOAISP"); e.HasKey(x => x.Maloai); e.Property(x => x.Maloai).HasColumnName("MALOAI"); });
-        modelBuilder.Entity<Nhacungcap>(e => { e.ToTable("NHACUNGCAP"); e.HasKey(x => x.Mancc); e.Property(x => x.Mancc).HasColumnName("MANCC"); });
+        // Các bảng danh mục (Giản lược để code gọn, bạn thêm đầy đủ property nếu cần)
+        modelBuilder.Entity<Nhanvien>(e => { e.ToTable("NHANVIEN"); e.HasKey(x => x.Manv); e.Property(x => x.Manv).HasColumnName("MANV"); e.Property(x => x.Email).HasColumnName("EMAIL"); e.Property(x => x.Tennv).HasColumnName("TENNV"); });
         modelBuilder.Entity<Khachhang>(e => { e.ToTable("KHACHHANG"); e.HasKey(x => x.Makh); e.Property(x => x.Makh).HasColumnName("MAKH"); });
-        modelBuilder.Entity<Thanhtoan>(e => { e.ToTable("THANHTOAN"); e.HasKey(x => x.Matt); e.Property(x => x.Matt).HasColumnName("MATT"); });
+        modelBuilder.Entity<Kho>(e => { e.ToTable("KHO"); e.HasKey(x => x.Makho); e.Property(x => x.Makho).HasColumnName("MAKHO"); });
+        modelBuilder.Entity<Sanpham>(e => { e.ToTable("SANPHAM"); e.HasKey(x => x.Masp); e.Property(x => x.Masp).HasColumnName("MASP"); });
+        modelBuilder.Entity<Lohang>(e => { e.ToTable("LOHANG"); e.HasKey(x => x.Malo); e.Property(x => x.Malo).HasColumnName("MALO"); });
     }
 }

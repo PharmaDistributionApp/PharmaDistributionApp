@@ -9,10 +9,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <None Remove="Images\default_avatar.jpg" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Folder Include="Resources\" />
     <Folder Include="ViewModels\" />
   </ItemGroup>
@@ -29,10 +25,6 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.119" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Resource Include="Images\default_avatar.jpg" />
   </ItemGroup>
 
   <ItemGroup>
