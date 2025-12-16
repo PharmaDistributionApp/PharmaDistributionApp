@@ -69,8 +69,6 @@ namespace PharmaDistributionApp.Views
                     tk.Matkhau = newPass;
                     context.SaveChanges();
 
-                    MessageBox.Show("Đổi mật khẩu thành công!", "Thông báo");
-
                     // Đóng cửa sổ
                     CloseRequested?.Invoke(this, EventArgs.Empty);
                 }
