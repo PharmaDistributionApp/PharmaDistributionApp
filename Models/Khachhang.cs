@@ -21,5 +21,5 @@ public partial class Khachhang
 
     public DateOnly? Ngdk { get; set; }
 
-    public virtual ICollection<Hdxuat> Hdxuats { get; set; } = new List<Hdxuat>();
+    public virtual ICollection<Hoadonxuat> Hdxuats { get; set; } = new List<Hoadonxuat>();
 }

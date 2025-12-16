@@ -17,5 +17,5 @@ public partial class Nhacungcap
 
     public string? Masothue { get; set; }
 
-    public virtual ICollection<Hdnhap> Hdnhaps { get; set; } = new List<Hdnhap>();
+    public virtual ICollection<Hoadonnhap> Hdnhaps { get; set; } = new List<Hoadonnhap>();
 }

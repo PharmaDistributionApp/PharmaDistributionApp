@@ -21,13 +21,4 @@ public partial class Sanpham
 
     public string Maloai { get; set; } = null!;
 
-    public virtual ICollection<Cthdnhap> Cthdnhaps { get; set; } = new List<Cthdnhap>();
-
-    public virtual ICollection<Cthdxuat> Cthdxuats { get; set; } = new List<Cthdxuat>();
-
-    public virtual ICollection<Lohang> Lohangs { get; set; } = new List<Lohang>();
-
-    public virtual Loaisp MaloaiNavigation { get; set; } = null!;
-
-    public virtual ICollection<Tonkho> Tonkhos { get; set; } = new List<Tonkho>();
 }
