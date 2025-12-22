@@ -31,7 +31,9 @@ namespace PharmaDistributionApp.Views
         public AccountControl()
         {
             InitializeComponent();
-            _currentManv = MainWindow.CurrentMaNV;
+            // Get the current MainWindow instance and access CurrentMaNV
+            var mainWindow = Application.Current.MainWindow as MainWindow;
+            _currentManv = mainWindow?.CurrentMaNV;
             if (string.IsNullOrEmpty(_currentManv)) _currentManv = "NV001";
             LoadUserData();
         }
@@ -53,7 +55,7 @@ namespace PharmaDistributionApp.Views
             // Tìm các control tương ứng dựa trên Tag
             PasswordBox pb = FindName($"pb{tag}Pass") as PasswordBox;
             TextBox txt = FindName($"txt{tag}Pass") as TextBox;
-            PackIcon icon = FindName($"iconEye{tag}") as PackIcon;
+            PackIcon? icon = FindName($"iconEye{tag}") as PackIcon;
 
             if (pb != null && txt != null && icon != null)
             {
@@ -174,7 +176,7 @@ namespace PharmaDistributionApp.Views
         {
             PasswordBox pb = FindName($"pb{tag}Pass") as PasswordBox;
             TextBox txt = FindName($"txt{tag}Pass") as TextBox;
-            PackIcon icon = FindName($"iconEye{tag}") as PackIcon;
+            PackIcon? icon = FindName($"iconEye{tag}") as PackIcon;
 
             if (pb != null) pb.Visibility = Visibility.Visible;
             if (txt != null) txt.Visibility = Visibility.Collapsed;

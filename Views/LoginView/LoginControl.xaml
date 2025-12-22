@@ -1,4 +1,4 @@
-﻿<UserControl x:Class="PharmaDistributionApp.Views.LoginControl"
+﻿<UserControl x:Class="PharmaDistributionApp.Views.LoginView.LoginControl"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
@@ -16,6 +16,7 @@
 
         <TextBlock Text="ID" Foreground="Gray" Margin="0,0,0,5"/>
         <TextBox x:Name="txtUsername"
+                 TextChanged="txtUsername_TextChanged"
                  Style="{StaticResource MaterialDesignOutlinedTextBox}"
                  materialDesign:HintAssist.IsFloating="False"
                  materialDesign:HintAssist.Hint="ID / Email / Tên tài khoản"
@@ -24,6 +25,7 @@
 
         <TextBlock Text="Mật khẩu" Foreground="Gray" Margin="0,15,0,5"/>
         <PasswordBox x:Name="txtPassword"
+                     PasswordChanged="txtPassword_PasswordChanged"
                      Style="{StaticResource MaterialDesignOutlinedRevealPasswordBox}"
                      materialDesign:HintAssist.IsFloating="False"
                      materialDesign:HintAssist.Hint="Mật khẩu"
@@ -33,8 +35,10 @@
         <Grid Margin="0,15">
             <CheckBox x:Name="chkRemember" 
                       Content="Ghi nhớ đăng nhập" 
+                      IsChecked="False"
                       Style="{StaticResource MaterialDesignCheckBox}" 
-                      Foreground="#333"/>
+                      Foreground="#333"
+                      Background="#4C70BA"/>
 
             <TextBlock Text="Quên mật khẩu" HorizontalAlignment="Right" Foreground="#4267B2" Cursor="Hand" MouseLeftButtonDown="TextBlock_MouseLeftButtonDown"/>
         </Grid>

@@ -1,0 +1,207 @@
+﻿<Window x:Class="PharmaDistributionApp.Views.EmployeeView.AddOrEditEmployeeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        mc:Ignorable="d"
+        
+        Title="Thông tin nhân viên" Height="650" Width="950"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="{DynamicResource MaterialDesignPaper}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}"
+        FontFamily="{DynamicResource MaterialDesignFont}">
+    
+    <Window.Resources>
+        <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#4C70BA"/>
+
+        <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="#6F8BC7"/>
+
+        <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="#305296"/>
+
+        <SolidColorBrush x:Key="PrimaryHueMidForegroundBrush" Color="White"/>
+    </Window.Resources>
+    
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0" Background="#4C70BA" Padding="20">
+            <StackPanel Orientation="Horizontal">
+                <materialDesign:PackIcon Kind="AccountDetails" Width="30" Height="30" Foreground="White" VerticalAlignment="Center"/>
+                <TextBlock x:Name="txtHeaderTitle" 
+                           Text="THÊM NHÂN VIÊN MỚI" 
+                           FontSize="20" FontWeight="Bold" Foreground="White" 
+                           Margin="15,0,0,0" VerticalAlignment="Center"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1" Margin="25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="260"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" VerticalAlignment="Top" Margin="0,5,25,0">
+                <Border Width="200" Height="260" 
+                        BorderBrush="#E0E0E0" BorderThickness="1" 
+                        CornerRadius="8" Background="#F5F5F5">
+                    <Border.Effect>
+                        <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.2" Color="Gray"/>
+                    </Border.Effect>
+
+                    <Image Source="{Binding AvatarSource}" Stretch="Uniform" />
+                </Border>
+
+                <Button Margin="0,20,0,0" Width="200" Height="40"
+                        Style="{StaticResource MaterialDesignOutlinedButton}"
+                        Click="btnUploadImage_Click" 
+                        BorderBrush="#4C70BA" Foreground="#4C70BA"
+                        ToolTip="Tải ảnh chân dung từ máy tính">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="CameraEnhance" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Chọn ảnh đại diện"/>
+                    </StackPanel>
+                </Button>
+
+                <TextBlock Text="Hỗ trợ: .jpg, .png, .jpeg" 
+                           HorizontalAlignment="Center" Margin="0,8,0,0" 
+                           Foreground="Gray" FontSize="11" FontStyle="Italic"/>
+            </StackPanel>
+
+            <ScrollViewer Grid.Column="1" VerticalScrollBarVisibility="Hidden">
+                <StackPanel Margin="5,0,10,0">
+
+                    <TextBlock Text="THÔNG TIN CƠ BẢN" FontWeight="Bold" Foreground="#4C70BA" Margin="0,0,0,15" Opacity="0.8"/>
+
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="txtManv" Grid.Column="0" 
+                                 Text="{Binding Manv, UpdateSourceTrigger=PropertyChanged}" 
+                                 materialDesign:HintAssist.Hint="Mã nhân viên (Bắt buộc)" 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}" 
+                                 FontWeight="Bold"/>
+
+                        <TextBox Grid.Column="2" 
+                                 Text="{Binding Tennv, UpdateSourceTrigger=PropertyChanged}" 
+                                 materialDesign:HintAssist.Hint="Họ và tên (Bắt buộc)" 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBox Grid.Column="0" 
+                                 Text="{Binding Cccd}" 
+                                 materialDesign:HintAssist.Hint="Số CCCD / CMND" 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 MaxLength="12"/>
+                                 
+                        <ComboBox Grid.Column="2" Text="{Binding GioiTinh}" materialDesign:HintAssist.Hint="Giới tính" Style="{StaticResource MaterialDesignFloatingHintComboBox}">
+                            <ComboBoxItem Content="Nam"/>
+                            <ComboBoxItem Content="Nữ"/>
+                            <ComboBoxItem Content="Khác"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <DatePicker Grid.Column="0" 
+                                    SelectedDate="{Binding Ngaysinh}" 
+                                    materialDesign:HintAssist.Hint="Ngày sinh" 
+                                    Style="{StaticResource MaterialDesignFloatingHintDatePicker}"/>
+                    </Grid>
+
+                    <TextBlock Text="CÔNG VIỆC &amp; TRẠNG THÁI" FontWeight="Bold" Foreground="#4C70BA" Margin="0,15,0,15" Opacity="0.8"/>
+
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0" 
+                                 Text="{Binding Chucvu}" 
+                                 materialDesign:HintAssist.Hint="Chức vụ / Vị trí" 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+
+                        <ComboBox Grid.Column="2" x:Name="cboTrangThai"
+                                  materialDesign:HintAssist.Hint="Trạng thái làm việc" 
+                                  Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                  SelectedValuePath="Tag"
+                                  SelectedValue="{Binding TrangThai}">
+
+                            <ComboBoxItem Content="Đang hoạt động" Tag="1" Foreground="Green"/>
+                            <ComboBoxItem Content="Tạm nghỉ" Tag="2" Foreground="#FFC107"/>
+                            <ComboBoxItem Content="Đã nghỉ việc" Tag="0" Foreground="Red"/>
+                        </ComboBox>
+                    </Grid>
+
+                    <TextBlock Text="LIÊN HỆ &amp; ĐỊA CHỈ" FontWeight="Bold" Foreground="#4C70BA" Margin="0,15,0,15" Opacity="0.8"/>
+
+                    <Grid Margin="0,0,0,20">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox Grid.Column="0" 
+                                 Text="{Binding Sdt}" 
+                                 materialDesign:HintAssist.Hint="Số điện thoại" 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+
+                        <TextBox Grid.Column="2" 
+                                 Text="{Binding Email}" 
+                                 materialDesign:HintAssist.Hint="Email cá nhân" 
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                    </Grid>
+
+                    <TextBox Text="{Binding Diachi}" 
+                             materialDesign:HintAssist.Hint="Địa chỉ thường trú" 
+                             Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                             TextWrapping="Wrap"
+                             Margin="0,0,0,10"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+
+        <Border Grid.Row="2" Padding="20" Background="#FAFAFA" BorderBrush="#EEEEEE" BorderThickness="0,1,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+
+                <Button Content="Thoát" Width="120" Height="40" 
+                        Style="{StaticResource MaterialDesignOutlinedButton}" 
+                        Foreground="#757575" BorderBrush="#BDBDBD" 
+                        Click="btnCancel_Click" IsCancel="True"
+                        Margin="0,0,15,0"/>
+
+                <Button Content="LƯU DỮ LIỆU" Width="160" Height="40" 
+                        Style="{StaticResource MaterialDesignRaisedButton}" 
+                        Background="#4C70BA" BorderBrush="{x:Null}" 
+                        Click="btnSave_Click" IsDefault="True">
+                    <Button.Effect>
+                        <DropShadowEffect BlurRadius="5" ShadowDepth="2" Opacity="0.3"/>
+                    </Button.Effect>
+                </Button>
+
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

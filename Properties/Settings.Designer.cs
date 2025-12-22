@@ -46,5 +46,17 @@ namespace PharmaDistributionApp.Properties {
                 this["IsRemembered"] = value;
             }
         }
+        
+        [global::System.Configuration.UserScopedSettingAttribute()]
+        [global::System.Diagnostics.DebuggerNonUserCodeAttribute()]
+        [global::System.Configuration.DefaultSettingValueAttribute("")]
+        public string SavedPassword {
+            get {
+                return ((string)(this["SavedPassword"]));
+            }
+            set {
+                this["SavedPassword"] = value;
+            }
+        }
     }
 }

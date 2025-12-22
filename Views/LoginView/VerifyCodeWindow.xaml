@@ -1,0 +1,66 @@
+﻿<UserControl x:Class="PharmaDistributionApp.Views.LoginView.VerifyCodeWindow"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             Background="White"
+             FontFamily="{DynamicResource MaterialDesignFont}"
+             TextElement.Foreground="{DynamicResource MaterialDesignBody}">
+
+    <UserControl.Resources>
+        <Style x:Key="OtpTextBoxStyle" TargetType="TextBox" BasedOn="{StaticResource MaterialDesignOutlinedTextBox}">
+            <Setter Property="Width" Value="50"/>
+            <Setter Property="Height" Value="60"/>
+            <Setter Property="Margin" Value="5"/>
+            <Setter Property="FontSize" Value="24"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Padding" Value="0,10,0,0"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="MaxLength" Value="1"/>
+            <Setter Property="BorderBrush" Value="#DDDDDD"/>
+            <Setter Property="IsUndoEnabled" Value="False"/>
+
+            <Style.Triggers>
+                <Trigger Property="IsKeyboardFocusWithin" Value="True">
+                    <Setter Property="BorderBrush" Value="#4C70BA"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <StackPanel VerticalAlignment="Center" Margin="60,0">
+            <TextBlock Text="NHẬP MÃ XÁC MINH" 
+                       FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"
+                       Foreground="#4C70BA" Margin="0,0,0,10"/>
+
+            <TextBlock Text="Chúng tôi đã gửi mã xác minh về Email của bạn. Mã sẽ hết hạn trong vòng 5 phút." 
+                       Foreground="Gray" TextWrapping="Wrap" HorizontalAlignment="Center" 
+                       TextAlignment="Center" Margin="0,0,0,30" FontSize="14"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,10">
+                <TextBox x:Name="txtC1" Style="{StaticResource OtpTextBoxStyle}"/>
+                <TextBox x:Name="txtC2" Style="{StaticResource OtpTextBoxStyle}"/>
+                <TextBox x:Name="txtC3" Style="{StaticResource OtpTextBoxStyle}"/>
+                <TextBox x:Name="txtC4" Style="{StaticResource OtpTextBoxStyle}"/>
+                <TextBox x:Name="txtC5" Style="{StaticResource OtpTextBoxStyle}"/>
+                <TextBox x:Name="txtC6" Style="{StaticResource OtpTextBoxStyle}"/>
+            </StackPanel>
+
+            <TextBlock x:Name="txbError" 
+                       Text="Mã xác minh không đúng" 
+                       Foreground="Red" 
+                       HorizontalAlignment="Center"
+                       FontSize="12" 
+                       Margin="0,0,0,20"
+                       Visibility="Collapsed"/>
+
+            <Button x:Name="btnConfirm" Content="XÁC NHẬN" Height="50" FontSize="18" FontWeight="Bold" 
+                    Background="#4C70BA" BorderBrush="{x:Null}" 
+                    materialDesign:ButtonAssist.CornerRadius="10"
+                    Click="btnConfirm_Click"/>
+
+            <Button Content="Quay lại" Style="{StaticResource MaterialDesignFlatButton}" 
+                    Foreground="Gray" Margin="0,10,0,0" Click="btnBack_Click"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

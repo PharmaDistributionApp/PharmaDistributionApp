@@ -53,5 +53,16 @@ namespace PharmaDistributionApp.Services
                 }
             }
         }
+        public static object ExecuteScalar(string sql)
+        {
+            using (var connection = GetConnection())
+            {
+                connection.Open();
+                using (var command = new SQLiteCommand(sql, connection))
+                {
+                    return command.ExecuteScalar();
+                }
+            }
+        }
     }
 }

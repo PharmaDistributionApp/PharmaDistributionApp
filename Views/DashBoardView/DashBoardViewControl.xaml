@@ -1,0 +1,199 @@
+﻿<UserControl x:Class="PharmaDistributionApp.Views.DashBoardView.DashBoardViewControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             d:DesignHeight="700" d:DesignWidth="1000"
+             Background="#F5F5F5" FontFamily="{DynamicResource MaterialDesignFont}">
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <StackPanel Grid.Row="0" Margin="0,0,0,20">
+            <TextBlock Text="TỔNG QUAN HỆ THỐNG" FontSize="24" FontWeight="Bold" Foreground="#4C70BA"/>
+            <TextBlock x:Name="txtDate" Text="Hôm nay: 22/12/2025" FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+        </StackPanel>
+
+        <Grid Grid.Row="1" Margin="0,0,0,20">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" CornerRadius="10" Margin="0,0,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
+                <Grid Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#E8F5E9" CornerRadius="25" Width="50" Height="50">
+                        <materialDesign:PackIcon Kind="CurrencyUsd" Width="30" Height="30" Foreground="#4CAF50" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
+                        <TextBlock Text="Tổng Doanh Thu" Foreground="Gray" FontSize="12"/>
+                        <TextBlock x:Name="txtRevenue" Text="0 đ" FontWeight="Bold" FontSize="18" Foreground="#2E7D32"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Background="White" CornerRadius="10" Margin="10,0,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
+                <Grid Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#FFEBEE" CornerRadius="25" Width="50" Height="50">
+                        <materialDesign:PackIcon Kind="CartArrowDown" Width="30" Height="30" Foreground="#E53935" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
+                        <TextBlock Text="Chi Phí Nhập" Foreground="Gray" FontSize="12"/>
+                        <TextBlock x:Name="txtExpense" Text="0 đ" FontWeight="Bold" FontSize="18" Foreground="#C62828"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="2" Background="White" CornerRadius="10" Margin="10,0,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
+                <Grid Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#FFF3E0" CornerRadius="25" Width="50" Height="50">
+                        <materialDesign:PackIcon Kind="AlertCircleOutline" Width="30" Height="30" Foreground="#EF6C00" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
+                        <TextBlock Text="Sắp hết hàng" Foreground="Gray" FontSize="12"/>
+                        <TextBlock x:Name="txtLowStock" Text="0" FontWeight="Bold" FontSize="18" Foreground="#EF6C00"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="3" Background="White" CornerRadius="10" Margin="10,0,0,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
+                <Grid Margin="15">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Border Background="#E3F2FD" CornerRadius="25" Width="50" Height="50">
+                        <materialDesign:PackIcon Kind="AccountMultipleOutline" Width="30" Height="30" Foreground="#1976D2" VerticalAlignment="Center" HorizontalAlignment="Center"/>
+                    </Border>
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
+                        <TextBlock Text="Khách hàng" Foreground="Gray" FontSize="12"/>
+                        <TextBlock x:Name="txtCustomerCount" Text="0" FontWeight="Bold" FontSize="18" Foreground="#1565C0"/>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+
+        <Grid Grid.Row="2">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1.2*"/>
+            </Grid.ColumnDefinitions>
+
+            <Border Grid.Column="0" Background="White" CornerRadius="10" Margin="0,0,10,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Margin="20">
+                        <TextBlock Text="Đơn xuất hàng gần đây" FontWeight="Bold" FontSize="16" Foreground="#444" VerticalAlignment="Center"/>
+                        <Button Style="{StaticResource MaterialDesignFlatButton}" Content="Xem tất cả" HorizontalAlignment="Right" Foreground="#4C70BA"/>
+                    </DockPanel>
+
+                    <DataGrid x:Name="dgRecentOrders" Grid.Row="1" Margin="10,0,10,10"
+                              AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
+                              HeadersVisibility="Column" GridLinesVisibility="Horizontal"
+                              HorizontalGridLinesBrush="#EEE" Background="White" BorderThickness="0">
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Mã HĐ" Binding="{Binding SOHDXUAT}" Width="100"/>
+                            <DataGridTextColumn Header="Ngày lập" Binding="{Binding NGAYLAP}" Width="120"/>
+                            <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TONGTIEN_FMT}" FontWeight="Bold" Width="*">
+                                <DataGridTextColumn.ElementStyle>
+                                    <Style TargetType="TextBlock">
+                                        <Setter Property="HorizontalAlignment" Value="Right"/>
+                                        <Setter Property="Padding" Value="0,0,10,0"/>
+                                    </Style>
+                                </DataGridTextColumn.ElementStyle>
+                            </DataGridTextColumn>
+                            <DataGridTemplateColumn Header="Trạng thái" Width="100">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border Background="#E8F5E9" CornerRadius="5" Padding="5,2" Margin="5">
+                                            <TextBlock Text="Hoàn thành" Foreground="#2E7D32" FontSize="11" HorizontalAlignment="Center"/>
+                                        </Border>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Grid>
+            </Border>
+
+            <Border Grid.Column="1" Background="White" CornerRadius="10" Margin="10,0,0,0" Effect="{StaticResource MaterialDesignShadowDepth1}">
+                <Grid Margin="20">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <DockPanel Grid.Row="0" Margin="0,0,0,15">
+                        <TextBlock Text="Hàng hóa tồn kho" FontWeight="Bold" FontSize="16" Foreground="#444" VerticalAlignment="Center"/>
+                        <materialDesign:PackIcon Kind="ChartPie" HorizontalAlignment="Right" Foreground="Gray" Width="20" Height="20" DockPanel.Dock="Right"/>
+                    </DockPanel>
+
+                    <StackPanel Grid.Row="1" Margin="0,0,0,15">
+                        <TextBlock x:Name="txtTotalStockValue" Text="0 đ" FontSize="26" FontWeight="Bold" Foreground="#4C70BA"/>
+                        <TextBlock Text="TỔNG GIÁ TRỊ TỒN" FontSize="11" Foreground="Gray" Margin="0,2,0,0" FontWeight="SemiBold"/>
+                        <Separator Background="#EEE" Margin="0,10,0,0"/>
+                    </StackPanel>
+
+                    <ScrollViewer Grid.Row="2" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                        <ItemsControl x:Name="icStockList">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Grid Margin="0,0,0,15">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="15"/>
+                                            <ColumnDefinition Width="*"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                            <ColumnDefinition Width="Auto"/>
+                                        </Grid.ColumnDefinitions>
+
+                                        <Border Grid.Column="0" Width="10" Height="10" Background="{Binding ColorCode}" 
+                                                CornerRadius="2" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+                                        <TextBlock Grid.Column="1" Text="{Binding TenSP}" FontWeight="SemiBold" Foreground="#333" 
+                                                   VerticalAlignment="Center" TextTrimming="CharacterEllipsis" Margin="0,0,10,0" 
+                                                   ToolTip="{Binding TenSP}"/>
+
+                                        <StackPanel Grid.Column="2" VerticalAlignment="Center" Margin="0,0,15,0" MinWidth="50">
+                                            <TextBlock Text="{Binding SoLuong}" FontSize="12" FontWeight="Bold" HorizontalAlignment="Right"/>
+                                            <TextBlock Text="sl" FontSize="9" Foreground="Gray" HorizontalAlignment="Right"/>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="3" VerticalAlignment="Center" MinWidth="80">
+                                            <TextBlock Text="{Binding GiaTriFmt}" FontSize="12" FontWeight="Bold" Foreground="#4C70BA" HorizontalAlignment="Right"/>
+                                            <TextBlock Text="VND" FontSize="9" Foreground="Gray" HorizontalAlignment="Right"/>
+                                        </StackPanel>
+                                    </Grid>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Grid>
+    </Grid>
+</UserControl>

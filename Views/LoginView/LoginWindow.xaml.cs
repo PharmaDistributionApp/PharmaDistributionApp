@@ -1,7 +1,7 @@
 ﻿using System.Windows;
 using System.Windows.Input;
 
-namespace PharmaDistributionApp.Views
+namespace PharmaDistributionApp.Views.LoginView
 {
     public partial class LoginWindow : Window
     {

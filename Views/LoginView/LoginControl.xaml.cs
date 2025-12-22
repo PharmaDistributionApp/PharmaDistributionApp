@@ -7,14 +7,13 @@ using System.Windows.Input;
 using System.Windows.Media; // Cần thêm thư viện này để dùng màu sắc (Brushes)
 using PharmaDistributionApp.Services;
 
-namespace PharmaDistributionApp.Views
+namespace PharmaDistributionApp.Views.LoginView
 {
     public partial class LoginControl : UserControl
     {
         // Định nghĩa màu viền mặc định và màu lỗi
         private readonly Brush _defaultBorder = (Brush)new BrushConverter().ConvertFrom("#DDDDDD");
         private readonly Brush _errorBorder = Brushes.Red;
-
         public LoginControl()
         {
             InitializeComponent();
@@ -26,8 +25,8 @@ namespace PharmaDistributionApp.Views
             if (Properties.Settings.Default.IsRemembered)
             {
                 txtUsername.Text = Properties.Settings.Default.SavedUsername;
+                txtPassword.Password = Properties.Settings.Default.SavedPassword;
                 chkRemember.IsChecked = true;
-                txtPassword.Focus();
             }
         }
 
@@ -38,19 +37,26 @@ namespace PharmaDistributionApp.Views
 
             string input = txtUsername.Text.Trim();
             string pass = txtPassword.Password;
+            bool hasValidationError = false;
 
             // Kiểm tra rỗng (Validation đầu vào)
             if (string.IsNullOrEmpty(input))
             {
-                SetErrorState(txtUsername, "Vui lòng nhập tài khoản/email");
-                return;
-            }
-            if (string.IsNullOrEmpty(pass))
-            {
-                SetErrorState(txtPassword, "Vui lòng nhập mật khẩu");
-                return;
+                txtUsername.BorderBrush = _errorBorder;
+                hasValidationError = true;
             }
 
+            if (string.IsNullOrEmpty(pass))
+            {
+                txtPassword.BorderBrush = _errorBorder;
+                hasValidationError = true;
+            }
+
+            if (hasValidationError)
+            {
+                ShowError("Vui lòng điền đầy đủ thông tin");
+                return;
+            }
             try
             {
                 // 2. QUERY CHỈ TÌM TÀI KHOẢN (Bỏ phần check mật khẩu ở đây)
@@ -100,22 +106,12 @@ namespace PharmaDistributionApp.Views
 
                 // --- ĐĂNG NHẬP THÀNH CÔNG ---
 
-                // Lưu Remember Me
-                if (chkRemember.IsChecked == true)
-                {
-                    Properties.Settings.Default.SavedUsername = input;
-                    Properties.Settings.Default.IsRemembered = true;
-                }
-                else
-                {
-                    Properties.Settings.Default.SavedUsername = "";
-                    Properties.Settings.Default.IsRemembered = false;
-                }
-                Properties.Settings.Default.Save();
+                // Gọi hàm lưu với tên biến mới
+                SaveRememberMe(input, pass);
 
                 // Chuyển màn hình
-                MainWindow.CurrentMaNV = row["MANV"].ToString(); // Lưu MANV vào biến tĩnh
                 MainWindow main = new MainWindow();
+                main.CurrentMaNV = row["MANV"]?.ToString(); // Lưu MANV vào biến tĩnh
                 main.Show();
 
                 Window parentWindow = Window.GetWindow(this);
@@ -126,15 +122,27 @@ namespace PharmaDistributionApp.Views
                 MessageBox.Show("Lỗi: " + ex.Message);
             }
         }
-
-        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        private void SaveRememberMe(string username, string password)
         {
-            var parentWindow = Window.GetWindow(this) as LoginWindow;
-            if (parentWindow != null)
+            if (chkRemember.IsChecked == true)
             {
-                parentWindow.NavigateToForgotPass();
+                Properties.Settings.Default.SavedUsername = username;
+                Properties.Settings.Default.SavedPassword = password;
+
+                // Đã đổi thành IsRemembered
+                Properties.Settings.Default.IsRemembered = true;
             }
+            else
+            {
+                Properties.Settings.Default.SavedUsername = "";
+                Properties.Settings.Default.SavedPassword = "";
+
+                // Đã đổi thành IsRemembered
+                Properties.Settings.Default.IsRemembered = false;
+            }
+            Properties.Settings.Default.Save();
         }
+
 
         // Hàm hiển thị lỗi chung chung (không tô viền)
         private void ShowError(string message)
@@ -149,8 +157,8 @@ namespace PharmaDistributionApp.Views
         private void ResetUI()
         {
             txbErrorMessage.Visibility = Visibility.Collapsed;
-            txtUsername.BorderBrush = _defaultBorder;
-            txtPassword.BorderBrush = _defaultBorder;
+            if (txtUsername.BorderBrush == _errorBorder) txtUsername.BorderBrush = _defaultBorder;
+            if (txtPassword.BorderBrush == _errorBorder) txtPassword.BorderBrush = _defaultBorder;
         }
 
         // Hàm báo lỗi: Tô đỏ viền control + Hiện thông báo + Focus con trỏ
@@ -165,5 +173,32 @@ namespace PharmaDistributionApp.Views
             // 3. Hiện thông báo lỗi
             ShowError(message);
         }
+        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var parentWindow = Window.GetWindow(this) as LoginWindow;
+            if (parentWindow != null)
+            {
+                parentWindow.NavigateToForgotPass();
+            }
+        }
+        private void txtUsername_TextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (txtUsername.BorderBrush == _errorBorder)
+            {
+                txtUsername.BorderBrush = _defaultBorder;
+                txbErrorMessage.Visibility = Visibility.Collapsed;
+            }
+        }
+        private void txtPassword_PasswordChanged(object sender, RoutedEventArgs e)
+        {
+            if (txtPassword.BorderBrush == _errorBorder)
+            {
+                txtPassword.BorderBrush = _defaultBorder;
+                txbErrorMessage.Visibility = Visibility.Collapsed;
+            }
+
+        }
+
+
     }
 }

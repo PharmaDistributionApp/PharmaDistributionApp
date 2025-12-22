@@ -4,7 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using PharmaDistributionApp.Models;
 
-namespace PharmaDistributionApp.Views
+namespace PharmaDistributionApp.Views.LoginView
 {
     public partial class ChangePasswordControl : UserControl
     {
