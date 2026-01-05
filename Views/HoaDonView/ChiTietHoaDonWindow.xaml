@@ -1,0 +1,34 @@
+﻿<Window x:Class="PharmaDistributionApp.Views.ChiTietHoaDonWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Chi tiết hóa đơn" Height="450" Width="600"
+        WindowStartupLocation="CenterScreen"
+        ResizeMode="NoResize"
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        TextElement.Foreground="{DynamicResource MaterialDesignBody}">
+
+    <Grid Margin="20">
+        <StackPanel>
+            <TextBlock Text="CHI TIẾT HÓA ĐƠN" FontSize="24" FontWeight="Bold" Foreground="#4C70BA" HorizontalAlignment="Center" Margin="0,0,0,20"/>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBlock Text="Mã hóa đơn:" FontWeight="Bold" Width="120"/>
+                <TextBlock x:Name="txbMaHD" Text="..."/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBlock Text="Khách hàng:" FontWeight="Bold" Width="120"/>
+                <TextBlock x:Name="txbKhachHang" Text="..."/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Margin="0,0,0,10">
+                <TextBlock Text="Tổng tiền:" FontWeight="Bold" Width="120"/>
+                <TextBlock x:Name="txbTongTien" Text="..." Foreground="#D32F2F" FontWeight="Bold"/>
+            </StackPanel>
+
+            <Separator Margin="0,20"/>
+            <Button IsCancel="True" Content="Đóng" Width="100" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignOutlinedButton}"/>
+        </StackPanel>
+    </Grid>
+</Window>

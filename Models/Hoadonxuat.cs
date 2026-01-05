@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace PharmaDistributionApp.Models;
+﻿namespace PharmaDistributionApp.Models;
 
 public partial class Hoadonxuat
 {
@@ -11,4 +8,7 @@ public partial class Hoadonxuat
     public double? Vat { get; set; }
     public string? Manv { get; set; }
     public string? Makh { get; set; }
+
+    // THÊM LẠI DÒNG NÀY
+    public string? Trangthai { get; set; }
 }

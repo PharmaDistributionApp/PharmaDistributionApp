@@ -50,7 +50,7 @@ namespace PharmaDistributionApp.Views
                     MainContent.Content = new TextBlock { Text = "Màn hình Kho đang phát triển", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                     break;
                 case "HoaDon":
-                    MainContent.Content = new TextBlock { Text = "Màn hình Hóa đơn đang phát triển", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                    MainContent.Content = new HoaDonControl();
                     break;
                 case "NhaCungCap":
                     MainContent.Content = new TextBlock { Text = "Màn hình Nhà cung cấp đang phát triển", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };

@@ -92,8 +92,32 @@ public partial class QuanlyphanphoiduocphamContext : DbContext
         });
 
         modelBuilder.Entity<Nhanvien>(e => { e.ToTable("NHANVIEN"); e.HasKey(x => x.Manv); e.Property(x => x.Manv).HasColumnName("MANV"); e.Property(x => x.Avatar).HasColumnName("AVATAR"); });
-        modelBuilder.Entity<Hoadonnhap>(e => { e.ToTable("HOADONNHAP"); e.HasKey(x => x.Sohdnhap); e.Property(x => x.Sohdnhap).HasColumnName("SOHDNHAP"); });
-        modelBuilder.Entity<Hoadonxuat>(e => { e.ToTable("HOADONXUAT"); e.HasKey(x => x.Sohdxuat); e.Property(x => x.Sohdxuat).HasColumnName("SOHDXUAT"); });
+        
+        modelBuilder.Entity<Hoadonnhap>(entity =>
+        {
+            entity.ToTable("HOADONNHAP");
+            entity.HasKey(e => e.Sohdnhap);
+            entity.Property(e => e.Sohdnhap).HasColumnName("SOHDNHAP");
+
+            // --- THÊM ĐOẠN NÀY ĐỂ FIX LỖI ---
+            // Chỉ định rõ: Mối quan hệ với Nhà cung cấp sử dụng cột "Mancc"
+            entity.HasOne<Nhacungcap>()         // Liên kết với bảng Nhacungcap
+                  .WithMany()                   // Một NCC có nhiều hóa đơn
+                  .HasForeignKey(d => d.Mancc); // Khóa ngoại là Mancc (thay vì NhacungcapMancc)
+        });
+        modelBuilder.Entity<Hoadonxuat>(entity =>
+        {
+            entity.ToTable("HOADONXUAT");
+            entity.HasKey(e => e.Sohdxuat);
+            entity.Property(e => e.Sohdxuat).HasColumnName("SOHDXUAT");
+
+            // --- THÊM ĐOẠN NÀY ĐỂ FIX LỖI ---
+            // Chỉ định rõ: Mối quan hệ với Khách hàng sử dụng cột "Makh"
+            entity.HasOne<Khachhang>()          // Liên kết với bảng Khachhang
+                  .WithMany()                   // Một KH có nhiều hóa đơn
+                  .HasForeignKey(d => d.Makh);  // Khóa ngoại là Makh (thay vì KhachhangMakh)
+        }); 
+        
         modelBuilder.Entity<Phieunhap>(e => { e.ToTable("PHIEUNHAP"); e.HasKey(x => x.Mapn); e.Property(x => x.Mapn).HasColumnName("MAPN"); });
         modelBuilder.Entity<Phieuxuat>(e => { e.ToTable("PHIEUXUAT"); e.HasKey(x => x.Mapx); e.Property(x => x.Mapx).HasColumnName("MAPX"); });
         modelBuilder.Entity<Sanpham>(e => { e.ToTable("SANPHAM"); e.HasKey(x => x.Masp); e.Property(x => x.Masp).HasColumnName("MASP"); });
