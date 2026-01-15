@@ -1,0 +1,342 @@
+﻿<UserControl x:Class="PharmaDistributionApp.Views.ProductView.SanPhamControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+             mc:Ignorable="d" 
+             MouseDown="UserControl_MouseDown"
+             d:DesignHeight="700" d:DesignWidth="1100"
+             Background="#F3F5F9" FontFamily="{DynamicResource MaterialDesignFont}">
+
+    <UserControl.Resources>
+        <Style TargetType="DataGridColumnHeader">
+            <Setter Property="Background" Value="#4C70BA"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Padding" Value="10,12"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="BorderThickness" Value="0,0,1,0"/>
+            <Setter Property="BorderBrush" Value="#6B92D8"/>
+        </Style>
+
+        <Style TargetType="DataGridCell">
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="8,0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="DataGridCell">
+                        <Border Background="{TemplateBinding Background}" 
+                                BorderThickness="0"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="Transparent"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style TargetType="DataGridRow">
+            <Setter Property="Background" Value="White"/>
+            <Setter Property="Height" Value="50"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalContentAlignment" Value="Center"/>
+            <Setter Property="BorderThickness" Value="0,0,0,1"/>
+            <Setter Property="BorderBrush" Value="#EEE"/>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#F5F5F5"/>
+                </Trigger>
+                <Trigger Property="IsSelected" Value="True">
+                    <Setter Property="Background" Value="#E0E0E0"/>
+                    <Setter Property="Foreground" Value="Black"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="RoundedBtn" TargetType="Button">
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <TranslateTransform Y="0"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border"
+                                Background="{TemplateBinding Background}" 
+                                BorderBrush="{TemplateBinding BorderBrush}" 
+                                BorderThickness="{TemplateBinding BorderThickness}" 
+                                CornerRadius="22">
+
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="shadow" 
+                                                  BlurRadius="5" 
+                                                  ShadowDepth="1" 
+                                                  Direction="270" 
+                                                  Opacity="0.3" 
+                                                  Color="#888"/>
+                            </Border.Effect>
+
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="-4" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="BlurRadius" To="15" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="ShadowDepth" To="4" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="0" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="BlurRadius" To="5" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="ShadowDepth" To="1" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FullRowMenuItem" TargetType="MenuItem">
+            <Setter Property="Height" Value="40"/>
+            <Setter Property="Padding" Value="0"/>
+            <Setter Property="Margin" Value="0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="MenuItem">
+                        <Border x:Name="Bd" Background="{TemplateBinding Background}" BorderThickness="0" SnapsToDevicePixels="True">
+                            <Grid>
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="45"/>
+                                    <ColumnDefinition Width="*"/>
+                                </Grid.ColumnDefinitions>
+                                <ContentPresenter Grid.Column="0" ContentSource="Icon" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <ContentPresenter Grid.Column="1" ContentSource="Header" VerticalAlignment="Center" HorizontalAlignment="Left" Margin="5,0,15,0"/>
+                            </Grid>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsHighlighted" Value="True">
+                                <Setter TargetName="Bd" Property="Background" Value="#E8E8E8"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid Margin="25">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Grid Grid.Row="0" Margin="0,0,0,25">
+            <TextBlock Text="Danh sách sản phẩm" 
+                       FontSize="32" FontWeight="Bold" Foreground="#4C70BA"
+                       VerticalAlignment="Center" HorizontalAlignment="Left"/>
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
+                <Border Background="White" CornerRadius="22" BorderThickness="0" Height="44" Width="300" Margin="0,0,10,0">
+                    <Border.Effect>
+                        <DropShadowEffect ShadowDepth="2" Direction="270" Color="#40000000" Opacity="0.5" BlurRadius="8"/>
+                    </Border.Effect>
+                    <Grid>
+                        <TextBlock Text="🔍" VerticalAlignment="Center" Margin="15,0,0,0" Foreground="Gray" FontSize="16"/>
+                        <TextBox x:Name="txtTimKiem" 
+                                 materialDesign:TextFieldAssist.UnderlineBrush="#4C70BA"
+         
+                                 CaretBrush="#4C70BA"
+                                 SelectionBrush="#4C70BA"
+                                 SelectionOpacity="0.3"
+                                 BorderThickness="0" Background="Transparent" 
+                                 VerticalContentAlignment="Center" Margin="45,0,15,0"
+                                 FontSize="14"
+                                 materialDesign:HintAssist.Hint="Tìm kiếm..."
+                                 materialDesign:HintAssist.IsFloating="False"
+                                 Foreground="Gray"
+                                 TextChanged="txtTimKiem_TextChanged"/>
+                    </Grid>
+                </Border>
+
+                <Button Content="📊 Xuất excel" Height="44" Width="130" Margin="0,0,10,0"
+                        Style="{StaticResource RoundedBtn}"
+                        Background="White" Foreground="#4C70BA" BorderBrush="#4C70BA" BorderThickness="1"
+                        FontWeight="SemiBold" FontSize="14" Click="BtnXuatExcel_Click"/>
+
+                <Button Content="+ Thêm mới" Height="44" Width="130"
+                        Style="{StaticResource RoundedBtn}"
+                        Background="#4C70BA" Foreground="White" BorderThickness="0"
+                        FontWeight="Bold" FontSize="14" Click="BtnThemMoi_Click"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="1" Background="White" CornerRadius="8" BorderBrush="#DDD" BorderThickness="1" Padding="0" ClipToBounds="True">
+            <DataGrid x:Name="dgvSanPham" 
+                      CanUserSortColumns="False"
+                      AutoGenerateColumns="False" 
+                      CanUserAddRows="False"
+                      IsReadOnly="True"               
+                      SelectionMode="Single"
+                      SelectionUnit="FullRow"
+                      GridLinesVisibility="Horizontal"
+                      HorizontalGridLinesBrush="#EEEEEE"
+                      VerticalGridLinesBrush="Transparent"
+                      HeadersVisibility="Column"
+                      BorderThickness="0"
+                      Background="White"
+                      RowHeaderWidth="0"
+                      MouseDoubleClick="dgvSanPham_MouseDoubleClick">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Mã sản phẩm" Binding="{Binding Masp}" Width="120">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="Padding" Value="10,0"/>
+                                <Setter Property="Foreground" Value="#4C70BA"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Tên sản phẩm" Binding="{Binding Tensp}" Width="*">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                <Setter Property="Padding" Value="5,0"/>
+                                <Setter Property="ToolTip" Value="{Binding Tensp}"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Đơn vị" Binding="{Binding Dvt}" Width="80">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Loại" Binding="{Binding TenLoai}" Width="200">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                <Setter Property="ToolTip" Value="{Binding TenLoai}"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTextColumn Header="Giá bán" Binding="{Binding Giaban, StringFormat={}{0:N0} đ}" Width="180">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Right"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="Padding" Value="0,0,15,0"/>
+                                <Setter Property="ToolTip" Value="{Binding Giaban, StringFormat={}{0:N0} đ}"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+                    <DataGridTemplateColumn Header="Trạng thái" Width="140">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Border Background="{Binding MauNenTrangThai}" 
+                                        CornerRadius="12" 
+                                        Padding="10,4" 
+                                        HorizontalAlignment="Center" 
+                                        VerticalAlignment="Center"
+                                        SnapsToDevicePixels="True">
+                                    <TextBlock Text="{Binding TenTrangThai}" 
+                                               Foreground="{Binding MauChuTrangThai}" 
+                                               FontWeight="SemiBold" 
+                                               FontSize="12"
+                                               HorizontalAlignment="Center"/>
+                                </Border>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+
+                    <DataGridTextColumn Header="Nhà cung cấp" Binding="{Binding Nhacungcap}" Width="200">
+                    </DataGridTextColumn>
+
+
+                    <DataGridTemplateColumn Header="Thao tác" Width="90">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate>
+                                <Button Background="Transparent" BorderThickness="0" HorizontalAlignment="Center" Cursor="Hand" Click="BtnHanhDong_Click">
+                                    <TextBlock Text="⋮" FontSize="24" FontWeight="Bold" Foreground="#888" Margin="0,-8,0,0"/>
+                                    <Button.ContextMenu>
+                                        <ContextMenu Padding="0" BorderThickness="1" BorderBrush="#DDD">
+                                            <ContextMenu.Template>
+                                                <ControlTemplate TargetType="ContextMenu">
+                                                    <Border Background="White" CornerRadius="8" BorderThickness="1" BorderBrush="#EEE" Padding="5">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
+                                                        </Border.Effect>
+                                                        <StackPanel IsItemsHost="True"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </ContextMenu.Template>
+
+                                            <MenuItem Header="Chỉnh sửa" Click="BtnSua_Click" Foreground="#4C70BA" FontWeight="Bold" FontSize="14" Height="35">
+                                                <MenuItem.Icon>
+                                                    <Viewbox Width="16" Height="16">
+                                                        <Path Data="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z" Fill="#4C70BA" />
+                                                    </Viewbox>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+
+                                            <MenuItem Header="Xóa" Click="BtnXoa_Click" Foreground="#D32F2F" FontWeight="Bold" FontSize="14" Height="35">
+                                                <MenuItem.Icon>
+                                                    <Viewbox Width="16" Height="16">
+                                                        <Path Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19V4ZM6,19A2,2,0,0,0,8,21H16A2,2,0,0,0,18,19V7H6V19Z" Fill="#D32F2F" />
+                                                    </Viewbox>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                </Button>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                </DataGrid.Columns>
+            </DataGrid>
+        </Border>
+    </Grid>
+</UserControl>

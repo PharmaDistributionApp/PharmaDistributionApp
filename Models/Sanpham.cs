@@ -17,8 +17,8 @@ public partial class Sanpham
 
     public decimal Giaban { get; set; }
 
-    public int? Trangthai { get; set; }
-
     public string Maloai { get; set; } = null!;
+    public string? Nhacungcap { get; set; }
+    public string? Ghichu { get; set; }
 
 }

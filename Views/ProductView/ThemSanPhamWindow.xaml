@@ -1,0 +1,93 @@
+﻿<Window x:Class="PharmaDistributionApp.Views.ProductView.ThemSanPhamWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Thêm sản phẩm mới" Height="650" Width="600"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        WindowStyle="None" Background="Transparent" AllowsTransparency="True"
+        FontFamily="{DynamicResource MaterialDesignFont}">
+
+    <Border Background="White" CornerRadius="20" BorderBrush="#4C70BA" BorderThickness="2">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="60"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="80"/>
+            </Grid.RowDefinitions>
+
+            <Border Grid.Row="0" Background="#4C70BA" CornerRadius="18,18,0,0">
+                <Grid>
+                    <TextBlock Text="THÊM SẢN PHẨM MỚI" Foreground="White" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center" 
+                               FontSize="20" FontWeight="Bold"/>
+                    <Button Content="✕" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                            Margin="0,10,10,0" Width="30" Height="30"
+                            Background="Transparent" BorderThickness="0" Foreground="White" 
+                            FontSize="16" FontWeight="Bold" Cursor="Hand" Click="BtnThoat_Click"/>
+                </Grid>
+            </Border>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="30,20">
+
+                    <TextBox x:Name="txtMaSP" 
+                     materialDesign:HintAssist.Hint="Mã sản phẩm" 
+                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" 
+                     Margin="0,0,0,15"
+                     IsReadOnly="True" 
+                     FontWeight="Bold"
+                     Foreground="#4C70BA"/>
+
+                    <TextBox x:Name="txtTenSP" materialDesign:HintAssist.Hint="Tên sản phẩm" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,15"/>
+
+                    <ComboBox x:Name="cboLoaiThuoc" materialDesign:HintAssist.Hint="Loại thuốc" Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="0,0,0,15"
+                              DisplayMemberPath="Tenloai" SelectedValuePath="Maloai"/>
+
+                    <ComboBox x:Name="cboNhaCungCap" materialDesign:HintAssist.Hint="Nhà cung cấp (Chọn từ danh sách)" Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="0,0,0,15"
+                              DisplayMemberPath="TenNCC" SelectedValuePath="TenNCC"/>
+
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" x:Name="txtGiaBan" materialDesign:HintAssist.Hint="Giá bán (VNĐ)" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        <TextBox Grid.Column="2" x:Name="txtDVT" materialDesign:HintAssist.Hint="Đơn vị tính (Hộp/Vỉ/Lọ)" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                    </Grid>
+
+                    <Grid Margin="0,15,0,0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="20"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <TextBox Grid.Column="0" x:Name="txtNuocSX" materialDesign:HintAssist.Hint="Nước sản xuất" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        <TextBox Grid.Column="2" x:Name="txtHoatChat" materialDesign:HintAssist.Hint="Hoạt chất" Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                    </Grid>
+
+                    <TextBox x:Name="txtSoLuong" materialDesign:HintAssist.Hint="Số lượng nhập ban đầu (Dự kiến)" Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,15,0,0"/>
+                    <TextBlock Text="* Lưu ý: Trạng thái sẽ tự động set là 'Đang nhập'" Foreground="#EF6C00" FontStyle="Italic" Margin="0,10,0,0" FontSize="12"/>
+
+                </StackPanel>
+            </ScrollViewer>
+
+            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,30,0">
+                <Button Content="Hủy bỏ" Width="100" Height="40" Background="#EEE" Foreground="#333" BorderThickness="0" Click="BtnThoat_Click" Margin="0,0,15,0">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="20"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+                <Button Content="Lưu sản phẩm" Width="140" Height="40" Background="#4C70BA" Foreground="White" BorderThickness="0" Click="BtnLuu_Click">
+                    <Button.Resources>
+                        <Style TargetType="Border">
+                            <Setter Property="CornerRadius" Value="20"/>
+                        </Style>
+                    </Button.Resources>
+                </Button>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

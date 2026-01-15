@@ -15,6 +15,4 @@ public partial class Nhacungcap
 
     public string? Diachi { get; set; }
 
-    public string? Masothue { get; set; }
-
 }

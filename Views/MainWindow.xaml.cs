@@ -6,6 +6,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using PharmaDistributionApp.Views.LoginView;
 using PharmaDistributionApp.Views.DashBoardView;
+using PharmaDistributionApp.Views.NCCView;
+using PharmaDistributionApp.Views.ProductView;
 
 namespace PharmaDistributionApp.Views
 {
@@ -21,7 +23,7 @@ namespace PharmaDistributionApp.Views
             txbUserName.Text = "Nguyễn Văn A";
 
             // Mặc định chọn Menu "Kho" khi mở lên (hoặc Nhân sự tùy bạn)
-            SetActiveMenu(btnTongQuan); // Giả sử chọn Nhân sự trước để test
+            SetActiveMenu(btnTongQuan);
             MainContent.Content = new DashBoardViewControl();
         }
 
@@ -38,7 +40,7 @@ namespace PharmaDistributionApp.Views
             string tag = clickedBtn.Tag.ToString();
             switch (tag)
             {
-                case "TongQuan": 
+                case "TongQuan":
                     MainContent.Content = new DashBoardViewControl();
                     break;
 
@@ -53,8 +55,15 @@ namespace PharmaDistributionApp.Views
                     MainContent.Content = new HoaDonControl();
                     break;
                 case "NhaCungCap":
-                    MainContent.Content = new TextBlock { Text = "Màn hình Nhà cung cấp đang phát triển", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
+                    MainContent.Content = new NhaCungCapControl();
                     break;
+
+                // [MỚI] CASE XỬ LÝ SẢN PHẨM
+                case "SanPham":
+                    // Nếu bạn đã có UserControl cho sản phẩm thì thay dòng dưới bằng: new SanPhamControl();
+                    MainContent.Content = new SanPhamControl();
+                    break;
+
                 case "Account":
                     MainContent.Content = new AccountControl();
                     break;
@@ -70,6 +79,7 @@ namespace PharmaDistributionApp.Views
             ResetButtonStyle(btnNhanSu);
             ResetButtonStyle(btnHoaDon);
             ResetButtonStyle(btnNhaCungCap);
+            ResetButtonStyle(btnSanPham); // [MỚI] Reset thêm nút sản phẩm
             ResetButtonStyle(btnAccount);
 
             // Set nút đang chọn thành nền Trắng, chữ Xanh

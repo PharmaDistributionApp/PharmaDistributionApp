@@ -12,13 +12,11 @@
         FontFamily="{DynamicResource MaterialDesignFont}"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}">
-
     <Grid>
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="250"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-
         <Border Grid.Column="0" Background="#4C70BA">
             <Grid>
                 <Grid.RowDefinitions>
@@ -26,77 +24,74 @@
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
-
                 <StackPanel Grid.Row="0">
                     <Grid Margin="20,30,20,20">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-
                         <Border Width="50" Height="50" CornerRadius="25" BorderBrush="White" BorderThickness="1">
                             <materialDesign:PackIcon Kind="AccountCircle" Width="48" Height="48" Foreground="White" 
-                                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
-
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
                             <TextBlock x:Name="txbUserName" Text="Admin User" 
-                                       Foreground="White" FontWeight="Bold" FontSize="15" 
-                                       TextTrimming="CharacterEllipsis"/>
+                                   Foreground="White" FontWeight="Bold" FontSize="15" 
+                                   TextTrimming="CharacterEllipsis"/>
                             <Border Background="#40FFFFFF" CornerRadius="10" HorizontalAlignment="Left" Padding="8,2" Margin="0,5,0,0">
                                 <TextBlock x:Name="txbUserRole" Text="Quản trị viên" Foreground="White" FontSize="11"/>
                             </Border>
                         </StackPanel>
                     </Grid>
-
                     <Separator Background="White" Opacity="0.3" Margin="20,0,20,10"/>
                 </StackPanel>
-
                 <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,10,0,10">
-
                         <Border x:Name="btnTongQuan" Tag="TongQuan" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
-                                Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
+                            Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="ViewDashboard" Foreground="White" Width="22" Height="22"/>
                                 <TextBlock Text="Tổng quan" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
                             </StackPanel>
                         </Border>
-                        
                         <Border x:Name="btnKho" Tag="Kho" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
-                                Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
+                            Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="PackageVariant" Foreground="White" Width="22" Height="22"/>
                                 <TextBlock Text="Kho hàng" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
                             </StackPanel>
                         </Border>
-
                         <Border x:Name="btnNhanSu" Tag="NhanSu" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
-                                Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
+                            Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="AccountGroupOutline" Foreground="White" Width="22" Height="22"/>
                                 <TextBlock Text="Nhân sự" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
                             </StackPanel>
                         </Border>
-
                         <Border x:Name="btnHoaDon" Tag="HoaDon" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
-                                Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
+                            Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="ReceiptTextOutline" Foreground="White" Width="22" Height="22"/>
                                 <TextBlock Text="Hóa đơn" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
                             </StackPanel>
                         </Border>
-
                         <Border x:Name="btnNhaCungCap" Tag="NhaCungCap" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
-                                Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
+                            Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="TruckDeliveryOutline" Foreground="White" Width="22" Height="22"/>
                                 <TextBlock Text="Nhà cung cấp" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
                             </StackPanel>
                         </Border>
 
+                        <Border x:Name="btnSanPham" Tag="SanPham" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
+                            Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="MedicalBag" Foreground="White" Width="22" Height="22"/>
+                                <TextBlock Text="Sản phẩm" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                            </StackPanel>
+                        </Border>
                         <Border x:Name="btnAccount" Tag="Account" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
-                                Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
+                            Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="Account" Foreground="White" Width="22" Height="22"/>
                                 <TextBlock Text="Tài khoản" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
@@ -104,7 +99,6 @@
                         </Border>
                     </StackPanel>
                 </ScrollViewer>
-
                 <Button Grid.Row="2" Margin="20" HorizontalAlignment="Left"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Foreground="White"
@@ -117,7 +111,6 @@
                 </Button>
             </Grid>
         </Border>
-
         <Grid Grid.Column="1" Background="#F0F2F5">
             <Border VerticalAlignment="Top" Height="10" >
                 <Border.Background>
@@ -127,7 +120,6 @@
                     </LinearGradientBrush>
                 </Border.Background>
             </Border>
-
             <ContentControl x:Name="MainContent" Margin="0"/>
         </Grid>
     </Grid>

@@ -14,5 +14,6 @@ public partial class Lohang
     public DateOnly? Nsx { get; set; }
 
     public DateOnly? Hsd { get; set; }
+    public string? Nhacungcap { get; set; }
 
 }
