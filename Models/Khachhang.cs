@@ -7,7 +7,7 @@ public partial class Khachhang
 {
     public string Makh { get; set; } = null!;
 
-    public string Tenkh { get; set; } = null!;
+    public string? Tenkh { get; set; }
 
     public string? Sdt { get; set; }
 
@@ -15,10 +15,5 @@ public partial class Khachhang
 
     public string? Loaikh { get; set; }
 
-    public string? Masothue { get; set; }
-
-    public decimal? Doanhso { get; set; }
-
-    public DateOnly? Ngdk { get; set; }
-
+    public virtual ICollection<Hoadonxuat> Hoadonxuats { get; set; } = new List<Hoadonxuat>();
 }

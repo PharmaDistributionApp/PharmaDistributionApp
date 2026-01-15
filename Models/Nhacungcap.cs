@@ -7,7 +7,7 @@ public partial class Nhacungcap
 {
     public string Mancc { get; set; } = null!;
 
-    public string Tenncc { get; set; } = null!;
+    public string? Tenncc { get; set; }
 
     public string? Sdt { get; set; }
 
@@ -15,4 +15,5 @@ public partial class Nhacungcap
 
     public string? Diachi { get; set; }
 
+    public virtual ICollection<Hoadonnhap> Hoadonnhaps { get; set; } = new List<Hoadonnhap>();
 }

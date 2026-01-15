@@ -2,14 +2,15 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Data.SQLite;
+// [SỬA ĐỔI 1]: Đổi thư viện SQLite sang SQL Server
+using Microsoft.Data.SqlClient;
+using PharmaDistributionApp.Services; // Đảm bảo đã using namespace chứa class Database
 
 namespace PharmaDistributionApp.Views.LoginView
 {
     public partial class ResetPasswordWindow : UserControl
     {
         private string _userEmail;
-        // Biến cờ để chặn sự kiện PasswordChanged khi hệ thống tự động xóa text
         private bool _isSystemClearing = false;
 
         public ResetPasswordWindow(string userEmail = "")
@@ -25,18 +26,15 @@ namespace PharmaDistributionApp.Views.LoginView
 
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
-            // Reset trạng thái lỗi cũ trước khi kiểm tra mới
             HideError();
 
             string newPass = txtNewPassword.Password;
             string confirmPass = txtConfirmPassword.Password;
 
-            // 1. KIỂM TRA RỖNG (Nếu 1 trong 2 ô chưa nhập)
+            // 1. KIỂM TRA RỖNG
             if (string.IsNullOrEmpty(newPass) || string.IsNullOrEmpty(confirmPass))
             {
                 ShowGlobalError("Vui lòng nhập đầy đủ");
-
-                // Tô đỏ cả 2 ô theo yêu cầu
                 txtNewPassword.BorderBrush = Brushes.Red;
                 txtConfirmPassword.BorderBrush = Brushes.Red;
                 return;
@@ -45,23 +43,18 @@ namespace PharmaDistributionApp.Views.LoginView
             // 2. KIỂM TRA KHỚP NHAU
             if (newPass != confirmPass)
             {
-                // Bật cờ lên để sự kiện PasswordChanged không tự xóa viền đỏ
                 _isSystemClearing = true;
 
-                // Xóa nội dung 2 ô theo yêu cầu
                 txtNewPassword.Clear();
                 txtConfirmPassword.Clear();
 
-                // Tắt cờ sau khi xóa xong
                 _isSystemClearing = false;
 
                 ShowGlobalError("Mật khẩu không trùng nhau");
 
-                // Tô đỏ lại sau khi xóa (vì Clear() có thể đã reset giao diện)
                 txtNewPassword.BorderBrush = Brushes.Red;
                 txtConfirmPassword.BorderBrush = Brushes.Red;
 
-                // Focus lại vào ô đầu tiên
                 txtNewPassword.Focus();
                 return;
             }
@@ -83,42 +76,40 @@ namespace PharmaDistributionApp.Views.LoginView
             if (txbErrorMessage.Visibility == Visibility.Visible)
             {
                 txbErrorMessage.Visibility = Visibility.Collapsed;
-
-                // Trả lại quyền điều khiển màu viền cho XAML (Xanh/Xám)
                 txtNewPassword.ClearValue(BorderBrushProperty);
                 txtConfirmPassword.ClearValue(BorderBrushProperty);
             }
         }
 
-        // Sự kiện dùng chung cho cả 2 ô PasswordBox
         private void OnPasswordChanged(object sender, RoutedEventArgs e)
         {
-            // Nếu hệ thống đang tự xóa (do nhập sai) thì KHÔNG được reset lỗi
             if (_isSystemClearing) return;
 
-            // Nếu người dùng đang tự nhập và đang có lỗi hiển thị -> Tắt lỗi đi
             if (txbErrorMessage.Visibility == Visibility.Visible)
             {
                 HideError();
             }
         }
 
-        // --- DATABASE ---
+        // --- DATABASE (ĐÃ SỬA CHO SQL SERVER) ---
         private void UpdatePasswordInDatabase(string newPass)
         {
             try
             {
+                // Câu lệnh SQL giữ nguyên vì cú pháp Update giống nhau
                 string sql = @"UPDATE TAIKHOAN
-                               SET MatKhau = @pass
+                               SET MATKHAU = @pass
                                WHERE MANV = (SELECT MANV FROM NHANVIEN WHERE EMAIL = @email)";
 
-                SQLiteParameter[] p =
+                // [SỬA ĐỔI 2]: Dùng SqlParameter thay vì SQLiteParameter
+                SqlParameter[] p =
                 {
-                    new SQLiteParameter("@pass", newPass),
-                    new SQLiteParameter("@email", _userEmail)
+                    new SqlParameter("@pass", newPass),
+                    new SqlParameter("@email", _userEmail)
                 };
 
-                int rows = PharmaDistributionApp.Services.Database.ExecuteNonQuery(sql, p);
+                // Gọi hàm ExecuteNonQuery bên class Database (đã cập nhật hỗ trợ SqlParameter)
+                int rows = Database.ExecuteNonQuery(sql, p);
 
                 if (rows > 0)
                 {
@@ -132,7 +123,7 @@ namespace PharmaDistributionApp.Views.LoginView
                 }
                 else
                 {
-                    MessageBox.Show("Lỗi: Không tìm thấy tài khoản!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show("Lỗi: Không tìm thấy tài khoản hoặc Email không khớp!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
             catch (Exception ex)

@@ -12,8 +12,8 @@
 
     <UserControl.Resources>
         <Style x:Key="LightHeaderStyle" TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
-            <Setter Property="Background" Value="#F8F9FA"/>
-            <Setter Property="Foreground" Value="#5F6D7E"/>
+            <Setter Property="Background" Value="#4C70BA"/>
+            <Setter Property="Foreground" Value="#FFFFFF"/>
             <Setter Property="FontWeight" Value="Bold"/>
             <Setter Property="Height" Value="50"/>
             <Setter Property="HorizontalContentAlignment" Value="Center"/>
@@ -25,6 +25,8 @@
             <Setter Property="TextBlock.TextAlignment" Value="Center"/>
             <Setter Property="Padding" Value="10"/>
             <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="BorderBrush" Value="Transparent"/>
         </Style>
         <Style x:Key="LeftCell" TargetType="DataGridCell" BasedOn="{StaticResource CenterCell}">
             <Setter Property="TextBlock.TextAlignment" Value="Left"/>
@@ -34,7 +36,7 @@
         </Style>
     </UserControl.Resources>
 
-    <Grid Margin="20">
+    <Grid Margin="20" Background="Transparent" MouseLeftButtonDown="RootGrid_MouseLeftButtonDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="Auto"/>
@@ -92,7 +94,6 @@
             </StackPanel>
 
             <StackPanel Grid.Column="2" Orientation="Horizontal">
-
                 <Button x:Name="btnToggleFilter" Click="btnToggleFilter_Click" 
                         Height="36" Margin="0,0,10,0"
                         Style="{StaticResource MaterialDesignOutlinedButton}"
@@ -123,7 +124,6 @@
                         ToolTip="Đổi chiều sắp xếp">
                     <materialDesign:PackIcon x:Name="iconSort" Kind="SortCalendarDescending" Width="20" Height="20"/>
                 </Button>
-
             </StackPanel>
         </Grid>
 
@@ -131,43 +131,16 @@
                 Background="#FAFAFA" BorderBrush="#EEEEEE" BorderThickness="1" CornerRadius="8" 
                 Padding="15,10" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
-
-                <ComboBox x:Name="cbbMonth" Width="90" Height="45" Margin="0,0,10,0"
-                          Padding="10,10" VerticalContentAlignment="Center"
-                          materialDesign:HintAssist.Hint="Tháng" materialDesign:HintAssist.IsFloating="True"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-
-                <ComboBox x:Name="cbbYear" Width="100" Height="45" Margin="0,0,25,0"
-                          Padding="10,10" VerticalContentAlignment="Center"
-                          materialDesign:HintAssist.Hint="Năm" materialDesign:HintAssist.IsFloating="True"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-
+                <ComboBox x:Name="cbbMonth" Width="90" Height="45" Margin="0,0,10,0" Padding="10,10" VerticalContentAlignment="Center" materialDesign:HintAssist.Hint="Tháng" materialDesign:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                <ComboBox x:Name="cbbYear" Width="100" Height="45" Margin="0,0,25,0" Padding="10,10" VerticalContentAlignment="Center" materialDesign:HintAssist.Hint="Năm" materialDesign:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
                 <StackPanel VerticalAlignment="Bottom" Margin="0,0,25,0" Width="280">
                     <Grid Margin="0,0,0,5">
                         <TextBlock Text="Giá tối đa (VNĐ)" FontSize="10" Foreground="Gray" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,5"/>
-
-                        <TextBox x:Name="txtSliderValue"
-                                 TextChanged="txtSliderValue_TextChanged"
-                                 Width="120" HorizontalAlignment="Right"
-                                 Style="{StaticResource MaterialDesignTextBox}" 
-                                 HorizontalContentAlignment="Right"
-                                 FontWeight="Bold" Foreground="#4C70BA" FontSize="13"
-                                 materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
-                                 BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"/>
+                        <TextBox x:Name="txtSliderValue" TextChanged="txtSliderValue_TextChanged" Width="120" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignTextBox}" HorizontalContentAlignment="Right" FontWeight="Bold" Foreground="#4C70BA" FontSize="13" materialDesign:TextFieldAssist.DecorationVisibility="Hidden" BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"/>
                     </Grid>
-
-                    <Slider x:Name="sldPrice" 
-                            ValueChanged="sldPrice_ValueChanged"
-                            Minimum="0" Maximum="100000000" 
-                            TickFrequency="1000000" IsSnapToTickEnabled="False" 
-                            Foreground="#4C70BA"/>
+                    <Slider x:Name="sldPrice" ValueChanged="sldPrice_ValueChanged" Minimum="0" Maximum="100000000" TickFrequency="1000000" IsSnapToTickEnabled="False" Foreground="#4C70BA"/>
                 </StackPanel>
-
-                <ComboBox x:Name="cbbStatus" Width="200" Height="45" Margin="0,0,25,0"
-                          Padding="10,10" VerticalContentAlignment="Center"
-                          materialDesign:HintAssist.Hint="Trạng thái" materialDesign:HintAssist.IsFloating="True"
-                          Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-
+                <ComboBox x:Name="cbbStatus" Width="200" Height="45" Margin="0,0,25,0" Padding="10,10" VerticalContentAlignment="Center" materialDesign:HintAssist.Hint="Trạng thái" materialDesign:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
                 <Button x:Name="btnApplyFilter" Click="btnApplyFilter_Click" Content="Áp dụng" Height="40" Background="#4C70BA" BorderBrush="{x:Null}" Margin="0,0,10,0" Width="90"/>
                 <Button x:Name="btnResetFilter" Click="btnResetFilter_Click" Content="Hủy bỏ" Height="40" Style="{StaticResource MaterialDesignOutlinedButton}" BorderBrush="#E0E0E0" Foreground="Gray" Width="90"/>
             </StackPanel>
@@ -175,7 +148,10 @@
 
         <Border Grid.Row="3" Margin="0,20,0,0" 
                 Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="5">
+
             <DataGrid x:Name="dgHoaDon" 
+                      CanUserSortColumns="False" 
+                      PreviewKeyDown="dgHoaDon_PreviewKeyDown" 
                       AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" CanUserResizeColumns="True"
                       MouseDoubleClick="dgHoaDon_MouseDoubleClick" SelectionMode="Single"
                       HeadersVisibility="Column" Background="White" BorderThickness="0"
@@ -183,10 +159,10 @@
                       ColumnHeaderStyle="{StaticResource LightHeaderStyle}">
 
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Header="Mã HĐ" Width="100">
+                    <DataGridTemplateColumn Header="Mã HĐ" Width="100" CellStyle="{StaticResource CenterCell}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <TextBlock Text="{Binding MaHD}" FontWeight="Bold" Foreground="#4C70BA" HorizontalAlignment="Center"/>
+                                <TextBlock Text="{Binding MaHD}" FontWeight="Bold" Foreground="#4C70BA" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
@@ -195,14 +171,31 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Ngày lập" Binding="{Binding NgayLap, StringFormat=dd/MM/yyyy}" Width="150" CellStyle="{StaticResource CenterCell}"/>
-                    <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TongTienString}" Width="150" FontWeight="Bold" Foreground="#333" CellStyle="{StaticResource RightCell}"/>
+                    <DataGridTextColumn Header="Ngày lập" Binding="{Binding NgayLap, StringFormat=dd/MM/yyyy}" Width="150" CellStyle="{StaticResource CenterCell}" >
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
 
-                    <DataGridTemplateColumn Header="Trạng thái" Width="180">
+                    <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TongTienString}" Width="150" FontWeight="Bold" Foreground="#333" CellStyle="{StaticResource RightCell}">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+
+
+                    <DataGridTemplateColumn Header="Trạng thái" Width="180" CellStyle="{StaticResource CenterCell}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border CornerRadius="15" Padding="12,5" HorizontalAlignment="Center" BorderThickness="1">
@@ -215,19 +208,7 @@
                                                     <Setter Property="Background" Value="#F0FFF4"/>
                                                     <Setter Property="BorderBrush" Value="#C6F6D5"/>
                                                 </DataTrigger>
-                                                <DataTrigger Binding="{Binding TrangThai}" Value="Đã nhập kho">
-                                                    <Setter Property="Background" Value="#F0FFF4"/>
-                                                    <Setter Property="BorderBrush" Value="#C6F6D5"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding TrangThai}" Value="Hoàn tất">
-                                                    <Setter Property="Background" Value="#F0FFF4"/>
-                                                    <Setter Property="BorderBrush" Value="#C6F6D5"/>
-                                                </DataTrigger>
                                                 <DataTrigger Binding="{Binding TrangThai}" Value="Chờ thanh toán">
-                                                    <Setter Property="Background" Value="#FFFAF0"/>
-                                                    <Setter Property="BorderBrush" Value="#FEEBC8"/>
-                                                </DataTrigger>
-                                                <DataTrigger Binding="{Binding TrangThai}" Value="Chờ kiểm hàng">
                                                     <Setter Property="Background" Value="#FFFAF0"/>
                                                     <Setter Property="BorderBrush" Value="#FEEBC8"/>
                                                 </DataTrigger>
@@ -246,16 +227,7 @@
                                                     <DataTrigger Binding="{Binding TrangThai}" Value="Đã thanh toán">
                                                         <Setter Property="Foreground" Value="#2F855A"/>
                                                     </DataTrigger>
-                                                    <DataTrigger Binding="{Binding TrangThai}" Value="Đã nhập kho">
-                                                        <Setter Property="Foreground" Value="#2F855A"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding TrangThai}" Value="Hoàn tất">
-                                                        <Setter Property="Foreground" Value="#2F855A"/>
-                                                    </DataTrigger>
                                                     <DataTrigger Binding="{Binding TrangThai}" Value="Chờ thanh toán">
-                                                        <Setter Property="Foreground" Value="#C05621"/>
-                                                    </DataTrigger>
-                                                    <DataTrigger Binding="{Binding TrangThai}" Value="Chờ kiểm hàng">
                                                         <Setter Property="Foreground" Value="#C05621"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding TrangThai}" Value="Đã hủy">
@@ -270,17 +242,49 @@
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
 
-                    <DataGridTemplateColumn Header="Thao tác" Width="100">
+                    <DataGridTemplateColumn Header="Thao tác" Width="100" CellStyle="{StaticResource CenterCell}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                                    <Button Style="{StaticResource MaterialDesignToolButton}" Width="30" Height="30" Margin="0,0,5,0">
-                                        <materialDesign:PackIcon Kind="PencilOutline" Foreground="#4C70BA"/>
-                                    </Button>
-                                    <Button Style="{StaticResource MaterialDesignToolButton}" Width="30" Height="30">
-                                        <materialDesign:PackIcon Kind="PrinterOutline" Foreground="#666"/>
-                                    </Button>
-                                </StackPanel>
+                                <materialDesign:PopupBox PlacementMode="BottomAndAlignRightEdges"
+                                                         HorizontalAlignment="Center"
+                                                         Foreground="Gray"
+                                                         Background="Transparent" 
+                                                         BorderThickness="0"
+                                                         Padding="4"
+                                                         ToolTip="Thao tác">
+                                    <materialDesign:PopupBox.ToggleContent>
+                                        <materialDesign:PackIcon Kind="DotsVertical" Width="24" Height="24"/>
+                                    </materialDesign:PopupBox.ToggleContent>
+
+                                    <StackPanel Width="150">
+                                        <Button x:Name="btnEdit" Click="btnEdit_Click" Tag="{Binding}" 
+                                                Style="{StaticResource MaterialDesignFlatButton}" 
+                                                Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="Pencil" Margin="0,0,10,0" Foreground="#4C70BA"/>
+                                                <TextBlock Text="Chỉnh sửa"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button x:Name="btnDelete" Click="btnDelete_Click" Tag="{Binding}" 
+                                                Style="{StaticResource MaterialDesignFlatButton}" 
+                                                Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="Delete" Margin="0,0,10,0" Foreground="#E53E3E"/>
+                                                <TextBlock Text="Xóa"/>
+                                            </StackPanel>
+                                        </Button>
+
+                                        <Button x:Name="btnPrint" Click="btnPrint_Click" Tag="{Binding}" 
+                                                Style="{StaticResource MaterialDesignFlatButton}" 
+                                                Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
+                                            <StackPanel Orientation="Horizontal">
+                                                <materialDesign:PackIcon Kind="Printer" Margin="0,0,10,0" Foreground="#555"/>
+                                                <TextBlock Text="In hóa đơn"/>
+                                            </StackPanel>
+                                        </Button>
+                                    </StackPanel>
+                                </materialDesign:PopupBox>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>

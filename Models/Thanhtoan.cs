@@ -7,19 +7,19 @@ public partial class Thanhtoan
 {
     public string Matt { get; set; } = null!;
 
-    public string Sohdxuat { get; set; } = null!;
+    public string? Sohdxuat { get; set; }
 
-    public decimal Sotien { get; set; }
+    public decimal? Sotien { get; set; }
 
-    public DateOnly Ngaythanhtoan { get; set; }
+    public DateTime? Ngaythanhtoan { get; set; }
 
     public string? Phuongthuc { get; set; }
 
     public string? Ghichu { get; set; }
 
-    public string Manv { get; set; } = null!;
+    public string? Manv { get; set; }
 
-    public virtual Nhanvien ManvNavigation { get; set; } = null!;
+    public virtual Nhanvien? ManvNavigation { get; set; }
 
-    public virtual Hoadonxuat SohdxuatNavigation { get; set; } = null!;
+    public virtual Hoadonxuat? SohdxuatNavigation { get; set; }
 }

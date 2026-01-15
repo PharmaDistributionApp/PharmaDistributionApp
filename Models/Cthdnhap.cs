@@ -11,11 +11,11 @@ public partial class Cthdnhap
 
     public string Malo { get; set; } = null!;
 
-    public int Soluong { get; set; }
+    public int? Soluong { get; set; }
 
-    public decimal Dongianhap { get; set; }
+    public decimal? Dongianhap { get; set; }
 
-    public decimal Thanhtien { get; set; }
+    public decimal? Thanhtien { get; set; }
 
     public virtual Lohang MaloNavigation { get; set; } = null!;
 

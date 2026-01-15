@@ -1,19 +1,20 @@
 ﻿using System;
 using System.Data;
-using System.Data.SQLite;
+using Microsoft.Data.SqlClient; // Dùng SQL Server
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media; // Cần thêm thư viện này để dùng màu sắc (Brushes)
+using System.Windows.Media;
 using PharmaDistributionApp.Services;
+using PharmaDistributionApp.Models; // Chứa UserSession
 
 namespace PharmaDistributionApp.Views.LoginView
 {
     public partial class LoginControl : UserControl
     {
-        // Định nghĩa màu viền mặc định và màu lỗi
         private readonly Brush _defaultBorder = (Brush)new BrushConverter().ConvertFrom("#DDDDDD");
         private readonly Brush _errorBorder = Brushes.Red;
+
         public LoginControl()
         {
             InitializeComponent();
@@ -32,86 +33,56 @@ namespace PharmaDistributionApp.Views.LoginView
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Reset giao diện về bình thường (Xóa lỗi cũ)
             ResetUI();
-
             string input = txtUsername.Text.Trim();
             string pass = txtPassword.Password;
-            bool hasValidationError = false;
 
-            // Kiểm tra rỗng (Validation đầu vào)
-            if (string.IsNullOrEmpty(input))
-            {
-                txtUsername.BorderBrush = _errorBorder;
-                hasValidationError = true;
-            }
+            if (string.IsNullOrEmpty(input)) { SetErrorState(txtUsername, "Vui lòng nhập thông tin"); return; }
+            if (string.IsNullOrEmpty(pass)) { SetErrorState(txtPassword, "Vui lòng nhập mật khẩu"); return; }
 
-            if (string.IsNullOrEmpty(pass))
-            {
-                txtPassword.BorderBrush = _errorBorder;
-                hasValidationError = true;
-            }
-
-            if (hasValidationError)
-            {
-                ShowError("Vui lòng điền đầy đủ thông tin");
-                return;
-            }
             try
             {
-                // 2. QUERY CHỈ TÌM TÀI KHOẢN (Bỏ phần check mật khẩu ở đây)
+                // [CẬP NHẬT SQL]: Tìm theo Mã NV, Email HOẶC Tên nhân viên
                 string sql = @"
-                    SELECT T.*, N.EMAIL, N.TENNV 
-                    FROM TAIKHOAN T
-                    JOIN NHANVIEN N ON T.MANV = N.MANV
-                    WHERE (
-                            T.MANV = @user      
-                         OR N.EMAIL = @user     
-                         OR N.TENNV = @user     
-                          )";
+            SELECT T.MANV, T.MATKHAU, T.TRANGTHAI
+            FROM TAIKHOAN T
+            JOIN NHANVIEN N ON T.MANV = N.MANV
+            WHERE T.MANV = @user 
+               OR N.EMAIL = @user 
+               OR N.TENNV = @user"; // Thêm dòng này để đăng nhập bằng tên
 
-                SQLiteParameter[] parameters = {
-                    new SQLiteParameter("@user", input)
-                };
-
+                // Lưu ý: SQL Server tự động xử lý chữ hoa/thường và tiếng Việt có dấu (nếu Collation chuẩn)
+                SqlParameter[] parameters = { new SqlParameter("@user", input) };
                 DataTable dt = Database.GetTable(sql, parameters);
 
-                // --- TRƯỜNG HỢP 1: KHÔNG TÌM THẤY TÀI KHOẢN ---
-                if (dt.Rows.Count == 0)
+                if (dt == null || dt.Rows.Count == 0)
                 {
-                    // Tô đỏ ô Username
                     SetErrorState(txtUsername, "Tài khoản không tồn tại");
                     return;
                 }
 
-                // --- TRƯỜNG HỢP 2: TÌM THẤY -> KIỂM TRA MẬT KHẨU ---
+                // Nếu tìm thấy nhiều người trùng tên (hiếm gặp nhưng có thể), lấy người đầu tiên
                 DataRow row = dt.Rows[0];
-                string dbPass = row["MATKHAU"].ToString(); // Lấy mật khẩu trong DB
+                string dbPass = row["MATKHAU"].ToString();
 
-                // So sánh mật khẩu (Phân biệt hoa thường)
                 if (dbPass != pass)
                 {
-                    // Tô đỏ ô Password
                     SetErrorState(txtPassword, "Mật khẩu không đúng");
                     return;
                 }
 
-                // --- TRƯỜNG HỢP 3: KIỂM TRA TRẠNG THÁI KHÓA ---
-                long trangThai = Convert.ToInt64(row["TRANGTHAI"]);
+                long trangThai = row["TRANGTHAI"] != DBNull.Value ? Convert.ToInt64(row["TRANGTHAI"]) : 1;
                 if (trangThai == 0)
                 {
                     ShowError("Tài khoản đã bị khóa!");
                     return;
                 }
 
-                // --- ĐĂNG NHẬP THÀNH CÔNG ---
-
-                // Gọi hàm lưu với tên biến mới
+                // Lưu phiên và chuyển màn hình
+                UserSession.CurrentMaNV = row["MANV"].ToString();
                 SaveRememberMe(input, pass);
 
-                // Chuyển màn hình
                 MainWindow main = new MainWindow();
-                main.CurrentMaNV = row["MANV"]?.ToString(); // Lưu MANV vào biến tĩnh
                 main.Show();
 
                 Window parentWindow = Window.GetWindow(this);
@@ -119,86 +90,33 @@ namespace PharmaDistributionApp.Views.LoginView
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi: " + ex.Message);
+                MessageBox.Show("Lỗi đăng nhập: " + ex.Message);
             }
         }
+
+        // --- CÁC HÀM HỖ TRỢ ---
         private void SaveRememberMe(string username, string password)
         {
             if (chkRemember.IsChecked == true)
             {
                 Properties.Settings.Default.SavedUsername = username;
                 Properties.Settings.Default.SavedPassword = password;
-
-                // Đã đổi thành IsRemembered
                 Properties.Settings.Default.IsRemembered = true;
             }
             else
             {
                 Properties.Settings.Default.SavedUsername = "";
                 Properties.Settings.Default.SavedPassword = "";
-
-                // Đã đổi thành IsRemembered
                 Properties.Settings.Default.IsRemembered = false;
             }
             Properties.Settings.Default.Save();
         }
 
-
-        // Hàm hiển thị lỗi chung chung (không tô viền)
-        private void ShowError(string message)
-        {
-            txbErrorMessage.Text = message;
-            txbErrorMessage.Visibility = Visibility.Visible;
-        }
-
-        // --- CÁC HÀM XỬ LÝ GIAO DIỆN (UI) MỚI ---
-
-        // Hàm Reset màu viền về mặc định (Xám)
-        private void ResetUI()
-        {
-            txbErrorMessage.Visibility = Visibility.Collapsed;
-            if (txtUsername.BorderBrush == _errorBorder) txtUsername.BorderBrush = _defaultBorder;
-            if (txtPassword.BorderBrush == _errorBorder) txtPassword.BorderBrush = _defaultBorder;
-        }
-
-        // Hàm báo lỗi: Tô đỏ viền control + Hiện thông báo + Focus con trỏ
-        private void SetErrorState(Control control, string message)
-        {
-            // 1. Đổi màu viền thành Đỏ
-            control.BorderBrush = _errorBorder;
-
-            // 2. Focus vào ô bị sai
-            control.Focus();
-
-            // 3. Hiện thông báo lỗi
-            ShowError(message);
-        }
-        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            var parentWindow = Window.GetWindow(this) as LoginWindow;
-            if (parentWindow != null)
-            {
-                parentWindow.NavigateToForgotPass();
-            }
-        }
-        private void txtUsername_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (txtUsername.BorderBrush == _errorBorder)
-            {
-                txtUsername.BorderBrush = _defaultBorder;
-                txbErrorMessage.Visibility = Visibility.Collapsed;
-            }
-        }
-        private void txtPassword_PasswordChanged(object sender, RoutedEventArgs e)
-        {
-            if (txtPassword.BorderBrush == _errorBorder)
-            {
-                txtPassword.BorderBrush = _defaultBorder;
-                txbErrorMessage.Visibility = Visibility.Collapsed;
-            }
-
-        }
-
-
+        private void ShowError(string message) { txbErrorMessage.Text = message; txbErrorMessage.Visibility = Visibility.Visible; }
+        private void ResetUI() { txbErrorMessage.Visibility = Visibility.Collapsed; txtUsername.BorderBrush = _defaultBorder; txtPassword.BorderBrush = _defaultBorder; }
+        private void SetErrorState(Control control, string message) { control.BorderBrush = _errorBorder; control.Focus(); ShowError(message); }
+        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { var parent = Window.GetWindow(this) as LoginWindow; parent?.NavigateToForgotPass(); }
+        private void txtUsername_TextChanged(object sender, TextChangedEventArgs e) { if (txtUsername.BorderBrush == _errorBorder) ResetUI(); }
+        private void txtPassword_PasswordChanged(object sender, RoutedEventArgs e) { if (txtPassword.BorderBrush == _errorBorder) ResetUI(); }
     }
 }

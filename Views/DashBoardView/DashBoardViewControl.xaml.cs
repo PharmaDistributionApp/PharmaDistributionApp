@@ -3,11 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Windows.Controls;
-using System.Windows.Media; // Dùng cho SolidColorBrush
+using System.Windows.Media;
 
 namespace PharmaDistributionApp.Views.DashBoardView
 {
-    // 1. Model cho danh sách tồn kho
     public class StockItemModel
     {
         public string TenSP { get; set; }
@@ -21,14 +20,11 @@ namespace PharmaDistributionApp.Views.DashBoardView
         public DashBoardViewControl()
         {
             InitializeComponent();
-
             txtDate.Text = "Hôm nay: " + DateTime.Now.ToString("dd/MM/yyyy");
-
             LoadDashboardData();
             LoadStockInventory();
         }
 
-        // --- HÀM 1: Load số liệu tổng quan ---
         private void LoadDashboardData()
         {
             try
@@ -55,7 +51,6 @@ namespace PharmaDistributionApp.Views.DashBoardView
                 object custObj = Database.ExecuteScalar(sqlCustomer);
                 txtCustomerCount.Text = custObj != null ? custObj.ToString() : "0";
 
-                // Load đơn hàng gần đây
                 LoadRecentOrders();
             }
             catch (Exception ex)
@@ -64,12 +59,12 @@ namespace PharmaDistributionApp.Views.DashBoardView
             }
         }
 
-        // --- HÀM 2: Load danh sách đơn hàng ---
         private void LoadRecentOrders()
         {
             try
             {
-                string sql = "SELECT SOHDXUAT, NGAYLAP, TONGTIEN FROM HOADONXUAT ORDER BY NGAYLAP DESC LIMIT 10";
+                // [SỬA ĐỔI 1]: SQL Server dùng TOP thay vì LIMIT
+                string sql = "SELECT TOP 10 SOHDXUAT, NGAYLAP, TONGTIEN FROM HOADONXUAT ORDER BY NGAYLAP DESC";
                 DataTable dt = Database.GetTable(sql);
 
                 if (!dt.Columns.Contains("TONGTIEN_FMT"))
@@ -88,18 +83,17 @@ namespace PharmaDistributionApp.Views.DashBoardView
             catch { }
         }
 
-        // --- HÀM 3: Load tồn kho (Top giá trị) ---
         private void LoadStockInventory()
         {
             try
             {
+                // [SỬA ĐỔI 2]: SQL Server dùng TOP thay vì LIMIT
                 string sql = @"
-                    SELECT S.TENSP, T.SOLUONGTON, S.GIABAN, (T.SOLUONGTON * S.GIABAN) AS TONG_GIA_TRI
+                    SELECT TOP 7 S.TENSP, T.SOLUONGTON, S.GIABAN, (T.SOLUONGTON * S.GIABAN) AS TONG_GIA_TRI
                     FROM TONKHO T
                     JOIN SANPHAM S ON T.MASP = S.MASP
                     WHERE T.SOLUONGTON > 0
-                    ORDER BY TONG_GIA_TRI DESC
-                    LIMIT 7";
+                    ORDER BY TONG_GIA_TRI DESC";
 
                 DataTable dt = Database.GetTable(sql);
 

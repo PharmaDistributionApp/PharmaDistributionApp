@@ -6,7 +6,8 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Data.SQLite;
+// [SỬA ĐỔI 1]: Đổi thư viện SQLite sang SQL Server
+using Microsoft.Data.SqlClient;
 using PharmaDistributionApp.Views.LoginView;
 
 namespace PharmaDistributionApp.Views
@@ -14,7 +15,7 @@ namespace PharmaDistributionApp.Views
     /// <summary>
     /// Interaction logic for ForgotPasswordWindow.xaml
     /// </summary>
-    public partial class ForgotPasswordWindow : UserControl // 1. Đổi từ Window sang UserControl
+    public partial class ForgotPasswordWindow : UserControl
     {
         public ForgotPasswordWindow()
         {
@@ -27,7 +28,7 @@ namespace PharmaDistributionApp.Views
             var parent = Window.GetWindow(this) as LoginWindow;
             if (parent != null)
             {
-                parent.NavigateToLogin(); // Gọi hàm điều hướng của cha
+                parent.NavigateToLogin();
             }
         }
 
@@ -50,14 +51,18 @@ namespace PharmaDistributionApp.Views
                 return;
             }
 
-            // Hiển thị con trỏ xoay (Loading)
             Mouse.OverrideCursor = Cursors.Wait;
 
             try
             {
                 string sqlCheck = "SELECT COUNT(*) FROM NHANVIEN WHERE EMAIL = @email";
-                SQLiteParameter[] p = { new SQLiteParameter("@email", email) };
+
+                // [SỬA ĐỔI 2]: Dùng SqlParameter thay vì SQLiteParameter
+                SqlParameter[] p = { new SqlParameter("@email", email) };
+
+                // Hàm GetTable này cần được thêm vào Database.cs (xem phần dưới)
                 DataTable dt = Database.GetTable(sqlCheck, p);
+
                 long count = 0;
 
                 if (dt.Rows.Count > 0)
@@ -100,7 +105,6 @@ namespace PharmaDistributionApp.Views
             if (pnlErrorMessage.Visibility == Visibility.Visible)
             {
                 pnlErrorMessage.Visibility = Visibility.Collapsed;
-                // Trả lại màu viền xám mặc định
                 txtRecoveryEmail.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#DDDDDD");
             }
         }
@@ -109,13 +113,10 @@ namespace PharmaDistributionApp.Views
         private void HienThiLoi(string noiDung)
         {
             txbErrorContent.Text = noiDung;
-
-            // 2. Viền đỏ ô nhập
             txtRecoveryEmail.BorderBrush = Brushes.Red;
-
-            // 3. Hiện thông báo
             pnlErrorMessage.Visibility = Visibility.Visible;
         }
+
         private void btnExit_Click(object sender, RoutedEventArgs e)
         {
             Application.Current.Shutdown();

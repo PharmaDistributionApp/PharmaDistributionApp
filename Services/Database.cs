@@ -1,68 +1,108 @@
 ﻿using System;
 using System.Data;
-using System.Data.SQLite; // Thư viện bạn đã cài
-using System.IO;
+using Microsoft.Data.SqlClient; // Thư viện quan trọng nhất
 
 namespace PharmaDistributionApp.Services
 {
     public class Database
     {
-        // |DataDirectory| tự động trỏ vào thư mục bin/Debug khi chạy App
-        // Tên file của bạn là PharmaDB.db
-        private static string _connectionString = "Data Source=|DataDirectory|\\PharmaDB.db;Version=3;New=False;Compress=True;";
+        // Chuỗi kết nối SQL Server
+        private static readonly string _connectionString =
+            "Server=.\\SQLEXPRESS;Database=PharmaDB;Trusted_Connection=True;TrustServerCertificate=True;";
 
-        // 1. Hàm lấy kết nối (Dùng khi cần xử lý phức tạp)
-        public static SQLiteConnection GetConnection()
+        // 1. Hàm lấy kết nối
+        public static SqlConnection GetConnection()
         {
-            return new SQLiteConnection(_connectionString);
+            return new SqlConnection(_connectionString);
         }
 
-        // 2. Hàm lấy bảng dữ liệu (Dùng cho SELECT: Đăng nhập, Hiện danh sách...)
-        public static DataTable GetTable(string sql, SQLiteParameter[] parameters = null)
+        // 2. Hàm lấy dữ liệu dạng Bảng (Dùng cho SELECT: Đăng nhập, Tìm kiếm...)
+        public static DataTable GetTable(string sql, SqlParameter[] parameters = null)
         {
-            using (SQLiteConnection conn = GetConnection())
+            DataTable dt = new DataTable();
+            try
             {
-                conn.Open();
-                using (SQLiteCommand cmd = new SQLiteCommand(sql, conn))
+                using (var conn = GetConnection())
                 {
-                    if (parameters != null)
-                        cmd.Parameters.AddRange(parameters);
-
-                    using (SQLiteDataAdapter adapter = new SQLiteDataAdapter(cmd))
+                    conn.Open();
+                    using (var cmd = new SqlCommand(sql, conn))
                     {
-                        DataTable dt = new DataTable();
-                        adapter.Fill(dt);
-                        return dt;
+                        if (parameters != null)
+                        {
+                            cmd.Parameters.AddRange(parameters);
+                        }
+
+                        using (var adapter = new SqlDataAdapter(cmd))
+                        {
+                            adapter.Fill(dt);
+                        }
                     }
                 }
             }
+            catch (Exception ex)
+            {
+                throw new Exception("Lỗi lấy dữ liệu: " + ex.Message);
+            }
+            return dt;
         }
 
         // 3. Hàm thực thi lệnh (Dùng cho INSERT, UPDATE, DELETE)
-        public static int ExecuteNonQuery(string sql, SQLiteParameter[] parameters = null)
+        // Trả về số dòng bị ảnh hưởng (int) để biết thành công hay thất bại
+        public static int ExecuteNonQuery(string sql, SqlParameter[] parameters = null)
         {
-            using (SQLiteConnection conn = GetConnection())
+            int rowsAffected = 0;
+            try
             {
-                conn.Open();
-                using (SQLiteCommand cmd = new SQLiteCommand(sql, conn))
+                using (var conn = GetConnection())
                 {
-                    if (parameters != null)
-                        cmd.Parameters.AddRange(parameters);
+                    conn.Open();
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        if (parameters != null)
+                        {
+                            cmd.Parameters.AddRange(parameters);
+                        }
 
-                    return cmd.ExecuteNonQuery(); // Trả về số dòng bị ảnh hưởng
+                        // Lệnh này trả về số dòng tác động
+                        rowsAffected = cmd.ExecuteNonQuery();
+                    }
                 }
             }
-        }
-        public static object ExecuteScalar(string sql)
-        {
-            using (var connection = GetConnection())
+            catch (Exception ex)
             {
-                connection.Open();
-                using (var command = new SQLiteCommand(sql, connection))
+                throw new Exception("Lỗi thực thi lệnh: " + ex.Message);
+            }
+            return rowsAffected;
+        }
+
+        // Thêm vào file Database.cs (class Database)
+
+        // 4. Hàm thực thi và trả về 1 giá trị duy nhất (Dùng cho COUNT, SUM...)
+        public static object ExecuteScalar(string sql, SqlParameter[] parameters = null)
+        {
+            object result = null;
+            try
+            {
+                using (var conn = GetConnection())
                 {
-                    return command.ExecuteScalar();
+                    conn.Open();
+                    using (var cmd = new SqlCommand(sql, conn))
+                    {
+                        if (parameters != null)
+                        {
+                            cmd.Parameters.AddRange(parameters);
+                        }
+
+                        // Trả về giá trị ô đầu tiên của dòng đầu tiên
+                        result = cmd.ExecuteScalar();
+                    }
                 }
             }
+            catch (Exception ex)
+            {
+                throw new Exception("Lỗi ExecuteScalar: " + ex.Message);
+            }
+            return result;
         }
     }
 }
