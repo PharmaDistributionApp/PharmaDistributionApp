@@ -1,54 +1,91 @@
-﻿using PharmaDistributionApp.Services;
-using PharmaDistributionApp.Views.EmployeeView; // Import namespace chứa EmployeeViewControl
+﻿using PharmaDistributionApp.Services; // Chứa class Employee
+using PharmaDistributionApp.Views.DashBoardView;
+using PharmaDistributionApp.Views.EmployeeView;
+using PharmaDistributionApp.Views.LoginView;
+using PharmaDistributionApp.Views.NCCView;
+using PharmaDistributionApp.Views.ProductView;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PharmaDistributionApp.Views.LoginView;
-using PharmaDistributionApp.Views.DashBoardView;
-using PharmaDistributionApp.Views.NCCView;
-using PharmaDistributionApp.Views.ProductView;
 
 namespace PharmaDistributionApp.Views
 {
     public partial class MainWindow : Window
     {
-        public string CurrentMaNV { get; set; } // Biến lưu Mã NV đang đăng nhập
-        public Employee CurrentUser { get; set; } // Biến lưu toàn bộ thông tin User
-        public MainWindow()
+        // Biến lưu thông tin người dùng hiện tại
+        public Employee CurrentUser { get; set; }
+
+        // [SỬA ĐỔI] Constructor nhận tham số Employee từ màn hình Đăng nhập
+        public MainWindow(Employee user)
         {
             InitializeComponent();
 
-            // Hiển thị tên người dùng (Giả lập)
-            txbUserName.Text = "Nguyễn Văn A";
+            // Lưu user vào biến toàn cục của cửa sổ
+            this.CurrentUser = user;
 
-            // Mặc định chọn Menu "Kho" khi mở lên (hoặc Nhân sự tùy bạn)
+            // Gọi hàm hiển thị thông tin lên góc trái
+            LoadUserData();
+
+            // Mặc định chọn Menu Tổng quan
             SetActiveMenu(btnTongQuan);
             MainContent.Content = new DashBoardViewControl();
         }
 
+        // Constructor mặc định (để tránh lỗi nếu gọi new MainWindow() không tham số)
+        public MainWindow()
+        {
+            InitializeComponent();
+            SetActiveMenu(btnTongQuan);
+        }
+
+        // ============================================================
+        // HÀM HIỂN THỊ THÔNG TIN USER TỪ BIẾN CurrentUser
+        // ============================================================
+        private void LoadUserData()
+        {
+            if (CurrentUser == null) return;
+
+            // 1. Gán Tên và Chức vụ
+            txbUserName.Text = !string.IsNullOrEmpty(CurrentUser.Tennv) ? CurrentUser.Tennv : "Người dùng";
+            txbUserRole.Text = !string.IsNullOrEmpty(CurrentUser.Chucvu) ? CurrentUser.Chucvu : "Nhân viên";
+
+            // 2. Xử lý Avatar
+            // Sử dụng thuộc tính AvatarSource có sẵn trong file Employee.cs của bạn
+            var avatar = CurrentUser.AvatarSource;
+
+            if (avatar != null)
+            {
+                imgAvatarBrush.ImageSource = avatar;    // Gán ảnh
+                iconAvatar.Visibility = Visibility.Collapsed; // Ẩn icon mặc định
+            }
+            else
+            {
+                imgAvatarBrush.ImageSource = null;    // Xóa ảnh cũ (nếu có)
+                iconAvatar.Visibility = Visibility.Visible; // Hiện icon mặc định
+            }
+        }
+
+        // ============================================================
+        // PHẦN DƯỚI GIỮ NGUYÊN (Xử lý Menu)
+        // ============================================================
         private void Menu_Click(object sender, MouseButtonEventArgs e)
         {
-            // 1. Xác định nút vừa bấm
             var clickedBtn = sender as Border;
             if (clickedBtn == null) return;
 
-            // 2. Đổi màu giao diện (Set Active)
             SetActiveMenu(clickedBtn);
 
-            // 3. Chuyển đổi màn hình nội dung
             string tag = clickedBtn.Tag.ToString();
             switch (tag)
             {
                 case "TongQuan":
                     MainContent.Content = new DashBoardViewControl();
                     break;
-
                 case "NhanSu":
                     MainContent.Content = new EmployeeViewControl();
                     break;
                 case "Kho":
-                    // MainContent.Content = new WarehouseControl(); 
                     MainContent.Content = new TextBlock { Text = "Màn hình Kho đang phát triển", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                     break;
                 case "HoaDon":
@@ -57,41 +94,35 @@ namespace PharmaDistributionApp.Views
                 case "NhaCungCap":
                     MainContent.Content = new NhaCungCapControl();
                     break;
-
-                // [MỚI] CASE XỬ LÝ SẢN PHẨM
                 case "SanPham":
-                    // Nếu bạn đã có UserControl cho sản phẩm thì thay dòng dưới bằng: new SanPhamControl();
-                    MainContent.Content = new SanPhamControl();
+                    MainContent.Content = new TextBlock { Text = "Màn hình Sản phẩm đang phát triển", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
                     break;
-
                 case "Account":
                     MainContent.Content = new AccountControl();
                     break;
             }
         }
 
-        // Hàm xử lý đổi màu nút Menu
         private void SetActiveMenu(Border activeBtn)
         {
-            // Reset tất cả các nút về màu trong suốt, chữ trắng
             ResetButtonStyle(btnTongQuan);
             ResetButtonStyle(btnKho);
             ResetButtonStyle(btnNhanSu);
             ResetButtonStyle(btnHoaDon);
             ResetButtonStyle(btnNhaCungCap);
-            ResetButtonStyle(btnSanPham); // [MỚI] Reset thêm nút sản phẩm
+            ResetButtonStyle(btnSanPham);
             ResetButtonStyle(btnAccount);
 
-            // Set nút đang chọn thành nền Trắng, chữ Xanh
             activeBtn.Background = Brushes.White;
 
-            // Tìm icon và text bên trong để đổi màu
             if (activeBtn.Child is StackPanel sp)
             {
                 foreach (var child in sp.Children)
                 {
-                    if (child is MaterialDesignThemes.Wpf.PackIcon icon) icon.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
-                    if (child is TextBlock txt) txt.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
+                    if (child is MaterialDesignThemes.Wpf.PackIcon icon)
+                        icon.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
+                    if (child is TextBlock txt)
+                        txt.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
                 }
             }
         }
@@ -111,7 +142,6 @@ namespace PharmaDistributionApp.Views
 
         private void btnLogOut_Click(object sender, RoutedEventArgs e)
         {
-            // Xử lý đăng xuất (Ví dụ: Mở lại LoginWindow)
             var login = new LoginWindow();
             login.Show();
             this.Close();

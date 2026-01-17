@@ -137,10 +137,18 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox Grid.Column="0" 
-                                 Text="{Binding Chucvu}" 
-                                 materialDesign:HintAssist.Hint="Chức vụ / Vị trí" 
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        <ComboBox Grid.Column="0"
+                                  materialDesign:HintAssist.Hint="Chức vụ / Vị trí"
+                                  Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                  SelectedValuePath="Content"
+                                  SelectedValue="{Binding Chucvu}">
+
+                            <ComboBoxItem Content="Giám đốc"/>
+                            <ComboBoxItem Content="Quản lý kho"/>
+                            <ComboBoxItem Content="Kế toán"/>
+                            <ComboBoxItem Content="Nhân viên"/>
+
+                        </ComboBox>
 
                         <ComboBox Grid.Column="2" x:Name="cboTrangThai"
                                   materialDesign:HintAssist.Hint="Trạng thái làm việc" 

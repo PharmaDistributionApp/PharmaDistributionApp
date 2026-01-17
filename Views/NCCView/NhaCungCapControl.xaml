@@ -138,6 +138,7 @@
                       BorderThickness="0"
                       Background="White"
                       RowHeaderWidth="0">
+                
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Mã nhà cung cấp" Binding="{Binding Mancc}" Width="150">
                         <DataGridTextColumn.ElementStyle>
@@ -160,6 +161,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
+                    
                     <DataGridTextColumn Header="Số điện thoại" Binding="{Binding Sdt}" Width="140">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
@@ -168,8 +170,11 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
+                    
                     <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="220"/>
+                    
                     <DataGridTextColumn Header="Địa chỉ" Binding="{Binding Diachi}" Width="*">
+                        
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Center"/>

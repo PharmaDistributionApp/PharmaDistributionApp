@@ -145,7 +145,6 @@ namespace PharmaDistributionApp.Views.NCCView
             {
                 // Mở cửa sổ mode Sửa (truyền ncc vào)
                 var editWindow = new ThemSuaNhaCungCapWindow(ncc);
-
                 if (editWindow.ShowDialog() == true)
                 {
                     LoadData(); // Tải lại danh sách sau khi sửa xong
@@ -191,6 +190,5 @@ namespace PharmaDistributionApp.Views.NCCView
                 }
             }
         }
-
     }
 }

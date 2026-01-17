@@ -14,10 +14,6 @@ namespace PharmaDistributionApp.Views
 {
     public partial class AccountControl : UserControl
     {
-        // ... (Giữ nguyên các biến và hàm khởi tạo, LoadUserData, btnSave_Click, btnEdit_Click cũ) ...
-        // ... Copy lại toàn bộ code phần Edit Info từ câu trả lời trước ...
-        // ... (Tôi sẽ chỉ viết phần mới liên quan đến Đổi Mật Khẩu để code ngắn gọn) ...
-
         private bool _isEditing = false;
         private byte[] _avatarBytes = null;
         private string _currentManv = "";
@@ -33,13 +29,10 @@ namespace PharmaDistributionApp.Views
             InitializeComponent();
             // Get the current MainWindow instance and access CurrentMaNV
             var mainWindow = Application.Current.MainWindow as MainWindow;
-            _currentManv = mainWindow?.CurrentMaNV;
+            _currentManv = mainWindow?.CurrentUser?.Manv;
             if (string.IsNullOrEmpty(_currentManv)) _currentManv = "NV001";
             LoadUserData();
         }
-
-        // ... (Dán lại hàm LoadUserData, btnSave_Click, btnEdit_Click, Helper Validation ở đây) ...
-        // ... Bạn có thể giữ nguyên code cũ của phần này ...
 
         // ==========================================
         // PHẦN XỬ LÝ ĐỔI MẬT KHẨU + CON MẮT (MỚI)

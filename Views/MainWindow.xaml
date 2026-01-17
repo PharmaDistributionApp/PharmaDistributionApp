@@ -30,16 +30,26 @@
                             <ColumnDefinition Width="Auto"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <Border Width="50" Height="50" CornerRadius="25" BorderBrush="White" BorderThickness="1">
-                            <materialDesign:PackIcon Kind="AccountCircle" Width="48" Height="48" Foreground="White" 
-                                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+
+                        <Border x:Name="bdrAvatar" Width="50" Height="50" CornerRadius="25" BorderBrush="White" BorderThickness="1">
+                            <Border.Background>
+                                <ImageBrush x:Name="imgAvatarBrush" Stretch="UniformToFill"/>
+                            </Border.Background>
+
+                            <materialDesign:PackIcon x:Name="iconAvatar" Kind="AccountCircle" 
+                                                     Width="48" Height="48" Foreground="White" 
+                                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
+
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
-                            <TextBlock x:Name="txbUserName" Text="Admin User" 
-                                   Foreground="White" FontWeight="Bold" FontSize="15" 
-                                   TextTrimming="CharacterEllipsis"/>
+                            <TextBlock x:Name="txbUserName" Text="Người dùng" 
+                                       Foreground="White" FontWeight="Bold" FontSize="15" 
+                                       TextTrimming="CharacterEllipsis"
+                                       MaxWidth="155"
+                                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
+                            
                             <Border Background="#40FFFFFF" CornerRadius="10" HorizontalAlignment="Left" Padding="8,2" Margin="0,5,0,0">
-                                <TextBlock x:Name="txbUserRole" Text="Quản trị viên" Foreground="White" FontSize="11"/>
+                                <TextBlock x:Name="txbUserRole" Text="Nhân viên" Foreground="White" FontSize="11"/>
                             </Border>
                         </StackPanel>
                     </Grid>
