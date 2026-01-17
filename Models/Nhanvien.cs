@@ -8,7 +8,7 @@
     public string? Diachi { get; set; }
 
     // --- THÊM DÒNG NÀY ---
-    public DateOnly? Ngaysinh { get; set; }
+    public DateTime? Ngaysinh { get; set; }
 
     public byte[]? Avatar { get; set; }
 }

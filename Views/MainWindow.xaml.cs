@@ -8,6 +8,7 @@ using PharmaDistributionApp.Views.LoginView;
 using PharmaDistributionApp.Views.DashBoardView;
 using PharmaDistributionApp.Views.NCCView;
 using PharmaDistributionApp.Views.ProductView;
+using PharmaDistributionApp.Views.Controls;
 
 namespace PharmaDistributionApp.Views
 {
