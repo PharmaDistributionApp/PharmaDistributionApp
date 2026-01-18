@@ -58,7 +58,11 @@ namespace PharmaDistributionApp.Views
                 case "NhaCungCap":
                     MainContent.Content = new NhaCungCapControl();
                     break;
-
+                case "KhachHang":
+                    // MainContent.Content = new KhachHangControl(); 
+                    // Lưu ý: Bạn cần tạo File KhachHangControl.xaml trước khi bỏ comment dòng trên
+                    MainContent.Content = new KhachHangControl();
+                    break;
                 // [MỚI] CASE XỬ LÝ SẢN PHẨM
                 case "SanPham":
                     // Nếu bạn đã có UserControl cho sản phẩm thì thay dòng dưới bằng: new SanPhamControl();
@@ -72,27 +76,34 @@ namespace PharmaDistributionApp.Views
         }
 
         // Hàm xử lý đổi màu nút Menu
+        // Hàm xử lý đổi màu nút Menu
         private void SetActiveMenu(Border activeBtn)
         {
-            // Reset tất cả các nút về màu trong suốt, chữ trắng
+            // 1. Reset tất cả các nút về màu trong suốt, chữ trắng
             ResetButtonStyle(btnTongQuan);
             ResetButtonStyle(btnKho);
             ResetButtonStyle(btnNhanSu);
             ResetButtonStyle(btnHoaDon);
             ResetButtonStyle(btnNhaCungCap);
-            ResetButtonStyle(btnSanPham); // [MỚI] Reset thêm nút sản phẩm
+
+            // BỔ SUNG: Reset nút Khách hàng để không bị kẹt màu trắng
+            ResetButtonStyle(btnKhachHang);
+
+            ResetButtonStyle(btnSanPham);
             ResetButtonStyle(btnAccount);
 
-            // Set nút đang chọn thành nền Trắng, chữ Xanh
+            // 2. Set nút đang được chọn thành nền Trắng
             activeBtn.Background = Brushes.White;
 
-            // Tìm icon và text bên trong để đổi màu
+            // 3. Tìm icon và text bên trong nút được chọn để đổi sang màu xanh thương hiệu #4C70BA
             if (activeBtn.Child is StackPanel sp)
             {
                 foreach (var child in sp.Children)
                 {
-                    if (child is MaterialDesignThemes.Wpf.PackIcon icon) icon.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
-                    if (child is TextBlock txt) txt.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
+                    if (child is MaterialDesignThemes.Wpf.PackIcon icon)
+                        icon.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
+                    if (child is TextBlock txt)
+                        txt.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
                 }
             }
         }

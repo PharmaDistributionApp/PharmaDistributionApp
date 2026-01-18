@@ -1,5 +1,7 @@
-﻿using MaterialDesignThemes.Wpf;
+﻿using ClosedXML.Excel;
+using MaterialDesignThemes.Wpf;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Win32;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using PharmaDistributionApp.Models;
@@ -15,7 +17,6 @@ using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
 using System.Windows.Shapes;
-using Microsoft.Win32;
 
 namespace PharmaDistributionApp.Views.Controls
 {
@@ -140,72 +141,107 @@ namespace PharmaDistributionApp.Views.Controls
         // ===================================================================
         private void btnExportExcel_Click(object sender, RoutedEventArgs e)
         {
-            try
+            // 1. Lấy dữ liệu từ DataGrid hóa đơn (đảm bảo dgHoaDon.ItemsSource là List<InvoiceViewModel>)
+            var listData = dgHoaDon.ItemsSource as List<InvoiceViewModel>;
+
+            if (listData == null || listData.Count == 0)
             {
-                var listData = dgHoaDon.ItemsSource as List<InvoiceViewModel>;
-                if (listData == null || listData.Count == 0)
-                {
-                    MessageBox.Show("Không có dữ liệu để xuất!", "Thông báo");
-                    return;
-                }
+                MessageBox.Show("Không có dữ liệu hóa đơn để xuất!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
 
-                SaveFileDialog saveFileDialog = new SaveFileDialog
-                {
-                    Filter = "Excel files (*.xlsx)|*.xlsx",
-                    FileName = $"DS_HoaDon_{DateTime.Now:ddMMyyyy_HHmm}.xlsx"
-                };
+            // 2. Mở hộp thoại chọn nơi lưu file
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                FileName = $"DanhSachHoaDon_{DateTime.Now:ddMMyyyy_HHmm}.xlsx"
+            };
 
-                if (saveFileDialog.ShowDialog() == true)
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
                 {
-                    using (var package = new ExcelPackage())
+                    // 3. Tạo file Excel bằng ClosedXML
+                    using (var workbook = new XLWorkbook())
                     {
-                        var worksheet = package.Workbook.Worksheets.Add("Danh sách hóa đơn");
+                        var worksheet = workbook.Worksheets.Add("Danh Sách Hóa Đơn");
 
-                        // Header
-                        string[] headers = { "Mã HĐ", "Đối tác", "Ngày lập", "Tổng tiền", "Trạng thái", "Loại HĐ" };
-                        for (int i = 0; i < headers.Length; i++)
-                        {
-                            worksheet.Cells[1, i + 1].Value = headers[i];
-                            worksheet.Cells[1, i + 1].Style.Font.Bold = true;
-                            worksheet.Cells[1, i + 1].Style.Fill.PatternType = ExcelFillStyle.Solid;
-                            worksheet.Cells[1, i + 1].Style.Fill.BackgroundColor.SetColor(System.Drawing.Color.LightGray);
-                            worksheet.Cells[1, i + 1].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                            worksheet.Cells[1, i + 1].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-                        }
+                        // --- TẠO HEADER ---
+                        worksheet.Cell(1, 1).Value = "Mã HĐ";
+                        worksheet.Cell(1, 2).Value = "Đối tác";
+                        worksheet.Cell(1, 3).Value = "Ngày lập";
+                        worksheet.Cell(1, 4).Value = "Tổng tiền (VNĐ)";
+                        worksheet.Cell(1, 5).Value = "Trạng thái";
+                        worksheet.Cell(1, 6).Value = "Loại HĐ";
 
-                        // Data
+                        // Định dạng Header (Nền xanh #4C70BA giống giao diện chính)
+                        var headerRange = worksheet.Range("A1:F1");
+                        headerRange.Style.Font.Bold = true;
+                        headerRange.Style.Font.FontColor = XLColor.White;
+                        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#4C70BA");
+                        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                        // --- ĐỔ DỮ LIỆU ---
                         int row = 2;
                         foreach (var item in listData)
                         {
-                            worksheet.Cells[row, 1].Value = item.MaHD;
-                            worksheet.Cells[row, 2].Value = item.DoiTac;
-                            worksheet.Cells[row, 3].Value = item.NgayLap.ToString("dd/MM/yyyy");
+                            worksheet.Cell(row, 1).Value = item.MaHD;
+                            worksheet.Cell(row, 2).Value = item.DoiTac;
 
-                            worksheet.Cells[row, 4].Value = item.TongTien;
-                            worksheet.Cells[row, 4].Style.Numberformat.Format = "#,##0";
+                            // Định dạng ngày tháng
+                            worksheet.Cell(row, 3).Value = item.NgayLap;
+                            worksheet.Cell(row, 3).Style.DateFormat.Format = "dd/MM/yyyy";
 
-                            worksheet.Cells[row, 5].Value = item.TrangThai;
-                            worksheet.Cells[row, 6].Value = item.LoaiHD;
+                            // Định dạng số cho Tổng tiền (Sửa lỗi NumberFormat viết hoa chữ F)
+                            worksheet.Cell(row, 4).Value = item.TongTien;
+                            worksheet.Cell(row, 4).Style.NumberFormat.Format = "#,##0";
+                            worksheet.Cell(row, 4).Style.Font.FontColor = XLColor.DarkBlue;
 
-                            // Kẻ khung
-                            for (int i = 1; i <= 6; i++)
-                            {
-                                worksheet.Cells[row, i].Style.Border.BorderAround(ExcelBorderStyle.Thin);
-                            }
+                            worksheet.Cell(row, 5).Value = item.TrangThai;
+                            worksheet.Cell(row, 6).Value = item.LoaiHD;
+
+                            // Tô màu trạng thái để dễ phân biệt
+                            if (item.TrangThai == "Đã thanh toán")
+                                worksheet.Cell(row, 5).Style.Font.FontColor = XLColor.Green;
+                            else if (item.TrangThai == "Chờ thanh toán" || item.TrangThai == "Chưa thanh toán")
+                                worksheet.Cell(row, 5).Style.Font.FontColor = XLColor.Red;
+
                             row++;
                         }
 
-                        worksheet.Cells.AutoFitColumns();
+                        // --- FORMAT CHUNG ---
+                        // Tự động chỉnh độ rộng cột
+                        worksheet.Columns().AdjustToContents();
+
+                        // Kẻ khung viền cho toàn bộ bảng
+                        var dataRange = worksheet.Range(1, 1, row - 1, 6);
+                        dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
 
                         // Lưu file
-                        File.WriteAllBytes(saveFileDialog.FileName, package.GetAsByteArray());
-                        MessageBox.Show("Xuất Excel thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                        workbook.SaveAs(saveFileDialog.FileName);
+                    }
+
+                    // Mở file sau khi lưu xong
+                    var result = MessageBox.Show("Xuất danh sách hóa đơn thành công! Bạn có muốn mở file ngay không?",
+                                                 "Thành công",
+                                                 MessageBoxButton.YesNo,
+                                                 MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        var processStartInfo = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = saveFileDialog.FileName,
+                            UseShellExecute = true
+                        };
+                        System.Diagnostics.Process.Start(processStartInfo);
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi xuất Excel: " + ex.Message);
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Có lỗi khi xuất file hóa đơn: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
             }
         }
 

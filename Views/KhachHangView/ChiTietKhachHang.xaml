@@ -1,0 +1,79 @@
+﻿<Window x:Class="PharmaDistributionApp.Views.KhachHangView.ChiTietKhachHang"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Chi tiết khách hàng" Height="450" Width="600"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        Background="White" FontFamily="Segoe UI">
+
+    <Window.Resources>
+        <Style TargetType="TextBlock" x:Key="LabelStyle">
+            <Setter Property="FontWeight" Value="Bold"/>
+            <Setter Property="Foreground" Value="#555"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Margin" Value="0,0,20,15"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="ValueStyle">
+            <Setter Property="Foreground" Value="#333"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="30">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <TextBlock Text="CHI TIẾT KHÁCH HÀNG" 
+                   HorizontalAlignment="Center" 
+                   Foreground="#4F7CC9" FontSize="22" FontWeight="Bold" 
+                   Margin="0,0,0,30"/>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="140"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0">
+                <TextBlock Text="Mã khách hàng:" Style="{StaticResource LabelStyle}"/>
+                <TextBlock Text="Tên khách hàng:" Style="{StaticResource LabelStyle}"/>
+                <TextBlock Text="Số điện thoại:" Style="{StaticResource LabelStyle}"/>
+                <TextBlock Text="Email:" Style="{StaticResource LabelStyle}"/>
+                <TextBlock Text="Địa chỉ:" Style="{StaticResource LabelStyle}"/>
+                <TextBlock Text="Loại khách hàng:" Style="{StaticResource LabelStyle}"/>
+                <TextBlock Text="Doanh số tích lũy:" Style="{StaticResource LabelStyle}"/>
+            </StackPanel>
+
+            <StackPanel Grid.Column="1">
+                <TextBlock x:Name="lblMaKH" Text="..." Style="{StaticResource ValueStyle}"/>
+                <TextBlock x:Name="lblTenKH" Text="..." Style="{StaticResource ValueStyle}" FontWeight="SemiBold"/>
+                <TextBlock x:Name="lblSdt" Text="..." Style="{StaticResource ValueStyle}" Foreground="#E74C3C"/>
+                <TextBlock x:Name="lblEmail" Text="..." Style="{StaticResource ValueStyle}"/>
+                <TextBlock x:Name="lblDiaChi" Text="..." Style="{StaticResource ValueStyle}"/>
+                <TextBlock x:Name="lblLoaiKH" Text="..." Style="{StaticResource ValueStyle}"/>
+                <TextBlock x:Name="lblDoanhSo" Text="..." Style="{StaticResource ValueStyle}" FontWeight="Bold" Foreground="#2E7D32"/>
+            </StackPanel>
+        </Grid>
+
+        <Border Grid.Row="2" BorderBrush="#DDD" BorderThickness="0,1,0,0" Margin="0,10,0,20"/>
+
+        <Button Grid.Row="3" Content="Đóng" Click="BtnDong_Click"
+                Width="100" Height="36" HorizontalAlignment="Right"
+                Background="White" Foreground="#4F7CC9" 
+                BorderBrush="#4F7CC9" BorderThickness="1">
+            <Button.Resources>
+                <Style TargetType="Border">
+                    <Setter Property="CornerRadius" Value="4"/>
+                </Style>
+            </Button.Resources>
+        </Button>
+    </Grid>
+</Window>

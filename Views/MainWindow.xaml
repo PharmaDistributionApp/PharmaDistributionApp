@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
         xmlns:views="clr-namespace:PharmaDistributionApp.Views"
+        WindowState="Maximized"
         mc:Ignorable="d"
         Title="Hệ thống Quản lý Dược phẩm" 
         Height="768" Width="1280"
@@ -90,6 +91,13 @@
                             <StackPanel Orientation="Horizontal">
                                 <materialDesign:PackIcon Kind="TruckDeliveryOutline" Foreground="White" Width="22" Height="22"/>
                                 <TextBlock Text="Nhà cung cấp" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                            </StackPanel>
+                        </Border>
+                        <Border x:Name="btnKhachHang" Tag="KhachHang" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
+                                Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="AccountTie" Foreground="White" Width="22" Height="22"/>
+                                <TextBlock Text="Khách hàng" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
                             </StackPanel>
                         </Border>
 

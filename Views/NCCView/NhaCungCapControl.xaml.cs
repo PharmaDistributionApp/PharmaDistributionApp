@@ -6,6 +6,8 @@ using System.Windows.Controls;
 using System.Windows.Input; // Cần thêm dòng này cho MouseButtonEventArgs
 using System.Windows.Media;
 using PharmaDistributionApp.Models;
+using ClosedXML.Excel;
+using Microsoft.Win32;
 
 namespace PharmaDistributionApp.Views.NCCView
 {
@@ -108,7 +110,92 @@ namespace PharmaDistributionApp.Views.NCCView
         // Nút Xuất Excel
         private void BtnXuatExcel_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Chức năng xuất Excel đang được phát triển.", "Thông báo");
+            // 1. Lấy dữ liệu từ DataGrid (Giả sử tên DataGrid là dgvNhaCungCap)
+            var listNCC = dgvNhaCungCap.ItemsSource as List<Nhacungcap>;
+
+            if (listNCC == null || listNCC.Count == 0)
+            {
+                MessageBox.Show("Không có dữ liệu nhà cung cấp để xuất!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // 2. Mở hộp thoại lưu file
+            SaveFileDialog saveFileDialog = new SaveFileDialog
+            {
+                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
+                FileName = $"DanhSachNhaCungCap_{DateTime.Now:ddMMyyyy_HHmm}.xlsx"
+            };
+
+            if (saveFileDialog.ShowDialog() == true)
+            {
+                try
+                {
+                    // 3. Tạo file Excel
+                    using (var workbook = new XLWorkbook())
+                    {
+                        var worksheet = workbook.Worksheets.Add("Nhà Cung Cấp");
+
+                        // --- TẠO HEADER (Dòng 1) ---
+                        worksheet.Cell(1, 1).Value = "Mã NCC";
+                        worksheet.Cell(1, 2).Value = "Tên Nhà Cung Cấp";
+                        worksheet.Cell(1, 3).Value = "Số Điện Thoại";
+                        worksheet.Cell(1, 4).Value = "Email";
+                        worksheet.Cell(1, 5).Value = "Địa Chỉ";
+
+                        // Định dạng Header (Đậm, Nền xanh #4C70BA, Chữ trắng, Căn giữa)
+                        var headerRange = worksheet.Range("A1:E1");
+                        headerRange.Style.Font.Bold = true;
+                        headerRange.Style.Font.FontColor = XLColor.White;
+                        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#4C70BA");
+                        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+
+                        // --- ĐỔ DỮ LIỆU ---
+                        int row = 2;
+                        foreach (var ncc in listNCC)
+                        {
+                            worksheet.Cell(row, 1).Value = ncc.Mancc;
+                            worksheet.Cell(row, 2).Value = ncc.Tenncc;
+                            worksheet.Cell(row, 3).Value = ncc.Sdt;
+                            worksheet.Cell(row, 4).Value = ncc.Email;
+                            worksheet.Cell(row, 5).Value = ncc.Diachi;
+
+                            row++;
+                        }
+
+                        // --- FORMAT CHUNG ---
+                        // Tự động chỉnh độ rộng cột theo nội dung
+                        worksheet.Columns().AdjustToContents();
+
+                        // Kẻ khung viền cho toàn bộ bảng dữ liệu
+                        var dataRange = worksheet.Range(1, 1, row - 1, 5);
+                        dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
+                        dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
+
+                        // Lưu file
+                        workbook.SaveAs(saveFileDialog.FileName);
+                    }
+
+                    // 4. Thông báo và hỏi mở file
+                    var result = MessageBox.Show("Xuất danh sách nhà cung cấp thành công! Bạn có muốn mở file ngay không?",
+                                                 "Thành công",
+                                                 MessageBoxButton.YesNo,
+                                                 MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        var processStartInfo = new System.Diagnostics.ProcessStartInfo
+                        {
+                            FileName = saveFileDialog.FileName,
+                            UseShellExecute = true
+                        };
+                        System.Diagnostics.Process.Start(processStartInfo);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Có lỗi khi xuất file: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
         }
 
         // --- MỚI: Xử lý Click đúp vào dòng để xem chi tiết ---
