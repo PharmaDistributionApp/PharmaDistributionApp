@@ -191,6 +191,10 @@ namespace PharmaDistributionApp.Views.NCCView
                 }
             }
         }
+        private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            Keyboard.ClearFocus(); // Lệnh này giúp bỏ focus khỏi ô tìm kiếm
+        }
 
     }
 }

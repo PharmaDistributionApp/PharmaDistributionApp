@@ -76,7 +76,7 @@
                                 Background="{TemplateBinding Background}" 
                                 BorderBrush="{TemplateBinding BorderBrush}" 
                                 BorderThickness="{TemplateBinding BorderThickness}" 
-                                CornerRadius="22">
+                                CornerRadius="8">
 
                             <Border.Effect>
                                 <DropShadowEffect x:Name="shadow" 
@@ -296,7 +296,7 @@
                     </DataGridTextColumn>
 
 
-                    <DataGridTemplateColumn Header="Thao tác" Width="90">
+                    <DataGridTemplateColumn Header="" Width="60">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Background="Transparent" BorderThickness="0" HorizontalAlignment="Center" Cursor="Hand" Click="BtnHanhDong_Click">

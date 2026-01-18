@@ -11,4 +11,5 @@ public partial class Phieunhap
     public string Manv { get; set; } = null!;
     public string? Ngaynhap { get; set; }
     public string? Ghichu { get; set; }
+    public string? Trangthai { get; set; }
 }

@@ -324,10 +324,9 @@ namespace PharmaDistributionApp.Views.ProductView
 
                 if (!string.IsNullOrEmpty(masp))
                 {
-                    // Giả sử bạn có Window chi tiết
-                    // var detailWindow = new ChiTietSanPhamWindow(masp);
-                    // detailWindow.ShowDialog();
-                    MessageBox.Show($"Xem chi tiết: {masp}");
+                    var detailWindow = new ChiTietSanPhamWindow(masp);
+                    detailWindow.ShowDialog();
+
                 }
             }
             catch (Exception ex)
