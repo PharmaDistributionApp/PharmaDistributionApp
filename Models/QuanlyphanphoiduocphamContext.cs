@@ -193,14 +193,39 @@ namespace PharmaDistributionApp.Models
 
             modelBuilder.Entity<Phieunhap>(e => {
                 e.ToTable("PHIEUNHAP");
+
+                // 1. Khóa chính
                 e.HasKey(x => x.Mapn);
                 e.Property(x => x.Mapn).HasColumnName("MAPN");
+
+                // 2. Các cột còn lại (Theo hình)
+                e.Property(x => x.Sohdnhap).HasColumnName("SOHDNHAP");
+                e.Property(x => x.Makho).HasColumnName("MAKHO");
+                e.Property(x => x.Manv).HasColumnName("MANV");
+                e.Property(x => x.Ngaynhap).HasColumnName("NGAYNHAP");
+                e.Property(x => x.Ghichu).HasColumnName("GHICHU");
+
+                // Lưu ý: Nếu bạn muốn giữ cột TRANGTHAI mới thêm thì để dòng này, 
+                // còn nếu muốn y chang hình 100% thì xóa dòng dưới đi.
+                e.Property(x => x.Trangthai).HasColumnName("TRANGTHAI");
             });
 
             modelBuilder.Entity<Phieuxuat>(e => {
                 e.ToTable("PHIEUXUAT");
+
+                // 1. Khóa chính
                 e.HasKey(x => x.Mapx);
                 e.Property(x => x.Mapx).HasColumnName("MAPX");
+
+                // 2. Các cột còn lại (Theo hình)
+                e.Property(x => x.Sohdxuat).HasColumnName("SOHDXUAT");
+                e.Property(x => x.Makho).HasColumnName("MAKHO");
+                e.Property(x => x.Manv).HasColumnName("MANV");
+                e.Property(x => x.Ngayxuat).HasColumnName("NGAYXUAT");
+                e.Property(x => x.Lydo).HasColumnName("LYDO"); // Bên xuất là LYDO, không phải GHICHU
+
+                // Tương tự, nếu muốn giữ cột TRANGTHAI thì để dòng này
+                e.Property(x => x.Trangthai).HasColumnName("TRANGTHAI");
             });
 
             modelBuilder.Entity<Kho>(e => {
