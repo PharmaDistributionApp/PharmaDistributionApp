@@ -145,8 +145,20 @@
             </DataGrid.Columns>
         </DataGrid>
 
-        <Button Grid.Row="3" Content="Đóng" Width="100" Height="40" Margin="0,15,0,0"
-                HorizontalAlignment="Right" Click="BtnDong_Click" 
-                Background="#4C70BA" Foreground="White" BorderThickness="0"/>
+        <StackPanel Grid.Row="3" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+
+            <Button x:Name="btnPheDuyet" 
+            Content="Phê duyệt" 
+            Width="100" Height="40" Margin="0,0,10,0"
+            Background="#2E7D32" Foreground="White" BorderThickness="0" FontWeight="Bold"
+            Visibility="Collapsed"
+            Click="BtnPheDuyet_Click"/>
+
+            <Button Content="Đóng" 
+            Width="100" Height="40"
+            Background="#4C70BA" Foreground="White" BorderThickness="0"
+            Click="BtnDong_Click"/>
+
+        </StackPanel>
     </Grid>
 </Window>
