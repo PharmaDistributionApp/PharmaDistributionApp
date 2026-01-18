@@ -11,4 +11,5 @@ public partial class Phieuxuat
     public string Manv { get; set; } = null!;
     public string? Ngayxuat { get; set; }
     public string? Lydo { get; set; }
+    public string? Trangthai { get; set; }
 }
