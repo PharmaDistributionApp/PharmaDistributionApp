@@ -12,7 +12,6 @@ namespace PharmaDistributionApp.Views.LoginView
 {
     public partial class LoginControl : UserControl
     {
-        // Định nghĩa màu viền mặc định và màu lỗi
         private readonly Brush _defaultBorder = (Brush)new BrushConverter().ConvertFrom("#DDDDDD");
         private readonly Brush _errorBorder = Brushes.Red;
 
@@ -34,14 +33,12 @@ namespace PharmaDistributionApp.Views.LoginView
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Reset giao diện về bình thường (Xóa lỗi cũ)
             ResetUI();
 
             string input = txtUsername.Text.Trim();
             string pass = txtPassword.Password;
             bool hasValidationError = false;
 
-            // Kiểm tra rỗng (Validation đầu vào)
             if (string.IsNullOrEmpty(input))
             {
                 txtUsername.BorderBrush = _errorBorder;
@@ -62,31 +59,21 @@ namespace PharmaDistributionApp.Views.LoginView
 
             try
             {
-                // 2. QUERY TÌM TÀI KHOẢN
+                // 1. Truy vấn lấy thông tin Tài khoản và Nhân viên cơ bản
                 string sql = @"
-                    SELECT T.*, N.EMAIL, N.TENNV 
-                    FROM TAIKHOAN T
+                    SELECT T.*, N.* FROM TAIKHOAN T
                     JOIN NHANVIEN N ON T.MANV = N.MANV
-                    WHERE (
-                            T.MANV = @user      
-                          OR N.EMAIL = @user     
-                          OR N.TENNV = @user      
-                          )";
+                    WHERE (T.MANV = @user OR N.EMAIL = @user OR N.TENNV = @user)";
 
-                SQLiteParameter[] parameters = {
-                    new SQLiteParameter("@user", input)
-                };
-
+                SQLiteParameter[] parameters = { new SQLiteParameter("@user", input) };
                 DataTable dt = Database.GetTable(sql, parameters);
 
-                // --- TRƯỜNG HỢP 1: KHÔNG TÌM THẤY TÀI KHOẢN ---
                 if (dt.Rows.Count == 0)
                 {
                     SetErrorState(txtUsername, "Tài khoản không tồn tại");
                     return;
                 }
 
-                // --- TRƯỜNG HỢP 2: TÌM THẤY -> KIỂM TRA MẬT KHẨU ---
                 DataRow row = dt.Rows[0];
                 string dbPass = row["MATKHAU"].ToString();
 
@@ -96,7 +83,6 @@ namespace PharmaDistributionApp.Views.LoginView
                     return;
                 }
 
-                // --- TRƯỜNG HỢP 3: KIỂM TRA TRẠNG THÁI KHÓA ---
                 long trangThai = Convert.ToInt64(row["TRANGTHAI"]);
                 if (trangThai == 0)
                 {
@@ -104,80 +90,78 @@ namespace PharmaDistributionApp.Views.LoginView
                     return;
                 }
 
-                // --- ĐĂNG NHẬP THÀNH CÔNG ---
-
-                // ============================================================
-                // [QUAN TRỌNG]: LẤY ĐẦY ĐỦ THÔNG TIN USER (BAO GỒM CHỨC VỤ)
-                // ============================================================
-
-                string manv = row["MANV"].ToString();
-
-                // Truy vấn lại bảng NHANVIEN để lấy đầy đủ thông tin
-                string sqlUserFull = "SELECT * FROM NHANVIEN WHERE MANV = @id";
-
-                DataTable dtUser = Database.GetTable(sqlUserFull, new SQLiteParameter[] {
-                    new SQLiteParameter("@id", manv)
-                });
-
-                if (dtUser.Rows.Count > 0)
+                // 2. Tạo đối tượng Nhanvien/Employee đầy đủ
+                // Chúng ta ưu tiên dùng class Nhanvien (Model) vì nó khớp với UserSession của bạn
+                Nhanvien currentUser = new Nhanvien
                 {
-                    DataRow userRow = dtUser.Rows[0];
+                    Manv = row["MANV"].ToString(),
+                    // Kiểm tra linh hoạt giữa cột TENNV và HOTEN
+                    Tennv = dt.Columns.Contains("TENNV") ? row["TENNV"].ToString() : row["HOTEN"].ToString(),
+                    Chucvu = row["CHUCVU"].ToString(),
+                    Email = row["EMAIL"].ToString(),
+                    Sdt = row["SDT"] != DBNull.Value ? row["SDT"].ToString() : "",
+                    Diachi = row["DIACHI"] != DBNull.Value ? row["DIACHI"].ToString() : "",
+                    Cccd = row["CCCD"] != DBNull.Value ? row["CCCD"].ToString() : "",
+                    Gioitinh = row["GIOITINH"] != DBNull.Value ? row["GIOITINH"].ToString() : ""
+                };
 
-                    // Tạo đối tượng Nhanvien và lưu vào Session
-                    UserSession.CurrentUser = new Nhanvien
+                // Xử lý Ngày sinh (Bây giờ Model là DateTime?)
+                if (dt.Columns.Contains("NGAYSINH") && row["NGAYSINH"] != DBNull.Value)
+                {
+                    if (DateTime.TryParse(row["NGAYSINH"].ToString(), out DateTime dateVal))
                     {
-                        Manv = userRow["MANV"].ToString(),
-                        // Xử lý tên cột HOTEN hoặc TENNV tùy DB
-                        Tennv = userRow.Table.Columns.Contains("TENNV") ? userRow["TENNV"].ToString() : userRow["HOTEN"].ToString(),
-                        Email = userRow["EMAIL"].ToString(),
-                        Sdt = userRow["SDT"] != DBNull.Value ? userRow["SDT"].ToString() : "",
-                        Diachi = userRow.Table.Columns.Contains("DIACHI") ? userRow["DIACHI"].ToString() : "",
-
-                        // [ĐÂY LÀ DÒNG BẠN BỊ THIẾU TRƯỚC ĐÓ]
-                        // Phải gán Chucvu thì màn hình Hóa đơn mới biết đây là Admin
-                        Chucvu = userRow["CHUCVU"].ToString()
-                    };
-
-                    // Đánh dấu đã đăng nhập
-                    UserSession.IsLoggedIn = true;
+                        // Gán trực tiếp vì cả hai đều là DateTime
+                        currentUser.Ngaysinh = dateVal;
+                    }
                 }
-                // ============================================================
+                // Xử lý Avatar (byte[])
+                if (dt.Columns.Contains("AVATAR") && row["AVATAR"] != DBNull.Value)
+                {
+                    currentUser.Avatar = (byte[])row["AVATAR"];
+                }
 
-                // Lưu ghi nhớ đăng nhập
+                // 3. Lưu vào Session
+                UserSession.CurrentUser = currentUser;
+                UserSession.IsLoggedIn = true;
+
+                // 4. Lưu ghi nhớ đăng nhập
                 SaveRememberMe(input, pass);
 
-                // Chuyển màn hình
+                // 5. Mở MainWindow (Tương thích với cả 2 cách truyền dữ liệu)
                 MainWindow main = new MainWindow();
-                main.CurrentMaNV = manv; // Giữ lại dòng này để tương thích code cũ
+                // Nếu MainWindow của bạn dùng CurrentMaNV để load data:
+                try { main.CurrentMaNV = currentUser.Manv; } catch { }
+
                 main.Show();
 
-                // Đóng cửa sổ chứa LoginControl (thường là LoginWindow)
+                // Đóng cửa sổ đăng nhập
                 Window parentWindow = Window.GetWindow(this);
                 if (parentWindow != null) parentWindow.Close();
-
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi đăng nhập: " + ex.Message);
+                MessageBox.Show("Lỗi hệ thống khi đăng nhập: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
-
-        // --- CÁC HÀM HỖ TRỢ (GIỮ NGUYÊN) ---
 
         private void SaveRememberMe(string username, string password)
         {
             if (chkRemember.IsChecked == true)
             {
+                // Gán trực tiếp giá trị vào các key đã tạo trong Project Settings
                 Properties.Settings.Default.SavedUsername = username;
                 Properties.Settings.Default.SavedPassword = password;
                 Properties.Settings.Default.IsRemembered = true;
             }
             else
             {
+                // Xóa thông tin nếu người dùng không chọn "Ghi nhớ"
                 Properties.Settings.Default.SavedUsername = "";
                 Properties.Settings.Default.SavedPassword = "";
                 Properties.Settings.Default.IsRemembered = false;
             }
+
+            // Lưu lại thay đổi xuống file cấu hình của máy
             Properties.Settings.Default.Save();
         }
 
@@ -190,8 +174,8 @@ namespace PharmaDistributionApp.Views.LoginView
         private void ResetUI()
         {
             txbErrorMessage.Visibility = Visibility.Collapsed;
-            if (txtUsername.BorderBrush == _errorBorder) txtUsername.BorderBrush = _defaultBorder;
-            if (txtPassword.BorderBrush == _errorBorder) txtPassword.BorderBrush = _defaultBorder;
+            txtUsername.BorderBrush = _defaultBorder;
+            txtPassword.BorderBrush = _defaultBorder;
         }
 
         private void SetErrorState(Control control, string message)
@@ -203,30 +187,22 @@ namespace PharmaDistributionApp.Views.LoginView
 
         private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // Logic mở màn hình quên mật khẩu (Giữ nguyên logic của bạn)
-            // Lưu ý: Cần ép kiểu về Window chứa Control này nếu method Navigate nằm ở đó
-            var parentWindow = Window.GetWindow(this);
-            // Ví dụ nếu parent là LoginWindow thì: ((LoginWindow)parentWindow).NavigateToForgotPass();
-            // Ở đây tôi để code an toàn để tránh lỗi biên dịch nếu bạn chưa có method đó
-            MessageBox.Show("Chức năng quên mật khẩu đang phát triển.", "Thông báo");
+            var parentWindow = Window.GetWindow(this) as LoginWindow;
+            if (parentWindow != null)
+            {
+                try { parentWindow.NavigateToForgotPass(); }
+                catch { MessageBox.Show("Chức năng quên mật khẩu đang được bảo trì."); }
+            }
         }
 
         private void txtUsername_TextChanged(object sender, TextChangedEventArgs e)
         {
-            if (txtUsername.BorderBrush == _errorBorder)
-            {
-                txtUsername.BorderBrush = _defaultBorder;
-                txbErrorMessage.Visibility = Visibility.Collapsed;
-            }
+            if (txtUsername.BorderBrush == _errorBorder) ResetUI();
         }
 
         private void txtPassword_PasswordChanged(object sender, RoutedEventArgs e)
         {
-            if (txtPassword.BorderBrush == _errorBorder)
-            {
-                txtPassword.BorderBrush = _defaultBorder;
-                txbErrorMessage.Visibility = Visibility.Collapsed;
-            }
+            if (txtPassword.BorderBrush == _errorBorder) ResetUI();
         }
     }
 }

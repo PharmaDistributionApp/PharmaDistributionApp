@@ -11,7 +11,7 @@
         Background="{DynamicResource MaterialDesignPaper}"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         FontFamily="{DynamicResource MaterialDesignFont}">
-    
+
     <Window.Resources>
         <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#4C70BA"/>
 
@@ -21,7 +21,7 @@
 
         <SolidColorBrush x:Key="PrimaryHueMidForegroundBrush" Color="White"/>
     </Window.Resources>
-    
+
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -102,13 +102,13 @@
                             <ColumnDefinition Width="20"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        
+
                         <TextBox Grid.Column="0" 
                                  Text="{Binding Cccd}" 
                                  materialDesign:HintAssist.Hint="Số CCCD / CMND" 
                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                  MaxLength="12"/>
-                                 
+
                         <ComboBox Grid.Column="2" Text="{Binding GioiTinh}" materialDesign:HintAssist.Hint="Giới tính" Style="{StaticResource MaterialDesignFloatingHintComboBox}">
                             <ComboBoxItem Content="Nam"/>
                             <ComboBoxItem Content="Nữ"/>
@@ -137,10 +137,18 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox Grid.Column="0" 
-                                 Text="{Binding Chucvu}" 
-                                 materialDesign:HintAssist.Hint="Chức vụ / Vị trí" 
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                        <ComboBox Grid.Column="0"
+                                  materialDesign:HintAssist.Hint="Chức vụ / Vị trí"
+                                  Style="{StaticResource MaterialDesignFloatingHintComboBox}"
+                                  SelectedValuePath="Content"
+                                  SelectedValue="{Binding Chucvu}">
+
+                            <ComboBoxItem Content="Giám đốc"/>
+                            <ComboBoxItem Content="Quản lý kho"/>
+                            <ComboBoxItem Content="Kế toán"/>
+                            <ComboBoxItem Content="Nhân viên"/>
+
+                        </ComboBox>
 
                         <ComboBox Grid.Column="2" x:Name="cboTrangThai"
                                   materialDesign:HintAssist.Hint="Trạng thái làm việc" 

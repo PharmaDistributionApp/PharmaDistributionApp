@@ -7,7 +7,7 @@ using System.Runtime.CompilerServices; // Mới
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media; 
+using System.Windows.Media;
 using System.Windows.Data;   // Để dùng CollectionViewSource
 using ClosedXML.Excel; // Thư viện Excel
 using Microsoft.Win32;
@@ -154,57 +154,7 @@ namespace PharmaDistributionApp.Views.EmployeeView
                 LoadEmployeeData();
             }
         }
-        private void btnEdit_Click(object sender, RoutedEventArgs e)
-        {
-            // Lấy nhân viên đang chọn từ DataGrid
-            if (dgEmployee.SelectedItem is Employee selectedEmp)
-            {
-                // Mở cửa sổ sửa (Constructor có tham số)
-                var editWindow = new AddOrEditEmployeeWindow(selectedEmp);
 
-                if (editWindow.ShowDialog() == true)
-                {
-                    LoadEmployeeData(); // Refresh lại lưới sau khi sửa
-                }
-            }
-        }
-        private void btnDelete_Click(object sender, RoutedEventArgs e)
-        {
-            if (dgEmployee.SelectedItem is Employee selectedEmp)
-            {
-                var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa nhân viên {selectedEmp.Tennv}?",
-                                             "Xác nhận xóa",
-                                             MessageBoxButton.YesNo,
-                                             MessageBoxImage.Question);
-
-                if (result == MessageBoxResult.Yes)
-                {
-                    try
-                    {
-                        string sql = "DELETE FROM NHANVIEN WHERE MANV = @Manv";
-                        // Lưu ý: Dùng cách truyền tham số như bài trước
-                        var parameters = new System.Collections.Generic.Dictionary<string, object>
-                        {
-                            { "@Manv", selectedEmp.Manv }
-                        };
-
-                        // Chuyển Dictionary sang mảng param (như bài trước đã hướng dẫn)
-                        var sqliteParams = System.Linq.Enumerable.ToArray(
-                            System.Linq.Enumerable.Select(parameters, p => new System.Data.SQLite.SQLiteParameter(p.Key, p.Value))
-                        );
-
-                        Database.ExecuteNonQuery(sql, sqliteParams);
-
-                        // Xóa xong thì load lại
-                        LoadEmployeeData();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Lỗi khi xóa: " + ex.Message);
-                    }
-                }
-            }
-        }
         private void btnExportExcel_Click(object sender, RoutedEventArgs e)
         {
             if (Employees == null || Employees.Count == 0)
@@ -246,7 +196,7 @@ namespace PharmaDistributionApp.Views.EmployeeView
                         var headerRange = worksheet.Range("A1:J1");
                         headerRange.Style.Font.Bold = true;
                         headerRange.Style.Font.FontColor = XLColor.White;
-                        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#4C70BA"); // Màu xanh thương hiệu của bạn
+                        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#4C70BA");
                         headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
 
                         // --- ĐỔ DỮ LIỆU ---
@@ -266,7 +216,7 @@ namespace PharmaDistributionApp.Views.EmployeeView
                             }
 
                             worksheet.Cell(row, 6).Value = emp.Chucvu;
-                            worksheet.Cell(row, 7).Value = emp.Sdt; // Excel sẽ tự hiểu là chuỗi nếu số bắt đầu bằng 0
+                            worksheet.Cell(row, 7).Value = emp.Sdt;
                             worksheet.Cell(row, 8).Value = emp.Email;
                             worksheet.Cell(row, 9).Value = emp.Diachi;
 
@@ -320,6 +270,85 @@ namespace PharmaDistributionApp.Views.EmployeeView
                 catch (Exception ex)
                 {
                     MessageBox.Show($"Có lỗi khi xuất file: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+
+        // --- XỬ LÝ MENU NGỮ CẢNH (DẤU 3 CHẤM) ---
+        private void BtnHanhDong_Click(object sender, RoutedEventArgs e)
+        {
+            var btn = sender as Button;
+            // Mở ContextMenu gắn liền với nút đó
+            if (btn != null && btn.ContextMenu != null)
+            {
+                // Đặt vị trí menu ngay tại nút để nó hiện đúng chỗ
+                btn.ContextMenu.PlacementTarget = btn;
+                btn.ContextMenu.IsOpen = true;
+            }
+        }
+
+        // --- XỬ LÝ NÚT SỬA TRONG MENU ---
+        private void BtnSua_Click(object sender, RoutedEventArgs e)
+        {
+            // Lấy MenuItem vừa bấm -> Lấy ContextMenu cha -> Lấy Button gốc -> Lấy DataContext (Employee)
+            var menuItem = sender as MenuItem;
+            var contextMenu = menuItem.Parent as ContextMenu;
+            var btn = contextMenu.PlacementTarget as Button;
+            var selectedEmp = btn.DataContext as Employee;
+
+            if (selectedEmp != null)
+            {
+                // Mở cửa sổ sửa (Tái sử dụng logic cũ của bạn)
+                var editWindow = new AddOrEditEmployeeWindow(selectedEmp);
+
+                if (editWindow.ShowDialog() == true)
+                {
+                    LoadEmployeeData(); // Tải lại danh sách sau khi sửa xong
+                }
+            }
+
+        }
+
+        // --- XỬ LÝ NÚT XÓA TRONG MENU ---
+        private void BtnXoa_Click(object sender, RoutedEventArgs e)
+        {
+            // Lấy thông tin nhân viên từ dòng hiện tại (tương tự như nút Sửa)
+            var menuItem = sender as MenuItem;
+            var contextMenu = menuItem.Parent as ContextMenu;
+            var btn = contextMenu.PlacementTarget as Button;
+            var selectedEmp = btn.DataContext as Employee;
+
+            if (selectedEmp != null)
+            {
+                var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa nhân viên {selectedEmp.Tennv}?",
+                                             "Xác nhận xóa",
+                                             MessageBoxButton.YesNo,
+                                             MessageBoxImage.Question);
+
+                if (result == MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        // Logic xóa SQL cũ của bạn
+                        string sql = "DELETE FROM NHANVIEN WHERE MANV = @Manv";
+                        var parameters = new System.Collections.Generic.Dictionary<string, object>
+                        {
+                            { "@Manv", selectedEmp.Manv }
+                        };
+
+                        var sqliteParams = System.Linq.Enumerable.ToArray(
+                            System.Linq.Enumerable.Select(parameters, p => new System.Data.SQLite.SQLiteParameter(p.Key, p.Value))
+                        );
+
+                        Database.ExecuteNonQuery(sql, sqliteParams);
+
+                        // Xóa xong thì load lại
+                        LoadEmployeeData();
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Lỗi khi xóa: " + ex.Message);
+                    }
                 }
             }
         }
