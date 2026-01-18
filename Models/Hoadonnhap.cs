@@ -1,14 +1,20 @@
-﻿namespace PharmaDistributionApp.Models;
-
-public partial class Hoadonnhap
+﻿namespace PharmaDistributionApp.Models
 {
-    public string Sohdnhap { get; set; } = null!;
-    public string? Ngaylap { get; set; }
-    public double? Tongtien { get; set; }
-    public string? Manv { get; set; }
-    public string? Mancc { get; set; }
-    public string? Ghichu { get; set; }
+    public partial class Hoadonnhap
+    {
+        public string Sohdnhap { get; set; } = null!;
+        public string? Ngaylap { get; set; }
+        public double? Tongtien { get; set; }
+        public string? Manv { get; set; }
+        public string? Mancc { get; set; }
+        public string? Trangthai { get; set; }
 
-    // THÊM LẠI DÒNG NÀY
-    public string? Trangthai { get; set; }
+        // --- THÊM 2 DÒNG NÀY ---
+        public long? Vat { get; set; }      // Thêm dòng này
+        public string? Ghichu { get; set; } // Thêm dòng này
+        // -----------------------
+
+        public virtual Nhacungcap? ManccNavigation { get; set; }
+        public virtual Nhanvien? ManvNavigation { get; set; }
+    }
 }
