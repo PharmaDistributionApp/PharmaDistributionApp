@@ -26,13 +26,10 @@
             <Setter Property="Padding" Value="10"/>
             <Setter Property="BorderThickness" Value="0"/>
             <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
-            <Setter Property="BorderBrush" Value="Transparent"/>
         </Style>
-
         <Style x:Key="RightCell" TargetType="DataGridCell" BasedOn="{StaticResource CenterCell}">
             <Setter Property="TextBlock.TextAlignment" Value="Right"/>
         </Style>
-
         <Style x:Key="LeftCell" TargetType="DataGridCell" BasedOn="{StaticResource CenterCell}">
             <Setter Property="TextBlock.TextAlignment" Value="Left"/>
         </Style>
@@ -56,127 +53,134 @@
 
             <TextBlock Text="Hóa đơn" FontSize="32" FontWeight="Bold" Foreground="#4C70BA" VerticalAlignment="Center"/>
 
-            <Border Grid.Column="1" CornerRadius="20" BorderBrush="#DDDDDD" BorderThickness="1" 
-                    Height="40" Margin="40,0" Background="White" MaxWidth="600">
+            <Border Grid.Column="1" CornerRadius="20" BorderBrush="#DDDDDD" BorderThickness="1" Height="40" Margin="40,0" Background="White" MaxWidth="600">
                 <Grid>
                     <materialDesign:PackIcon Kind="Magnify" Foreground="Gray" VerticalAlignment="Center" Margin="15,0,0,0"/>
-                    <TextBox x:Name="txtSearch" TextChanged="txtSearch_TextChanged" 
-                             materialDesign:HintAssist.Hint="Tìm kiếm theo Mã hoặc Đối tác..." 
-                             materialDesign:TextFieldAssist.DecorationVisibility="Hidden"
-                             BorderThickness="0" Background="Transparent" 
-                             VerticalAlignment="Center" Margin="45,0,15,0" FontSize="14"/>
+                    <TextBox x:Name="txtSearch" TextChanged="txtSearch_TextChanged" materialDesign:HintAssist.Hint="Tìm kiếm..." materialDesign:TextFieldAssist.DecorationVisibility="Hidden" BorderThickness="0" Background="Transparent" VerticalAlignment="Center" Margin="45,0,15,0" FontSize="14"/>
                 </Grid>
             </Border>
 
-            <Grid x:Name="gridNotification" Grid.Column="2" 
-                  VerticalAlignment="Center" HorizontalAlignment="Center"
-                  Visibility="Visible" Panel.ZIndex="99">
-
-                <ToggleButton x:Name="btnNoti"
-                              Width="40" Height="40"
-                              Background="Transparent" 
-                              BorderBrush="Transparent"
-                              Padding="0"
-                              Style="{StaticResource MaterialDesignActionToggleButton}">
+            <Grid x:Name="gridNotification" Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+                <ToggleButton x:Name="btnNoti" Width="40" Height="40" Background="Transparent" BorderBrush="Transparent" Padding="0" Style="{StaticResource MaterialDesignActionToggleButton}">
                     <materialDesign:PackIcon Kind="Bell" Width="28" Height="28" Foreground="#666"/>
                 </ToggleButton>
-
-                <Border x:Name="bdBadge" Width="18" Height="18" CornerRadius="9" Background="#E53E3E" 
-                        HorizontalAlignment="Right" VerticalAlignment="Top" Margin="0,0,0,0" 
-                        Visibility="Collapsed" IsHitTestVisible="False">
-                    <TextBlock x:Name="txtBadgeCount" Text="0" Foreground="White" FontSize="10" FontWeight="Bold" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                <Border x:Name="bdBadge" Width="18" Height="18" CornerRadius="9" Background="#E53E3E" HorizontalAlignment="Right" VerticalAlignment="Top" Visibility="Collapsed" IsHitTestVisible="False">
+                    <TextBlock x:Name="txtBadgeCount" Text="0" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center"/>
                 </Border>
 
-                <Popup x:Name="popNotifications" 
-                       PlacementTarget="{Binding ElementName=btnNoti}"
-                       IsOpen="{Binding IsChecked, ElementName=btnNoti}"
-                       StaysOpen="False" 
-                       Placement="Bottom" 
-                       AllowsTransparency="True" 
-                       PopupAnimation="Slide">
-
-                    <Border Background="White" CornerRadius="8" BorderBrush="#DDD" BorderThickness="1" Width="450" MaxHeight="500">
+                <Popup x:Name="popNotifications" PlacementTarget="{Binding ElementName=btnNoti}" IsOpen="{Binding IsChecked, ElementName=btnNoti}" StaysOpen="False" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Slide">
+                    <Border Background="White" CornerRadius="8" BorderBrush="#DDD" BorderThickness="1" Width="420" MaxHeight="520">
                         <Border.Effect>
                             <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.2" Direction="270"/>
                         </Border.Effect>
-
                         <Grid>
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="*"/>
                             </Grid.RowDefinitions>
 
-                            <Border BorderBrush="#EEE" BorderThickness="0,0,0,1" Padding="20,15" Background="#F8F9FA" CornerRadius="8,8,0,0">
+                            <Border BorderBrush="#EEE" BorderThickness="0,0,0,1" Padding="15,12" Background="#F8F9FA" CornerRadius="8,8,0,0">
                                 <StackPanel Orientation="Horizontal">
                                     <materialDesign:PackIcon Kind="BellRing" Foreground="#4C70BA" Margin="0,0,10,0" VerticalAlignment="Center"/>
-                                    <TextBlock Text="Yêu cầu cần xử lý" FontWeight="Bold" Foreground="#4C70BA" FontSize="15" VerticalAlignment="Center"/>
+                                    <TextBlock Text="Yêu cầu cần xử lý" FontWeight="Bold" Foreground="#4C70BA" FontSize="14" VerticalAlignment="Center"/>
                                 </StackPanel>
                             </Border>
 
-                            <ListView x:Name="lvPendingInvoices" Grid.Row="1" BorderThickness="0" 
-                                      MouseDoubleClick="lvPendingInvoices_MouseDoubleClick" 
-                                      Background="Transparent" MaxHeight="400"
-                                      ScrollViewer.HorizontalScrollBarVisibility="Disabled">
-                                <ListView.ItemTemplate>
-                                    <DataTemplate>
-                                        <Border BorderBrush="#F5F5F5" BorderThickness="0,0,0,1" Padding="20,15" Background="White" Cursor="Hand">
-                                            <Border.Style>
-                                                <Style TargetType="Border">
-                                                    <Style.Triggers>
+                            <ListBox x:Name="lvPendingInvoices" Grid.Row="1" BorderThickness="0" MouseDoubleClick="lvPendingInvoices_MouseDoubleClick" Background="Transparent" MaxHeight="450" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                <ListBox.ItemContainerStyle>
+                                    <Style TargetType="ListBoxItem">
+                                        <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="Template">
+                                            <Setter.Value>
+                                                <ControlTemplate TargetType="ListBoxItem">
+                                                    <Border x:Name="border" Background="White" BorderBrush="#F5F5F5" BorderThickness="0,0,0,1">
+                                                        <Grid Margin="15,12">
+                                                            <ContentPresenter/>
+                                                        </Grid>
+                                                    </Border>
+                                                    <ControlTemplate.Triggers>
                                                         <Trigger Property="IsMouseOver" Value="True">
-                                                            <Setter Property="Background" Value="#F0F4FF"/>
+                                                            <Setter TargetName="border" Property="Background" Value="#F0F7FF"/>
                                                         </Trigger>
-                                                    </Style.Triggers>
-                                                </Style>
-                                            </Border.Style>
-                                            <Grid>
-                                                <Grid.ColumnDefinitions>
-                                                    <ColumnDefinition Width="*"/>
-                                                    <ColumnDefinition Width="Auto"/>
-                                                </Grid.ColumnDefinitions>
-                                                <StackPanel Grid.Column="0" Margin="0,0,15,0">
-                                                    <StackPanel Orientation="Horizontal" Margin="0,0,0,5">
-                                                        <TextBlock Text="{Binding MaHD}" FontWeight="Bold" Foreground="#333" FontSize="16"/>
-                                                        <Border Background="#E53E3E" CornerRadius="3" Padding="6,1" Margin="10,0,0,0" VerticalAlignment="Center" Opacity="0.1">
-                                                            <TextBlock Text="NEW" FontSize="9" Foreground="#E53E3E" FontWeight="Bold"/>
-                                                        </Border>
-                                                    </StackPanel>
-                                                    <TextBlock Text="{Binding DoiTac}" FontSize="13" Foreground="#555" TextTrimming="CharacterEllipsis"/>
-                                                    <StackPanel Orientation="Horizontal" Margin="0,8,0,0">
-                                                        <Border Background="#4C70BA" CornerRadius="4" Padding="8,2" Margin="0,0,8,0">
-                                                            <TextBlock Text="{Binding LoaiHD}" FontSize="11" Foreground="White" FontWeight="SemiBold"/>
-                                                        </Border>
-                                                        <TextBlock Text="{Binding NgayLap, StringFormat='dd/MM/yyyy'}" FontSize="12" Foreground="Gray" VerticalAlignment="Center"/>
-                                                    </StackPanel>
+                                                    </ControlTemplate.Triggers>
+                                                </ControlTemplate>
+                                            </Setter.Value>
+                                        </Setter>
+                                    </Style>
+                                </ListBox.ItemContainerStyle>
+                                <ListBox.ItemTemplate>
+                                    <DataTemplate>
+                                        <Grid>
+                                            <Grid.ColumnDefinitions>
+                                                <ColumnDefinition Width="*"/>
+                                                <ColumnDefinition Width="Auto"/>
+                                            </Grid.ColumnDefinitions>
+                                            <StackPanel Grid.Column="0">
+                                                <StackPanel Orientation="Horizontal" Margin="0,0,0,4">
+                                                    <TextBlock Text="{Binding MaHD}" FontWeight="Bold" Foreground="#333" FontSize="15" VerticalAlignment="Center"/>
+                                                    <Border Margin="10,0,0,0" CornerRadius="4" Padding="8,2" VerticalAlignment="Center">
+                                                        <Border.Style>
+                                                            <Style TargetType="Border">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding LoaiHD}" Value="Nhập">
+                                                                        <Setter Property="Background" Value="#E3F2FD"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding LoaiHD}" Value="Xuất">
+                                                                        <Setter Property="Background" Value="#E8F5E9"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding LoaiHD}" Value="Yêu cầu XÓA">
+                                                                        <Setter Property="Background" Value="#FFEBEE"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Border.Style>
+                                                        <TextBlock Text="{Binding LoaiHD}" FontSize="10" FontWeight="Bold">
+                                                            <TextBlock.Style>
+                                                                <Style TargetType="TextBlock">
+                                                                    <Style.Triggers>
+                                                                        <DataTrigger Binding="{Binding LoaiHD}" Value="Nhập">
+                                                                            <Setter Property="Foreground" Value="#1565C0"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding LoaiHD}" Value="Xuất">
+                                                                            <Setter Property="Foreground" Value="#2E7D32"/>
+                                                                        </DataTrigger>
+                                                                        <DataTrigger Binding="{Binding LoaiHD}" Value="Yêu cầu XÓA">
+                                                                            <Setter Property="Foreground" Value="#C62828"/>
+                                                                        </DataTrigger>
+                                                                    </Style.Triggers>
+                                                                </Style>
+                                                            </TextBlock.Style>
+                                                        </TextBlock>
+                                                    </Border>
                                                 </StackPanel>
-                                                <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right">
-                                                    <TextBlock Text="{Binding TongTienString}" FontWeight="Bold" Foreground="#E53E3E" FontSize="16" HorizontalAlignment="Right"/>
-                                                    <TextBlock Text="{Binding TrangThai}" FontSize="12" Foreground="Orange" FontStyle="Italic" FontWeight="Medium" HorizontalAlignment="Right" Margin="0,5,0,0"/>
+                                                <TextBlock Text="{Binding DoiTac}" FontSize="13" Foreground="#666" TextTrimming="CharacterEllipsis" Margin="0,0,0,4"/>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <materialDesign:PackIcon Kind="CalendarClock" Width="12" Height="12" Foreground="#999" VerticalAlignment="Center" Margin="0,0,5,0"/>
+                                                    <TextBlock Text="{Binding NgayLap, StringFormat='dd/MM/yyyy HH:mm'}" FontSize="11" Foreground="#999"/>
                                                 </StackPanel>
-                                            </Grid>
-                                        </Border>
+                                            </StackPanel>
+                                            <StackPanel Grid.Column="1" VerticalAlignment="Center" HorizontalAlignment="Right" Margin="10,0,0,0">
+                                                <TextBlock Text="{Binding TongTienString}" FontWeight="Bold" Foreground="#E53E3E" FontSize="15" HorizontalAlignment="Right" Margin="0,0,0,4"/>
+                                                <TextBlock Text="{Binding TrangThai}" FontSize="11" Foreground="#F57C00" FontStyle="Italic" FontWeight="Medium" HorizontalAlignment="Right"/>
+                                            </StackPanel>
+                                        </Grid>
                                     </DataTemplate>
-                                </ListView.ItemTemplate>
-                            </ListView>
+                                </ListBox.ItemTemplate>
+                            </ListBox>
                         </Grid>
                     </Border>
                 </Popup>
             </Grid>
 
             <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="btnExportExcel" Click="btnExportExcel_Click" 
-                        Background="#217346" BorderBrush="{x:Null}" Height="40" Margin="0,0,10,0"
-                        materialDesign:ButtonAssist.CornerRadius="8" Padding="15,0" ToolTip="Xuất Excel">
+                <Button x:Name="btnExportExcel" Click="btnExportExcel_Click" Background="#217346" BorderBrush="{x:Null}" Height="40" Margin="0,0,10,0" materialDesign:ButtonAssist.CornerRadius="8" Padding="15,0">
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon Kind="FileExcel" Margin="0,0,8,0" VerticalAlignment="Center"/>
                         <TextBlock Text="Xuất Excel" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-
-                <Button x:Name="btnAddNew" Click="btnAddNew_Click" 
-                        Background="#4C70BA" BorderBrush="{x:Null}" Height="40" 
-                        materialDesign:ButtonAssist.CornerRadius="8" Padding="20,0">
+                <Button x:Name="btnAddNew" Click="btnAddNew_Click" Background="#4C70BA" BorderBrush="{x:Null}" Height="40" materialDesign:ButtonAssist.CornerRadius="8" Padding="20,0">
                     <StackPanel Orientation="Horizontal">
                         <materialDesign:PackIcon Kind="Plus" Margin="0,0,8,0" VerticalAlignment="Center"/>
                         <TextBlock Text="Thêm mới" FontWeight="Bold" VerticalAlignment="Center"/>
@@ -207,7 +211,7 @@
                     <ComboBoxItem Content="Ngày lập" Tag="NgayLap" IsSelected="True"/>
                     <ComboBoxItem Content="Tổng tiền" Tag="TongTien"/>
                 </ComboBox>
-                <Button x:Name="btnSortDirection" Click="btnSortDirection_Click" Height="36" Width="45" Style="{StaticResource MaterialDesignOutlinedButton}" materialDesign:ButtonAssist.CornerRadius="8" BorderBrush="#AAAAAA" Foreground="#4C70BA" Padding="0" ToolTip="Đổi chiều sắp xếp">
+                <Button x:Name="btnSortDirection" Click="btnSortDirection_Click" Height="36" Width="45" Style="{StaticResource MaterialDesignOutlinedButton}" materialDesign:ButtonAssist.CornerRadius="8" BorderBrush="#AAAAAA" Foreground="#4C70BA" Padding="0">
                     <materialDesign:PackIcon x:Name="iconSort" Kind="SortCalendarDescending" Width="20" Height="20"/>
                 </Button>
             </StackPanel>
@@ -215,29 +219,23 @@
 
         <Border x:Name="FilterPanel" Grid.Row="2" Visibility="Collapsed" Background="#FAFAFA" BorderBrush="#EEEEEE" BorderThickness="1" CornerRadius="8" Padding="15,10" Margin="0,0,0,10">
             <StackPanel Orientation="Horizontal" VerticalAlignment="Bottom">
-                <ComboBox x:Name="cbbMonth" Width="90" Height="45" Margin="0,0,10,0" Padding="10,10" VerticalContentAlignment="Center" materialDesign:HintAssist.Hint="Tháng" materialDesign:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
-                <ComboBox x:Name="cbbYear" Width="100" Height="45" Margin="0,0,25,0" Padding="10,10" VerticalContentAlignment="Center" materialDesign:HintAssist.Hint="Năm" materialDesign:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                <ComboBox x:Name="cbbMonth" Width="90" Height="50" Margin="0,0,10,0" materialDesign:HintAssist.Hint="Tháng" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                <ComboBox x:Name="cbbYear" Width="100" Height="50" Margin="0,0,25,0" materialDesign:HintAssist.Hint="Năm" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
                 <StackPanel VerticalAlignment="Bottom" Margin="0,0,25,0" Width="280">
                     <Grid Margin="0,0,0,5">
                         <TextBlock Text="Giá tối đa (VNĐ)" FontSize="10" Foreground="Gray" HorizontalAlignment="Left" VerticalAlignment="Bottom" Margin="0,0,0,5"/>
-                        <TextBox x:Name="txtSliderValue" TextChanged="txtSliderValue_TextChanged" Width="120" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignTextBox}" HorizontalContentAlignment="Right" FontWeight="Bold" Foreground="#4C70BA" FontSize="13" materialDesign:TextFieldAssist.DecorationVisibility="Hidden" BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"/>
+                        <TextBox x:Name="txtSliderValue" TextChanged="txtSliderValue_TextChanged" Width="120" HorizontalAlignment="Right" Style="{StaticResource MaterialDesignTextBox}" HorizontalContentAlignment="Right" FontWeight="Bold" Foreground="#4C70BA" FontSize="13" BorderThickness="0,0,0,1" BorderBrush="#EEEEEE"/>
                     </Grid>
-                    <Slider x:Name="sldPrice" ValueChanged="sldPrice_ValueChanged" Minimum="0" Maximum="100000000" TickFrequency="1000000" IsSnapToTickEnabled="False" Foreground="#4C70BA"/>
+                    <Slider x:Name="sldPrice" ValueChanged="sldPrice_ValueChanged" Minimum="0" Maximum="100000000" Foreground="#4C70BA"/>
                 </StackPanel>
-                <ComboBox x:Name="cbbStatus" Width="200" Height="45" Margin="0,0,25,0" Padding="10,10" VerticalContentAlignment="Center" materialDesign:HintAssist.Hint="Trạng thái" materialDesign:HintAssist.IsFloating="True" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
+                <ComboBox x:Name="cbbStatus" Width="200" Height="50" Margin="0,0,25,0" materialDesign:HintAssist.Hint="Trạng thái" Style="{StaticResource MaterialDesignOutlinedComboBox}"/>
                 <Button x:Name="btnApplyFilter" Click="btnApplyFilter_Click" Content="Áp dụng" Height="40" Background="#4C70BA" BorderBrush="{x:Null}" Margin="0,0,10,0" Width="90"/>
                 <Button x:Name="btnResetFilter" Click="btnResetFilter_Click" Content="Hủy bỏ" Height="40" Style="{StaticResource MaterialDesignOutlinedButton}" BorderBrush="#E0E0E0" Foreground="Gray" Width="90"/>
             </StackPanel>
         </Border>
 
-        <Border Grid.Row="3" Margin="0,20,0,0" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="5">
-            <DataGrid x:Name="dgHoaDon" CanUserSortColumns="False" PreviewKeyDown="dgHoaDon_PreviewKeyDown" 
-                      AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" 
-                      CanUserResizeColumns="True" MouseDoubleClick="dgHoaDon_MouseDoubleClick" 
-                      SelectionMode="Single" HeadersVisibility="Column" Background="White" 
-                      BorderThickness="0" GridLinesVisibility="Horizontal" 
-                      HorizontalGridLinesBrush="#EEEEEE" VerticalGridLinesBrush="#F0F0F0" 
-                      ColumnHeaderStyle="{StaticResource LightHeaderStyle}">
+        <Border Grid.Row="3" Background="White" BorderBrush="#E0E0E0" BorderThickness="1" CornerRadius="5">
+            <DataGrid x:Name="dgHoaDon" CanUserSortColumns="False" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" MouseDoubleClick="dgHoaDon_MouseDoubleClick" HeadersVisibility="Column" Background="White" BorderThickness="0" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEEEEE" ColumnHeaderStyle="{StaticResource LightHeaderStyle}">
                 <DataGrid.Columns>
                     <DataGridTemplateColumn Header="Mã HĐ" Width="120" CellStyle="{StaticResource CenterCell}">
                         <DataGridTemplateColumn.CellTemplate>
@@ -246,7 +244,7 @@
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <DataGridTextColumn x:Name="colDoiTac" Header="Khách hàng" Binding="{Binding DoiTac}" Width="*" CellStyle="{StaticResource LeftCell}">
+                    <DataGridTextColumn Header="Khách hàng" Binding="{Binding DoiTac}" Width="*" CellStyle="{StaticResource LeftCell}">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Bold"/>
@@ -262,7 +260,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TongTienString}" Width="150" FontWeight="Bold" Foreground="#333" CellStyle="{StaticResource RightCell}">
+                    <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TongTienString}" Width="150" CellStyle="{StaticResource RightCell}">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Bold"/>
@@ -270,6 +268,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
+
                     <DataGridTemplateColumn Header="Trạng thái" Width="180" CellStyle="{StaticResource CenterCell}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -284,10 +283,14 @@
                                                     <Setter Property="BorderBrush" Value="#C6F6D5"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding TrangThai}" Value="Chờ thanh toán">
-                                                    <Setter Property="Background" Value="#FFFAF0"/>
-                                                    <Setter Property="BorderBrush" Value="#FEEBC8"/>
+                                                    <Setter Property="Background" Value="#FFF9E5"/>
+                                                    <Setter Property="BorderBrush" Value="#FFE0B2"/>
                                                 </DataTrigger>
                                                 <DataTrigger Binding="{Binding TrangThai}" Value="Đã hủy">
+                                                    <Setter Property="Background" Value="#FFF5F5"/>
+                                                    <Setter Property="BorderBrush" Value="#FED7D7"/>
+                                                </DataTrigger>
+                                                <DataTrigger Binding="{Binding TrangThai}" Value="Yêu cầu xóa">
                                                     <Setter Property="Background" Value="#FFF5F5"/>
                                                     <Setter Property="BorderBrush" Value="#FED7D7"/>
                                                 </DataTrigger>
@@ -297,48 +300,53 @@
                                     <TextBlock Text="{Binding TrangThai}" FontWeight="SemiBold" FontSize="12">
                                         <TextBlock.Style>
                                             <Style TargetType="TextBlock">
-                                                <Setter Property="Foreground" Value="#555"/>
+                                                <Setter Property="Foreground" Value="#718096"/>
                                                 <Style.Triggers>
                                                     <DataTrigger Binding="{Binding TrangThai}" Value="Đã thanh toán">
                                                         <Setter Property="Foreground" Value="#2F855A"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding TrangThai}" Value="Chờ thanh toán">
-                                                        <Setter Property="Foreground" Value="#C05621"/>
+                                                        <Setter Property="Foreground" Value="#D97706"/>
                                                     </DataTrigger>
                                                     <DataTrigger Binding="{Binding TrangThai}" Value="Đã hủy">
                                                         <Setter Property="Foreground" Value="#C53030"/>
                                                     </DataTrigger>
+                                                    <DataTrigger Binding="{Binding TrangThai}" Value="Yêu cầu xóa">
+                                                        <Setter Property="Foreground" Value="#C53030"/>
+                                                    </DataTrigger>
                                                 </Style.Triggers>
                                             </Style>
-                                        </TextBlock.Style></TextBlock>
+                                        </TextBlock.Style>
+                                    </TextBlock>
                                 </Border>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
+
                     <DataGridTemplateColumn Header="Thao tác" Width="100" CellStyle="{StaticResource CenterCell}">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <materialDesign:PopupBox PlacementMode="BottomAndAlignRightEdges" HorizontalAlignment="Center" Foreground="Gray" Background="Transparent" BorderThickness="0" Padding="4" ToolTip="Thao tác">
+                                <materialDesign:PopupBox PlacementMode="BottomAndAlignRightEdges" HorizontalAlignment="Center" Foreground="Gray" Background="Transparent" BorderThickness="0" Padding="4">
                                     <materialDesign:PopupBox.ToggleContent>
                                         <materialDesign:PackIcon Kind="DotsVertical" Width="24" Height="24"/>
                                     </materialDesign:PopupBox.ToggleContent>
                                     <StackPanel Width="150">
-                                        <Button x:Name="btnEdit" Click="btnEdit_Click" Tag="{Binding}" Style="{StaticResource MaterialDesignFlatButton}" Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
+                                        <Button Click="btnEdit_Click" Tag="{Binding}" Style="{StaticResource MaterialDesignFlatButton}" Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
                                             <StackPanel Orientation="Horizontal">
                                                 <materialDesign:PackIcon Kind="Pencil" Margin="0,0,10,0" Foreground="#4C70BA"/>
-                                                <TextBlock Text="Chỉnh sửa"/>
+                                                <TextBlock Text="Sửa"/>
                                             </StackPanel>
                                         </Button>
-                                        <Button x:Name="btnDelete" Click="btnDelete_Click" Tag="{Binding}" Style="{StaticResource MaterialDesignFlatButton}" Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
+                                        <Button Click="btnDelete_Click" Tag="{Binding}" Style="{StaticResource MaterialDesignFlatButton}" Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
                                             <StackPanel Orientation="Horizontal">
                                                 <materialDesign:PackIcon Kind="Delete" Margin="0,0,10,0" Foreground="#E53E3E"/>
                                                 <TextBlock Text="Xóa"/>
                                             </StackPanel>
                                         </Button>
-                                        <Button x:Name="btnPrint" Click="btnPrint_Click" Tag="{Binding}" Style="{StaticResource MaterialDesignFlatButton}" Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
+                                        <Button Click="btnPrint_Click" Tag="{Binding}" Style="{StaticResource MaterialDesignFlatButton}" Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
                                             <StackPanel Orientation="Horizontal">
-                                                <materialDesign:PackIcon Kind="Printer" Margin="0,0,10,0" Foreground="#555"/>
-                                                <TextBlock Text="In hóa đơn"/>
+                                                <materialDesign:PackIcon Kind="FilePdfBox" Margin="0,0,10,0" Foreground="#D32F2F"/>
+                                                <TextBlock Text="Xuất PDF"/>
                                             </StackPanel>
                                         </Button>
                                     </StackPanel>

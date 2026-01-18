@@ -403,7 +403,16 @@ namespace PharmaDistributionApp.Views.Controls
         private void InitFilterData()
         {
             cbbMonth.Items.Clear(); cbbMonth.Items.Add("Tất cả"); for (int i = 1; i <= 12; i++) cbbMonth.Items.Add(i.ToString()); cbbMonth.SelectedIndex = 0;
-            cbbYear.Items.Clear(); cbbYear.Items.Add("Tất cả"); int year = DateTime.Now.Year; for (int i = year; i >= year - 5; i--) cbbYear.Items.Add(i.ToString()); cbbYear.SelectedIndex = 0;
+            cbbYear.Items.Clear(); cbbYear.Items.Add("Tất cả"); int currentYear = DateTime.Now.Year;
+
+            // Thay đổi vòng lặp để chạy từ năm hiện tại lùi về năm 1900
+            for (int i = currentYear; i >= 1900; i--)
+            {
+                cbbYear.Items.Add(i.ToString());
+            }
+
+            cbbYear.SelectedIndex = 0;
+
             UpdateStatusComboBox();
         }
 

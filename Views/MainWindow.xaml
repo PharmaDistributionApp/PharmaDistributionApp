@@ -9,6 +9,7 @@
         Title="Hệ thống Quản lý Dược phẩm" 
         Height="768" Width="1280"
         WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
         FontFamily="{DynamicResource MaterialDesignFont}"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}">

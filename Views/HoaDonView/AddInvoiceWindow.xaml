@@ -11,7 +11,8 @@
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         TextElement.FontWeight="Regular"
         TextElement.FontSize="13"
-        FontFamily="{DynamicResource MaterialDesignFont}">
+        FontFamily="{DynamicResource MaterialDesignFont}"
+        MouseDown="Window_MouseDown">
 
     <Window.Resources>
         <SolidColorBrush x:Key="PrimaryBlue" Color="#4C70BA"/>
@@ -77,6 +78,17 @@
             <Setter Property="VerticalContentAlignment" Value="Center"/>
             <Setter Property="BorderBrush" Value="#D0D0D0"/>
             <Setter Property="Background" Value="White"/>
+        </Style>
+
+        <Style x:Key="RightAlignCell" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Right"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
+            <Setter Property="Padding" Value="0,0,10,0"/>
+        </Style>
+
+        <Style x:Key="CenterAlignCell" TargetType="TextBlock">
+            <Setter Property="HorizontalAlignment" Value="Center"/>
+            <Setter Property="VerticalAlignment" Value="Center"/>
         </Style>
     </Window.Resources>
 
@@ -172,11 +184,9 @@
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="3*"/>
                             <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="0.7*"/>
-                            <ColumnDefinition Width="10"/>
                             <ColumnDefinition Width="1.2*"/>
                             <ColumnDefinition Width="10"/>
-                            <ColumnDefinition Width="1.2*"/>
+                            <ColumnDefinition Width="1.0*"/>
                             <ColumnDefinition Width="10"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
@@ -188,12 +198,9 @@
                             </Grid>
                             <ComboBox x:Name="cboSanPham" DisplayMemberPath="TenSP" SelectionChanged="cboSanPham_SelectionChanged" IsEditable="True"/>
                         </StackPanel>
+
                         <StackPanel Grid.Column="2">
-                            <TextBlock Text="Quy cách" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
-                            <TextBox x:Name="txtQuyCach" Text="1" PreviewTextInput="NumberValidationTextBox" HorizontalContentAlignment="Center"/>
-                        </StackPanel>
-                        <StackPanel Grid.Column="4">
-                            <TextBlock Text="Số lượng đặt" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
+                            <TextBlock Text="Số lượng" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
                             <Border BorderBrush="#D0D0D0" BorderThickness="1" CornerRadius="4" Height="36" Background="White">
                                 <Grid>
                                     <Grid.ColumnDefinitions>
@@ -207,18 +214,47 @@
                                 </Grid>
                             </Border>
                         </StackPanel>
-                        <StackPanel Grid.Column="6">
+
+                        <StackPanel Grid.Column="4">
                             <TextBlock Text="Đơn giá" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
-                            <TextBox x:Name="txtDonGia" IsReadOnly="True" HorizontalContentAlignment="Right" FontWeight="SemiBold"/>
+                            <TextBox x:Name="txtDonGia" IsReadOnly="True" Focusable="False" 
+                                     HorizontalContentAlignment="Right" FontWeight="Bold" Foreground="#333" Background="#F8F9FA"/>
                         </StackPanel>
-                        <Button Grid.Column="8" Content="THÊM" Click="btnThemSP_Click" VerticalAlignment="Bottom" Height="36" Width="80"
-                                Background="{StaticResource PrimaryBlue}" Foreground="White" BorderThickness="0" FontWeight="Bold" Cursor="Hand">
-                            <Button.Resources>
-                                <Style TargetType="Border">
-                                    <Setter Property="CornerRadius" Value="4"/>
-                                </Style>
-                            </Button.Resources>
-                        </Button>
+
+                        <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Bottom">
+                            <Button Content="THÊM" Click="btnThemSP_Click" Height="36" Width="80"
+                                    Background="{StaticResource PrimaryBlue}" Foreground="White" 
+                                    BorderThickness="0" FontWeight="Bold" Cursor="Hand">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                            </Button>
+
+                            <Button x:Name="btnUndo" Click="btnUndo_Click" Height="36" Width="50" Margin="10,0,0,0" 
+                                    ToolTip="Hoàn tác"
+                                    Background="White" 
+                                    BorderBrush="{StaticResource PrimaryBlue}" 
+                                    BorderThickness="1"
+                                    Cursor="Hand">
+                                <Button.Resources>
+                                    <Style TargetType="Border">
+                                        <Setter Property="CornerRadius" Value="4"/>
+                                    </Style>
+                                </Button.Resources>
+                                <Path Data="M 12,6 L 7,11 L 12,16 M 7,11 H 15 C 19,11 22,14 22,18"
+                                      Stroke="{StaticResource PrimaryBlue}"
+                                      StrokeThickness="2"
+                                      StrokeStartLineCap="Round"
+                                      StrokeEndLineCap="Round"
+                                      StrokeLineJoin="Round"
+                                      Width="18" Height="18"
+                                      Stretch="Uniform"
+                                      HorizontalAlignment="Center" 
+                                      VerticalAlignment="Center"/>
+                            </Button>
+                        </StackPanel>
                     </Grid>
 
                     <Grid x:Name="pnlNhapHang" Grid.Row="1" Margin="0,15,0,0" Visibility="Collapsed">
@@ -261,10 +297,14 @@
                 </Grid>
             </Border>
 
-            <DataGrid Grid.Row="3" x:Name="dgChiTiet" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" MinHeight="250"
+            <DataGrid Grid.Row="3" x:Name="dgChiTiet" AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True" 
+                      MinHeight="250" MaxHeight="450" 
                       Background="White" BorderBrush="{StaticResource BorderColor}" BorderThickness="1"
                       GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F0F0"
-                      HeadersVisibility="Column" RowBackground="White" AlternatingRowBackground="#FAFAFA" RowHeight="40">
+                      HeadersVisibility="Column" RowBackground="White" AlternatingRowBackground="#FAFAFA" RowHeight="40"
+                      VerticalScrollBarVisibility="Auto"
+                      CanUserSortColumns="False">
+
                 <DataGrid.Resources>
                     <Style TargetType="DataGridColumnHeader">
                         <Setter Property="Background" Value="#4C70BA"/>
@@ -280,6 +320,7 @@
                     <Style TargetType="DataGridCell">
                         <Setter Property="Padding" Value="10,0"/>
                         <Setter Property="BorderThickness" Value="0"/>
+                        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
                         <Setter Property="Template">
                             <Setter.Value>
                                 <ControlTemplate TargetType="DataGridCell">
@@ -289,16 +330,26 @@
                                 </ControlTemplate>
                             </Setter.Value>
                         </Setter>
+                        <Style.Triggers>
+                            <Trigger Property="IsSelected" Value="True">
+                                <Setter Property="Background" Value="#E3F2FD"/>
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="BorderBrush" Value="#4C70BA"/>
+                                <Setter Property="FontWeight" Value="SemiBold"/>
+                            </Trigger>
+                        </Style.Triggers>
                     </Style>
                 </DataGrid.Resources>
+
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Mã SP" Binding="{Binding MaSP}" Width="90"/>
+                    <DataGridTextColumn Header="Mã SP" Binding="{Binding MaSP}" Width="90" ElementStyle="{StaticResource CenterAlignCell}"/>
                     <DataGridTextColumn Header="Tên Sản Phẩm" Binding="{Binding TenSP}" Width="*"/>
-                    <DataGridTextColumn Header="Mã Lô" Binding="{Binding MaLo}" Width="180" Foreground="#666"/>
-                    <DataGridTextColumn Header="ĐVT" Binding="{Binding DonVi}" Width="70"/>
-                    <DataGridTextColumn Header="SL" Binding="{Binding SoLuong}" Width="80"/>
-                    <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, StringFormat={}{0:N0} VND}" Width="140"/>
-                    <DataGridTextColumn Header="Thành tiền" Binding="{Binding ThanhTien, StringFormat={}{0:N0} VND}" Width="160"/>
+                    <DataGridTextColumn Header="Mã Lô" Binding="{Binding MaLo}" Width="180" Foreground="#666" ElementStyle="{StaticResource CenterAlignCell}"/>
+                    <DataGridTextColumn Header="ĐVT" Binding="{Binding DonVi}" Width="70" ElementStyle="{StaticResource CenterAlignCell}"/>
+                    <DataGridTextColumn Header="SL" Binding="{Binding SoLuong}" Width="80" ElementStyle="{StaticResource CenterAlignCell}"/>
+                    <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, StringFormat={}{0:N0} VND}" Width="140" ElementStyle="{StaticResource RightAlignCell}"/>
+                    <DataGridTextColumn Header="Thành tiền" Binding="{Binding ThanhTien, StringFormat={}{0:N0} VND}" Width="160" ElementStyle="{StaticResource RightAlignCell}"/>
+
                     <DataGridTemplateColumn Header="Thao tác" Width="90">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
@@ -320,7 +371,7 @@
                             <TextBlock Text="Tiền hàng:" Width="110" Foreground="#666" FontWeight="SemiBold"/>
                             <TextBlock x:Name="txtTienHang" Text="0 VND" FontWeight="Bold" Foreground="#333"/>
                         </StackPanel>
-                        <StackPanel x:Name="pnlVAT" Orientation="Horizontal" Margin="0,0,0,6" Visibility="Collapsed">
+                        <StackPanel x:Name="pnlVAT" Orientation="Horizontal" Margin="0,0,0,6">
                             <TextBlock Text="VAT (10%):" Width="110" Foreground="#666" FontWeight="SemiBold"/>
                             <TextBlock x:Name="txtVAT" Text="0 VND" FontWeight="Bold" Foreground="#4C70BA"/>
                         </StackPanel>
