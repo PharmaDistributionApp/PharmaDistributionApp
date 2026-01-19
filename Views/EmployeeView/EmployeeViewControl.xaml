@@ -141,25 +141,19 @@
                     </Grid>
                 </Border>
 
-                <Button Content="📊 Xuất excel" 
-                        Height="44" Width="130" Margin="0,0,10,0"
-                        Style="{StaticResource RoundedBtn}"
-                        Background="White" Foreground="#4C70BA" 
-                        BorderBrush="#4C70BA" BorderThickness="1"
-                        FontWeight="SemiBold" FontSize="14"
-                        Click="btnExportExcel_Click"
-                        ToolTip="Xuất dữ liệu ra Excel"/>
-
-                <Button Style="{StaticResource MaterialDesignRaisedButton}"
-                        Click="btnAdd_Click" Height="40" Background="#4C70BA" BorderBrush="{x:Null}"
-                        materialDesign:ButtonAssist.CornerRadius="20"
-                        ToolTip="Thêm nhân viên mới">
+                <Button x:Name="btnExportExcel" Click="btnExportExcel_Click" Background="#217346" BorderBrush="{x:Null}" Height="40" Margin="0,0,10,0" materialDesign:ButtonAssist.CornerRadius="8" Padding="15,0">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="AccountPlus" Margin="0,0,5,0"/>
-                        <TextBlock Text="Thêm mới" FontWeight="Bold"/>
+                        <materialDesign:PackIcon Kind="FileExcel" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Xuất Excel" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
 
+                <Button x:Name="btnAddNew" Click="btnAdd_Click" Background="#4C70BA" BorderBrush="{x:Null}" Height="40" materialDesign:ButtonAssist.CornerRadius="8" Padding="20,0">
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="Plus" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Thêm mới" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
             </StackPanel>
         </Grid>
 

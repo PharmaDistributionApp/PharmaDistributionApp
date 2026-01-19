@@ -81,7 +81,7 @@
                         </Border>
                         <Border x:Name="btnHoaDon" Tag="HoaDon" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
                             Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
-                            <StackPanel Orientation="Horizontal">
+                            <StackPanel Orientation="Horizontal">   
                                 <materialDesign:PackIcon Kind="ReceiptTextOutline" Foreground="White" Width="22" Height="22"/>
                                 <TextBlock Text="Hóa đơn" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
                             </StackPanel>

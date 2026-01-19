@@ -5,14 +5,12 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PharmaDistributionApp.Services;
-using PharmaDistributionApp.Models;
+using PharmaDistributionApp.Services; // Để dùng class Employee
 
 namespace PharmaDistributionApp.Views.LoginView
 {
     public partial class LoginControl : UserControl
     {
-        // Định nghĩa màu viền mặc định và màu lỗi
         private readonly Brush _defaultBorder = (Brush)new BrushConverter().ConvertFrom("#DDDDDD");
         private readonly Brush _errorBorder = Brushes.Red;
 
@@ -34,14 +32,14 @@ namespace PharmaDistributionApp.Views.LoginView
 
         private void btnLogin_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Reset giao diện về bình thường (Xóa lỗi cũ)
+            // 1. Reset giao diện
             ResetUI();
 
             string input = txtUsername.Text.Trim();
             string pass = txtPassword.Password;
             bool hasValidationError = false;
 
-            // Kiểm tra rỗng (Validation đầu vào)
+            // Validation đầu vào
             if (string.IsNullOrEmpty(input))
             {
                 txtUsername.BorderBrush = _errorBorder;
@@ -62,15 +60,14 @@ namespace PharmaDistributionApp.Views.LoginView
 
             try
             {
-                // 2. QUERY TÌM TÀI KHOẢN
+                // 2. QUERY: Lấy TẤT CẢ thông tin nhân viên (N.*) để có Avatar, Chức vụ...
                 string sql = @"
-                    SELECT T.*, N.EMAIL, N.TENNV 
-                    FROM TAIKHOAN T
+                    SELECT T.*, N.* FROM TAIKHOAN T
                     JOIN NHANVIEN N ON T.MANV = N.MANV
                     WHERE (
-                            T.MANV = @user      
-                          OR N.EMAIL = @user     
-                          OR N.TENNV = @user      
+                            T.MANV = @user       
+                         OR N.EMAIL = @user      
+                         OR N.TENNV = @user      
                           )";
 
                 SQLiteParameter[] parameters = {
@@ -86,7 +83,7 @@ namespace PharmaDistributionApp.Views.LoginView
                     return;
                 }
 
-                // --- TRƯỜNG HỢP 2: TÌM THẤY -> KIỂM TRA MẬT KHẨU ---
+                // --- TRƯỜNG HỢP 2: CHECK MẬT KHẨU ---
                 DataRow row = dt.Rows[0];
                 string dbPass = row["MATKHAU"].ToString();
 
@@ -96,8 +93,8 @@ namespace PharmaDistributionApp.Views.LoginView
                     return;
                 }
 
-                // --- TRƯỜNG HỢP 3: KIỂM TRA TRẠNG THÁI KHÓA ---
-                long trangThai = Convert.ToInt64(row["TRANGTHAI"]);
+                // --- TRƯỜNG HỢP 3: CHECK KHÓA ---
+                long trangThai = Convert.ToInt64(row["TRANGTHAI"]); // Cột trạng thái của bảng NHANVIEN hoặc TAIKHOAN
                 if (trangThai == 0)
                 {
                     ShowError("Tài khoản đã bị khóa!");
@@ -106,63 +103,48 @@ namespace PharmaDistributionApp.Views.LoginView
 
                 // --- ĐĂNG NHẬP THÀNH CÔNG ---
 
-                // ============================================================
-                // [QUAN TRỌNG]: LẤY ĐẦY ĐỦ THÔNG TIN USER (BAO GỒM CHỨC VỤ)
-                // ============================================================
+                // 3. Tạo đối tượng Employee đầy đủ để truyền sang MainWindow
+                Employee currentUser = new Employee();
+                currentUser.Manv = row["MANV"].ToString();
+                currentUser.Tennv = row["TENNV"].ToString();
+                currentUser.Chucvu = row["CHUCVU"].ToString();
+                currentUser.Email = row["EMAIL"].ToString();
 
-                string manv = row["MANV"].ToString();
+                // Xử lý các trường có thể Null
+                currentUser.Sdt = row["SDT"] != DBNull.Value ? row["SDT"].ToString() : "";
+                currentUser.Diachi = row["DIACHI"] != DBNull.Value ? row["DIACHI"].ToString() : "";
+                currentUser.Cccd = row["CCCD"] != DBNull.Value ? row["CCCD"].ToString() : "";
+                currentUser.GioiTinh = row["GIOITINH"] != DBNull.Value ? row["GIOITINH"].ToString() : "";
+                currentUser.TrangThai = Convert.ToInt32(trangThai);
 
-                // Truy vấn lại bảng NHANVIEN để lấy đầy đủ thông tin
-                string sqlUserFull = "SELECT * FROM NHANVIEN WHERE MANV = @id";
-
-                DataTable dtUser = Database.GetTable(sqlUserFull, new SQLiteParameter[] {
-                    new SQLiteParameter("@id", manv)
-                });
-
-                if (dtUser.Rows.Count > 0)
+                if (row["NGAYSINH"] != DBNull.Value && DateTime.TryParse(row["NGAYSINH"].ToString(), out DateTime dateVal))
                 {
-                    DataRow userRow = dtUser.Rows[0];
-
-                    // Tạo đối tượng Nhanvien và lưu vào Session
-                    UserSession.CurrentUser = new Nhanvien
-                    {
-                        Manv = userRow["MANV"].ToString(),
-                        // Xử lý tên cột HOTEN hoặc TENNV tùy DB
-                        Tennv = userRow.Table.Columns.Contains("TENNV") ? userRow["TENNV"].ToString() : userRow["HOTEN"].ToString(),
-                        Email = userRow["EMAIL"].ToString(),
-                        Sdt = userRow["SDT"] != DBNull.Value ? userRow["SDT"].ToString() : "",
-                        Diachi = userRow.Table.Columns.Contains("DIACHI") ? userRow["DIACHI"].ToString() : "",
-
-                        // [ĐÂY LÀ DÒNG BẠN BỊ THIẾU TRƯỚC ĐÓ]
-                        // Phải gán Chucvu thì màn hình Hóa đơn mới biết đây là Admin
-                        Chucvu = userRow["CHUCVU"].ToString()
-                    };
-
-                    // Đánh dấu đã đăng nhập
-                    UserSession.IsLoggedIn = true;
+                    currentUser.Ngaysinh = dateVal;
                 }
-                // ============================================================
 
-                // Lưu ghi nhớ đăng nhập
+                // Quan trọng: Lấy Avatar
+                if (row["AVATAR"] != DBNull.Value)
+                {
+                    currentUser.AvatarBlob = (byte[])row["AVATAR"];
+                }
+
+                // 4. Lưu ghi nhớ đăng nhập
                 SaveRememberMe(input, pass);
 
-                // Chuyển màn hình
-                MainWindow main = new MainWindow();
-                main.CurrentMaNV = manv; // Giữ lại dòng này để tương thích code cũ
+                // 5. Mở MainWindow và truyền User vào
+                // (Lưu ý: MainWindow phải có constructor nhận Employee như bài trước)
+                MainWindow main = new MainWindow(currentUser);
                 main.Show();
 
-                // Đóng cửa sổ chứa LoginControl (thường là LoginWindow)
+                // Đóng LoginWindow
                 Window parentWindow = Window.GetWindow(this);
                 if (parentWindow != null) parentWindow.Close();
-
             }
             catch (Exception ex)
             {
                 MessageBox.Show("Lỗi đăng nhập: " + ex.Message);
             }
         }
-
-        // --- CÁC HÀM HỖ TRỢ (GIỮ NGUYÊN) ---
 
         private void SaveRememberMe(string username, string password)
         {
@@ -181,6 +163,7 @@ namespace PharmaDistributionApp.Views.LoginView
             Properties.Settings.Default.Save();
         }
 
+        // --- CÁC HÀM UI HELPER ---
         private void ShowError(string message)
         {
             txbErrorMessage.Text = message;
@@ -203,12 +186,11 @@ namespace PharmaDistributionApp.Views.LoginView
 
         private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
-            // Logic mở màn hình quên mật khẩu (Giữ nguyên logic của bạn)
-            // Lưu ý: Cần ép kiểu về Window chứa Control này nếu method Navigate nằm ở đó
-            var parentWindow = Window.GetWindow(this);
-            // Ví dụ nếu parent là LoginWindow thì: ((LoginWindow)parentWindow).NavigateToForgotPass();
-            // Ở đây tôi để code an toàn để tránh lỗi biên dịch nếu bạn chưa có method đó
-            MessageBox.Show("Chức năng quên mật khẩu đang phát triển.", "Thông báo");
+            var parentWindow = Window.GetWindow(this) as LoginWindow;
+            if (parentWindow != null)
+            {
+                parentWindow.NavigateToForgotPass();
+            }
         }
 
         private void txtUsername_TextChanged(object sender, TextChangedEventArgs e)
