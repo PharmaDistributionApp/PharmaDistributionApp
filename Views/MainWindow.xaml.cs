@@ -1,14 +1,14 @@
-﻿using PharmaDistributionApp.Services; // Chứa class Employee
-using PharmaDistributionApp.Views.Controls;
+﻿using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
+using PharmaDistributionApp.Services;
 using PharmaDistributionApp.Views.DashBoardView;
 using PharmaDistributionApp.Views.EmployeeView;
 using PharmaDistributionApp.Views.LoginView;
 using PharmaDistributionApp.Views.NCCView;
 using PharmaDistributionApp.Views.ProductView;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Input;
-using System.Windows.Media;
+using PharmaDistributionApp.Views.Controls;
 
 namespace PharmaDistributionApp.Views
 {
@@ -17,15 +17,19 @@ namespace PharmaDistributionApp.Views
         // Biến lưu thông tin người dùng hiện tại
         public Employee CurrentUser { get; set; }
 
-        // [SỬA ĐỔI] Constructor nhận tham số Employee từ màn hình Đăng nhập
+        // SỬA LỖI: Thuộc tính này lấy trực tiếp từ CurrentUser để các tab khác (AccountControl) không bị lỗi
+        public string CurrentMaNV => CurrentUser?.Manv;
+
+        // Constructor nhận tham số Employee từ màn hình Đăng nhập
         public MainWindow(Employee user)
         {
             InitializeComponent();
 
-            // Lưu user vào biến toàn cục của cửa sổ
+            // Lưu user vào biến toàn cục và đồng bộ vào Session để các tab con dùng chung
             this.CurrentUser = user;
+            UserSession.CurrentUser = user;
 
-            // Gọi hàm hiển thị thông tin lên góc trái
+            // Hiển thị thông tin lên Header góc trái
             LoadUserData();
 
             // Mặc định chọn Menu Tổng quan
@@ -33,43 +37,30 @@ namespace PharmaDistributionApp.Views
             MainContent.Content = new DashBoardViewControl();
         }
 
-        // Constructor mặc định (để tránh lỗi nếu gọi new MainWindow() không tham số)
-        public MainWindow()
-        {
-            InitializeComponent();
-            SetActiveMenu(btnTongQuan);
-        }
+        public MainWindow() : this(null) { }
 
-        // ============================================================
-        // HÀM HIỂN THỊ THÔNG TIN USER TỪ BIẾN CurrentUser
-        // ============================================================
         private void LoadUserData()
         {
             if (CurrentUser == null) return;
 
-            // 1. Gán Tên và Chức vụ
+            // 1. Gán Tên và Chức vụ thực tế
             txbUserName.Text = !string.IsNullOrEmpty(CurrentUser.Tennv) ? CurrentUser.Tennv : "Người dùng";
             txbUserRole.Text = !string.IsNullOrEmpty(CurrentUser.Chucvu) ? CurrentUser.Chucvu : "Nhân viên";
 
-            // 2. Xử lý Avatar
-            // Sử dụng thuộc tính AvatarSource có sẵn trong file Employee.cs của bạn
-            var avatar = CurrentUser.AvatarSource;
-
-            if (avatar != null)
+            // 2. Xử lý Avatar bằng thuộc tính AvatarSource có sẵn
+            if (CurrentUser.AvatarSource != null)
             {
-                imgAvatarBrush.ImageSource = avatar;    // Gán ảnh
+                imgAvatarBrush.ImageSource = CurrentUser.AvatarSource;
                 iconAvatar.Visibility = Visibility.Collapsed; // Ẩn icon mặc định
             }
             else
             {
-                imgAvatarBrush.ImageSource = null;    // Xóa ảnh cũ (nếu có)
+                imgAvatarBrush.ImageSource = null;
                 iconAvatar.Visibility = Visibility.Visible; // Hiện icon mặc định
             }
         }
 
-        // ============================================================
-        // PHẦN DƯỚI GIỮ NGUYÊN (Xử lý Menu)
-        // ============================================================
+        // --- Logic chuyển đổi Menu (Giữ nguyên các tính năng cũ) ---
         private void Menu_Click(object sender, MouseButtonEventArgs e)
         {
             var clickedBtn = sender as Border;
@@ -80,30 +71,14 @@ namespace PharmaDistributionApp.Views
             string tag = clickedBtn.Tag.ToString();
             switch (tag)
             {
-                case "TongQuan":
-                    MainContent.Content = new DashBoardViewControl();
-                    break;
-                case "NhanSu":
-                    MainContent.Content = new EmployeeViewControl();
-                    break;
-                case "Kho":
-                    MainContent.Content = new TextBlock { Text = "Màn hình Kho đang phát triển", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-                    break;
-                case "HoaDon":
-                    MainContent.Content = new HoaDonControl();
-                    break;
-                case "NhaCungCap":
-                    MainContent.Content = new NhaCungCapControl();
-                    break;
-                case "KhachHang":
-                    MainContent.Content = new TextBlock { Text = "" };
-                    break;
-                case "SanPham":
-                    MainContent.Content = new TextBlock { Text = "Màn hình Sản phẩm đang phát triển", FontSize = 20, HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center };
-                    break;
-                case "Account":
-                    MainContent.Content = new AccountControl();
-                    break;
+                case "TongQuan": MainContent.Content = new DashBoardViewControl(); break;
+                case "NhanSu": MainContent.Content = new EmployeeViewControl(); break;
+                case "Kho": MainContent.Content = new KhoHangControl(); break;
+                case "HoaDon": MainContent.Content = new HoaDonControl(); break;
+                case "NhaCungCap": MainContent.Content = new NhaCungCapControl(); break;
+                case "KhachHang": MainContent.Content = new KhachHangControl(); break;
+                case "SanPham": MainContent.Content = new SanPhamControl(); break;
+                case "Account": MainContent.Content = new AccountControl(); break;
             }
         }
 
@@ -122,12 +97,11 @@ namespace PharmaDistributionApp.Views
 
             if (activeBtn.Child is StackPanel sp)
             {
+                var blueBrush = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
                 foreach (var child in sp.Children)
                 {
-                    if (child is MaterialDesignThemes.Wpf.PackIcon icon)
-                        icon.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
-                    if (child is TextBlock txt)
-                        txt.Foreground = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
+                    if (child is MaterialDesignThemes.Wpf.PackIcon icon) icon.Foreground = blueBrush;
+                    if (child is TextBlock txt) txt.Foreground = blueBrush;
                 }
             }
         }
@@ -147,8 +121,7 @@ namespace PharmaDistributionApp.Views
 
         private void btnLogOut_Click(object sender, RoutedEventArgs e)
         {
-            var login = new LoginWindow();
-            login.Show();
+            new LoginWindow().Show();
             this.Close();
         }
     }

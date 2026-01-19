@@ -1,4 +1,5 @@
 ﻿using PharmaDistributionApp.Models;
+using PharmaDistributionApp.Services;
 
 namespace PharmaDistributionApp
 {
@@ -6,10 +7,8 @@ namespace PharmaDistributionApp
     public static class UserSession
     {
         // Biến static để lưu thông tin nhân viên
-        public static Nhanvien CurrentUser { get; set; }
-
-        // Hàm kiểm tra xem đã đăng nhập chưa
-        public static bool IsLoggedIn { get; set; } = false;
+        public static Employee CurrentUser { get; set; }
+        public static bool IsLoggedIn { get; set; }
 
         // Hàm đăng xuất
         public static void Logout()
