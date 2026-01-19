@@ -444,13 +444,19 @@ namespace PharmaDistributionApp.Views.ProductView
                     editWindow.ShowDialog();
                     LoadData();
                 }
-                else if (_currentMode == ViewMode.PhieuNhap)
+                else
                 {
-                    MessageBox.Show($"Chức năng sửa Phiếu Nhập ({rowData.Mapn}) đang phát triển...", "Thông báo");
-                }
-                else if (_currentMode == ViewMode.PhieuXuat)
-                {
-                    MessageBox.Show($"Chức năng sửa Phiếu Xuất ({rowData.Mapx}) đang phát triển...", "Thông báo");
+                    bool isXuat = (_currentMode == ViewMode.PhieuXuat);
+                    string maPhieu = isXuat ? rowData.Mapx : rowData.Mapn;
+
+                    if (string.IsNullOrEmpty(maPhieu))
+                    {
+                        MessageBox.Show("Không tìm thấy mã phiếu để chỉnh sửa!");
+                        return;
+                    }
+                    var editPhieuWindow = new ChinhSuaPhieuWindow(maPhieu, isXuat);
+                    editPhieuWindow.ShowDialog();
+                    LoadData();
                 }
             }
             catch (Exception ex)
