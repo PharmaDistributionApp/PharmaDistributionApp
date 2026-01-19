@@ -186,11 +186,20 @@
                                  TextChanged="txtTimKiem_TextChanged"/>
                     </Grid>
                 </Border>
-
-                <Button Content="📊 Xuất excel" Height="44" Width="130" Margin="0,0,10,0"
+                <Button x:Name="BtnXuatExcel" 
+                        Click="BtnXuatExcel_Click" 
+                        Foreground="White"
                         Style="{StaticResource RoundedBtn}"
-                        Background="White" Foreground="#4C70BA" BorderBrush="#4C70BA" BorderThickness="1"
-                        FontWeight="SemiBold" FontSize="14" Click="BtnXuatExcel_Click"/>
+                        Background="#217346" 
+                        BorderBrush="{x:Null}"  
+                        Height="45" 
+                        Margin="0,0,10,0"
+                        FontSize="14">
+                    <StackPanel Orientation="Horizontal" Margin="15,0">
+                        <materialDesign:PackIcon Kind="FileExcel" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Xuất Excel" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
                 <Button Content="+ Thêm mới" Height="44" Width="130"
                         Style="{StaticResource RoundedBtn}"
@@ -273,56 +282,34 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTemplateColumn Header="Trạng thái" Width="140">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <Border Background="{Binding MauNenTrangThai}" 
-                                        CornerRadius="12" 
-                                        Padding="10,4" 
-                                        HorizontalAlignment="Center" 
-                                        VerticalAlignment="Center"
-                                        SnapsToDevicePixels="True">
-                                    <TextBlock Text="{Binding TenTrangThai}" 
-                                               Foreground="{Binding MauChuTrangThai}" 
-                                               FontWeight="SemiBold" 
-                                               FontSize="12"
-                                               HorizontalAlignment="Center"/>
-                                </Border>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-
                     <DataGridTextColumn Header="Nhà cung cấp" Binding="{Binding Nhacungcap}" Width="200">
                     </DataGridTextColumn>
 
-
-                    <DataGridTemplateColumn Header="" Width="60">
+                    <DataGridTemplateColumn Header="Thao tác" Width="90">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Background="Transparent" BorderThickness="0" HorizontalAlignment="Center" Cursor="Hand" Click="BtnHanhDong_Click">
-                                    <TextBlock Text="⋮" FontSize="24" FontWeight="Bold" Foreground="#888" Margin="0,-8,0,0"/>
+                                    <TextBlock Text="⋮" FontSize="20" FontWeight="Bold" Foreground="Black" Margin="0,-8,0,0"/>
                                     <Button.ContextMenu>
-                                        <ContextMenu Padding="0" BorderThickness="1" BorderBrush="#DDD">
+                                        <ContextMenu Background="Transparent" BorderThickness="0">
                                             <ContextMenu.Template>
                                                 <ControlTemplate TargetType="ContextMenu">
-                                                    <Border Background="White" CornerRadius="8" BorderThickness="1" BorderBrush="#EEE" Padding="5">
+                                                    <Border Background="White" CornerRadius="12" BorderThickness="1" BorderBrush="#EEEEEE" Padding="5">
                                                         <Border.Effect>
-                                                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.1"/>
+                                                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.15"/>
                                                         </Border.Effect>
-                                                        <StackPanel IsItemsHost="True"/>
+                                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
                                                     </Border>
                                                 </ControlTemplate>
                                             </ContextMenu.Template>
-
-                                            <MenuItem Header="Chỉnh sửa" Click="BtnSua_Click" Foreground="#4C70BA" FontWeight="Bold" FontSize="14" Height="35">
+                                            <MenuItem Header="Chỉnh sửa" Click="BtnSua_Click" Foreground="#4C70BA" FontWeight="Bold" FontSize="14" Height="40">
                                                 <MenuItem.Icon>
                                                     <Viewbox Width="16" Height="16">
                                                         <Path Data="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z" Fill="#4C70BA" />
                                                     </Viewbox>
                                                 </MenuItem.Icon>
                                             </MenuItem>
-
-                                            <MenuItem Header="Xóa" Click="BtnXoa_Click" Foreground="#D32F2F" FontWeight="Bold" FontSize="14" Height="35">
+                                            <MenuItem Header="Xóa" Click="BtnXoa_Click" Foreground="#D32F2F" FontWeight="Bold" FontSize="14" Height="40">
                                                 <MenuItem.Icon>
                                                     <Viewbox Width="16" Height="16">
                                                         <Path Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19V4ZM6,19A2,2,0,0,0,8,21H16A2,2,0,0,0,18,19V7H6V19Z" Fill="#D32F2F" />

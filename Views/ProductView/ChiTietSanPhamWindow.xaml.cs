@@ -79,7 +79,6 @@ namespace PharmaDistributionApp.Views.ProductView
                         lblTenSP.Text = sp.Tensp;
                         txtMaSP.Text = sp.Masp;
                         txtLoai.Text = tenLoai;
-                        txtHoatChat.Text = sp.Hoatchat ?? "Không có";
                         txtDVT.Text = sp.Dvt;
                         txtNuocSX.Text = sp.Nuocsx ?? "Chưa cập nhật";
                         txtNhaCungCap.Text = sp.Nhacungcap ?? "Chưa cập nhật";

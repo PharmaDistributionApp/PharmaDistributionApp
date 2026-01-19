@@ -141,7 +141,6 @@ namespace PharmaDistributionApp.Models
                 entity.Property(x => x.Tensp).HasColumnName("TENSP");
                 entity.Property(x => x.Dvt).HasColumnName("DVT");
                 entity.Property(x => x.Giaban).HasColumnName("GIABAN");
-                entity.Property(x => x.Hoatchat).HasColumnName("HOATCHAT");
                 entity.Property(x => x.Nuocsx).HasColumnName("NUOCSX");
                 entity.Property(x => x.Nhacungcap).HasColumnName("NHACUNGCAP");
                 entity.Property(x => x.Ghichu).HasColumnName("GHICHU");
@@ -168,7 +167,6 @@ namespace PharmaDistributionApp.Models
                 e.HasKey(x => x.Malo);
                 e.Property(x => x.Malo).HasColumnName("MALO");
                 e.Property(x => x.Masp).HasColumnName("MASP");
-                e.Property(x => x.Sohieu).HasColumnName("SOHIEU");
                 e.Property(x => x.Nsx).HasColumnName("NSX");
                 e.Property(x => x.Hsd).HasColumnName("HSD");
                 e.Property(x => x.Nhacungcap).HasColumnName("NHACUNGCAP");

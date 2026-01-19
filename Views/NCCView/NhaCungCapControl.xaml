@@ -147,9 +147,20 @@
                     </Border>
                 </Border>
 
-                <Button Content="📊 Xuất excel" Height="44" Width="130" Margin="0,0,10,0"
-                        Style="{StaticResource RoundedBtn}" Background="White" Foreground="#4C70BA" BorderBrush="#4C70BA" BorderThickness="1"
-                        FontWeight="SemiBold" FontSize="14" Click="BtnXuatExcel_Click"/>
+                <Button x:Name="BtnXuatExcel" 
+                        Click="BtnXuatExcel_Click" 
+                        Foreground="White"
+                        Style="{StaticResource RoundedBtn}"
+                        Background="#217346" 
+                        BorderBrush="{x:Null}"  
+                        Height="45" 
+                        Margin="0,0,10,0"
+                        FontSize="14">
+                    <StackPanel Orientation="Horizontal" Margin="15,0">
+                        <materialDesign:PackIcon Kind="FileExcel" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Xuất Excel" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
                 <Button Content="+ Thêm mới" Height="44" Width="130"
                         Style="{StaticResource RoundedBtn}" Background="#4C70BA" Foreground="White" BorderThickness="0"

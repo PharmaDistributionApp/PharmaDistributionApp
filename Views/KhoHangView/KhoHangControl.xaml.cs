@@ -10,6 +10,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
+using PharmaDistributionApp.Views.KhoHangView;
 
 namespace PharmaDistributionApp.Views.ProductView
 {
@@ -26,26 +27,30 @@ namespace PharmaDistributionApp.Views.ProductView
             UpdateColumnVisibility();
         }
 
-        public class InventoryNotify
+        public class ThongBaoItem
         {
-            public string Masp { get; set; }
-            public string Malo { get; set; }
-            public string Message { get; set; }
-            public string Type { get; set; }
-            public string TenKho { get; set; }
-            public string WarningColor => Type == "HSD" ? "#D32F2F" : "#EF6C00";
+            public string LoaiThongBao { get; set; }
+            public string TieuDe { get; set; }
+            public string NoiDung { get; set; }
+            public string ChiTiet { get; set; }
+            public string ThoiGian { get; set; }
+            public string MaRef { get; set; }
+            public string MaKhoRef { get; set; }
+            public DateTime SortDate { get; set; }
+            public string IconKind { get; set; }
+            public string Color { get; set; }
+            public string BgColor { get; set; }
         }
 
-        // Tạo một class trung gian để tránh lỗi Dynamic trong LINQ
         public class KhoHangDisplayItem
         {
             public string Masp { get; set; }
             public string Tensp { get; set; }
             public string Dvt { get; set; }
             public string TenKho { get; set; }
-            public string SoHieuLo { get; set; }
+            public string Makho { get; set; }
             public string HSD { get; set; }
-            public int SoLuongTon { get; set; }
+            public decimal SoLuongTon { get; set; }
             public string TenTrangThai { get; set; }
             public string MauNenTrangThai { get; set; }
             public string MauChuTrangThai { get; set; }
@@ -93,9 +98,9 @@ namespace PharmaDistributionApp.Views.ProductView
                             Tensp = x.sp.Tensp,
                             Dvt = x.sp.Dvt,
                             TenKho = x.k.Tenkho,
-                            SoHieuLo = x.subLh != null ? x.subLh.Sohieu : "---",
+                            Makho = x.tk.Makho,
                             HSD = x.subLh != null ? x.subLh.Hsd.ToString() : "---",
-                            SoLuongTon = x.tk.Soluongton,
+                            SoLuongTon = (int)x.tk.Soluongton,
                             Malo = x.tk.Malo,
                             TenTrangThai = x.tk.Soluongton == 0 ? "Hết hàng" : (x.tk.Soluongton <= 10 ? "Sắp hết" : "Còn hàng"),
                             MauNenTrangThai = x.tk.Soluongton == 0 ? "#FFEBEE" : (x.tk.Soluongton <= 10 ? "#FFF3E0" : "#E8F5E9"),
@@ -112,19 +117,31 @@ namespace PharmaDistributionApp.Views.ProductView
 
                         if (!string.IsNullOrEmpty(keyword))
                             query = query.Where(x => x.pn.Mapn.ToLower().Contains(keyword) || x.pn.Sohdnhap.ToLower().Contains(keyword));
+                        var rawList = query.ToList();
 
-                        resultList = query.ToList().Select(x => new KhoHangDisplayItem
-                        {
-                            Masp = x.pn.Mapn,
-                            Tensp = "HĐ Nhập: " + x.pn.Sohdnhap,
-                            TenKho = x.subK != null ? x.subK.Tenkho : x.pn.Makho,
-                            HSD = x.pn.Ngaynhap,
-                            Mapn = x.pn.Mapn,
-                            Sohdnhap = x.pn.Sohdnhap,
-                            TenTrangThai = x.pn.Trangthai,
-                            LoaiRow = "PHIEUNHAP",
-                            MauNenTrangThai = "#E3F2FD",
-                            MauChuTrangThai = "#1565C0"
+                            resultList = rawList.Select(x => {
+                                decimal tongTien = context.Cthdnhaps
+                                                .Where(ct => ct.Sohdnhap == x.pn.Sohdnhap)
+                                                .ToList()
+                                                .Sum(ct => ct.Thanhtien);
+                                string ngayHienThi = x.pn.Ngaynhap;
+                                if (DateTime.TryParse(x.pn.Ngaynhap, out DateTime dt)) ngayHienThi = dt.ToString("dd/MM/yyyy");
+                                
+                                return new KhoHangDisplayItem
+                                {
+                                Masp = x.pn.Mapn,
+                                Tensp = ngayHienThi,
+                                TenKho = x.subK != null ? x.subK.Tenkho : x.pn.Makho,
+                                HSD = x.pn.Ngaynhap,
+                                Mapn = x.pn.Mapn,
+                                Sohdnhap = x.pn.Sohdnhap,
+                                SoLuongTon = (int)tongTien,
+
+                                TenTrangThai = x.pn.Trangthai,
+                                LoaiRow = "PHIEUNHAP",
+                                MauNenTrangThai = "#E3F2FD",
+                                MauChuTrangThai = "#1565C0"
+                            };
                         }).ToList();
                     }
                     else if (_currentMode == ViewMode.PhieuXuat)
@@ -137,18 +154,31 @@ namespace PharmaDistributionApp.Views.ProductView
                         if (!string.IsNullOrEmpty(keyword))
                             query = query.Where(x => x.px.Mapx.ToLower().Contains(keyword) || x.px.Sohdxuat.ToLower().Contains(keyword));
 
-                        resultList = query.ToList().Select(x => new KhoHangDisplayItem
-                        {
-                            Masp = x.px.Mapx,
-                            Tensp = "HĐ Xuất: " + x.px.Sohdxuat,
-                            TenKho = x.subK != null ? x.subK.Tenkho : x.px.Makho,
-                            HSD = x.px.Ngayxuat,
-                            Mapx = x.px.Mapx,
-                            Sohdxuat = x.px.Sohdxuat,
-                            TenTrangThai = x.px.Trangthai,
-                            LoaiRow = "PHIEUXUAT",
-                            MauNenTrangThai = "#FCE4EC",
-                            MauChuTrangThai = "#C2185B"
+                        var rawList = query.ToList();
+
+                        resultList = rawList.Select(x => {
+                            decimal tongTien = context.Cthdxuats
+                                                .Where(ct => ct.Sohdxuat == x.px.Sohdxuat)
+                                                .ToList()
+                                                .Sum(ct => ct.Thanhtien);
+                            string ngayHienThi = x.px.Ngayxuat;
+                            if (DateTime.TryParse(x.px.Ngayxuat, out DateTime dt)) ngayHienThi = dt.ToString("dd/MM/yyyy");
+
+                            return new KhoHangDisplayItem
+                            {
+                                Masp = x.px.Mapx,
+                                Tensp = ngayHienThi,
+                                TenKho = x.subK != null ? x.subK.Tenkho : x.px.Makho,
+                                HSD = x.px.Ngayxuat,
+                                Mapx = x.px.Mapx,
+                                Sohdxuat = x.px.Sohdxuat,
+                                SoLuongTon = (int)tongTien,
+
+                                TenTrangThai = x.px.Trangthai,
+                                LoaiRow = "PHIEUXUAT",
+                                MauNenTrangThai = "#FCE4EC",
+                                MauChuTrangThai = "#C2185B"
+                            };
                         }).ToList();
                     }
                     dgvKhoHang.ItemsSource = resultList;
@@ -159,28 +189,30 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private void UpdateColumnVisibility()
         {
-            if (dgvKhoHang == null || dgvKhoHang.Columns.Count < 7) return;
+            if (dgvKhoHang == null || dgvKhoHang.Columns.Count < 8) return;
             bool isPhieu = (_currentMode == ViewMode.PhieuNhap || _currentMode == ViewMode.PhieuXuat);
-            dgvKhoHang.Columns[0].Header = isPhieu ? "Mã Phiếu" : "Mã sản phẩm";
-            dgvKhoHang.Columns[1].Header = isPhieu ? "Thông tin HĐ" : "Tên sản phẩm";
-            Visibility v = isPhieu ? Visibility.Collapsed : Visibility.Visible;
-            dgvKhoHang.Columns[2].Visibility = v; dgvKhoHang.Columns[4].Visibility = v; dgvKhoHang.Columns[6].Visibility = v;
-            dgvKhoHang.Columns[5].Header = isPhieu ? "Ngày Lập" : "Hạn Dùng";
-        }
+            dgvKhoHang.Columns[1].Header = isPhieu ? "Mã phiếu" : "Mã sản phẩm";
+            dgvKhoHang.Columns[2].Header = isPhieu ? "Thời gian tạo" : "Tên sản phẩm";
+            dgvKhoHang.Columns[5].Header = isPhieu ? "Tổng tiền" : "Tồn kho";
+            Visibility productMode = isPhieu ? Visibility.Collapsed : Visibility.Visible;
+            dgvKhoHang.Columns[0].Visibility = productMode; 
+            dgvKhoHang.Columns[3].Visibility = productMode;
+            dgvKhoHang.Columns[4].Visibility = productMode; 
+            dgvKhoHang.Columns[1].Visibility = Visibility.Visible; 
+            dgvKhoHang.Columns[2].Visibility = Visibility.Visible; 
+            dgvKhoHang.Columns[5].Visibility = Visibility.Visible;
+            dgvKhoHang.Columns[6].Visibility = Visibility.Visible;
+            Visibility actionVisibility = Visibility.Collapsed; // Mặc định là ẩn
 
-        private void dgvCanhBao_MouseLeftButtonUp(object sender, MouseButtonEventArgs e)
-        {
-            if (dgvCanhBao.SelectedItem is InventoryNotify selected)
+            if (UserSession.CurrentUser != null)
             {
-                RadTonKho.IsChecked = true; _currentMode = ViewMode.TonKho; LoadData();
-                var items = dgvKhoHang.ItemsSource as List<KhoHangDisplayItem>;
-                if (items != null)
+                string[] rolesDuocPhep = { "Admin", "Giám đốc", "Quản lý kho" };
+                if (rolesDuocPhep.Contains(UserSession.CurrentUser.Chucvu))
                 {
-                    var target = items.FirstOrDefault(x => x.Masp == selected.Masp && (string.IsNullOrEmpty(selected.Malo) || x.Malo == selected.Malo));
-                    if (target != null) { dgvKhoHang.SelectedItem = target; dgvKhoHang.ScrollIntoView(target); dgvKhoHang.Focus(); }
+                    actionVisibility = Visibility.Visible;
                 }
-                btnBell.IsChecked = false;
             }
+            dgvKhoHang.Columns[7].Visibility = actionVisibility;
         }
 
         private void LoadCanhBaoCount()
@@ -189,19 +221,157 @@ namespace PharmaDistributionApp.Views.ProductView
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    var notifyList = new List<InventoryNotify>();
-                    DateOnly warningDate = DateOnly.FromDateTime(DateTime.Now.AddDays(30));
-                    var maspDangNhap = (from pn in context.Phieunhaps join ct in context.Cthdnhaps on pn.Sohdnhap equals ct.Sohdnhap where pn.Trangthai != "Đã nhập" select ct.Masp).Distinct().ToList();
-                    var expired = context.Lohangs.Where(l => l.Hsd != null && l.Hsd <= warningDate).Select(l => new InventoryNotify { Masp = l.Masp, Malo = l.Malo, Type = "HSD", Message = "Lô " + l.Sohieu + " sắp hết hạn" }).ToList();
-                    var outOfStock = context.Sanphams.Where(sp => !maspDangNhap.Contains(sp.Masp) && context.Tonkhos.Where(t => t.Masp == sp.Masp).Sum(t => t.Soluongton) <= 5)
-                        .Select(sp => new InventoryNotify { Masp = sp.Masp, Type = "SOLUONG", Message = "SP " + sp.Tensp + " tồn thấp" }).ToList();
-                    notifyList.AddRange(expired); notifyList.AddRange(outOfStock);
-                    dgvCanhBao.ItemsSource = notifyList;
-                    txtCountBadge.Text = notifyList.Count.ToString();
-                    bdBadge.Visibility = notifyList.Count > 0 ? Visibility.Visible : Visibility.Collapsed;
+                    var notiList = new List<ThongBaoItem>();
+                    var listNhap = context.Phieunhaps.ToList()
+                        .Where(p => !string.IsNullOrEmpty(p.Trangthai) && p.Trangthai.ToLower().Contains("chờ duyệt"))
+                        .ToList();
+
+                    foreach (var p in listNhap)
+                    {
+                        decimal tong = context.Cthdnhaps.Where(c => c.Sohdnhap == p.Sohdnhap).ToList().Sum(c => c.Thanhtien);
+                        notiList.Add(new ThongBaoItem
+                        {
+                            LoaiThongBao = "PHIEU_NHAP",
+                            MaRef = p.Mapn,
+                            TieuDe = p.Mapn,
+                            NoiDung = "Nhập kho chờ duyệt",
+                            ChiTiet = tong.ToString("N0") + " đ",
+                            ThoiGian = p.Ngaynhap ?? "---",
+                            SortDate = DateTime.Now,
+                            IconKind = "FileImport",
+                            Color = "#1565C0",
+                            BgColor = "#E3F2FD"
+                        });
+                    }
+
+                    // 2. LẤY PHIẾU XUẤT (Giữ nguyên)
+                    var listXuat = context.Phieuxuats.ToList()
+                        .Where(p => !string.IsNullOrEmpty(p.Trangthai) && p.Trangthai.ToLower().Contains("chờ duyệt"))
+                        .ToList();
+
+                    foreach (var p in listXuat)
+                    {
+                        decimal tong = context.Cthdxuats.Where(c => c.Sohdxuat == p.Sohdxuat).ToList().Sum(c => c.Thanhtien);
+                        notiList.Add(new ThongBaoItem
+                        {
+                            LoaiThongBao = "PHIEU_XUAT",
+                            MaRef = p.Mapx,
+                            TieuDe = p.Mapx,
+                            NoiDung = "Xuất kho chờ duyệt",
+                            ChiTiet = tong.ToString("N0") + " đ",
+                            ThoiGian = p.Ngayxuat ?? "---",
+                            SortDate = DateTime.Now,
+                            IconKind = "FileExport",
+                            Color = "#2E7D32",
+                            BgColor = "#E8F5E9"
+                        });
+                    }
+
+                    var homNay = DateOnly.FromDateTime(DateTime.Now);
+
+                    var listHetHan = (from t in context.Tonkhos
+                                      join l in context.Lohangs on t.Malo equals l.Malo
+                                      where l.Hsd < homNay && t.Soluongton > 0 
+                                      select new { t, l }).ToList();
+
+                    foreach (var item in listHetHan)
+                    {
+                        var sp = context.Sanphams.FirstOrDefault(s => s.Masp == item.t.Masp);
+                        if (sp == null) continue; // Bỏ qua rác
+
+                        var kho = context.Khos.FirstOrDefault(k => k.Makho == item.t.Makho);
+                        string tenKho = kho != null ? kho.Tenkho : item.t.Makho;
+
+                        notiList.Add(new ThongBaoItem
+                        {
+                            LoaiThongBao = "CANH_BAO_HET_HAN",
+                            MaRef = item.t.Masp,
+                            MaKhoRef = item.t.Malo,
+                            TieuDe = item.t.Masp,
+                            NoiDung = $"ĐÃ HẾT HẠN! - {sp.Tensp}",
+                            ChiTiet = $"Lô: {item.t.Malo}",
+                            ThoiGian = item.l.Hsd.HasValue ? item.l.Hsd.Value.ToString("dd/MM/yyyy") : "---",
+                            SortDate = DateTime.Now.AddDays(-1), // Ưu tiên cao
+                            IconKind = "CalendarRemove",         // Icon lịch có dấu X
+                            Color = "#D32F2F",                   // Chữ Đỏ
+                            BgColor = "#212121"                  // Nền Đen (Cảnh báo nguy hiểm/Hủy)
+                        });
+                    }
+
+                    var listTonKho = context.Tonkhos
+                        .Where(t => t.Soluongton <= 10)
+                        .ToList();
+
+                    foreach (var t in listTonKho)
+                    {
+                        var sp = context.Sanphams.FirstOrDefault(s => s.Masp == t.Masp);
+                        var kho = context.Khos.FirstOrDefault(k => k.Makho == t.Makho);
+
+                        // --- THÊM ĐOẠN NÀY ---
+                        // Nếu không tìm thấy sản phẩm trong danh mục (đã bị xóa), 
+                        // thì BỎ QUA dòng tồn kho này, không hiện thông báo rác nữa.
+                        if (sp == null) continue;
+                        // ---------------------
+
+                        string tenSP = sp.Tensp;
+                        string dvt = sp.Dvt;
+                        string tenKho = kho != null ? kho.Tenkho : t.Makho;
+
+                        // --- PHÂN LOẠI MÀU SẮC ---
+                        string loaiTB, icon, color, bgColor, noiDungTB;
+
+                        if (t.Soluongton == 0)
+                        {
+                            loaiTB = "CANH_BAO_HET";
+                            icon = "AlertOctagon";
+                            color = "#C62828";
+                            bgColor = "#FFEBEE";
+                            noiDungTB = "Đã hết hàng!";
+                        }
+                        else
+                        {
+                            loaiTB = "CANH_BAO_SAP_HET";
+                            icon = "AlertCircle";
+                            color = "#EF6C00";
+                            bgColor = "#FFF3E0";
+                            noiDungTB = "Sắp hết hàng";
+                        }
+
+                        notiList.Add(new ThongBaoItem
+                        {
+                            LoaiThongBao = loaiTB,
+                            MaRef = t.Masp,
+                            MaKhoRef = t.Malo,
+                            TieuDe = t.Masp,
+                            NoiDung = $"{noiDungTB} - {tenSP}",
+                            ChiTiet = $"Tồn: {t.Soluongton} {dvt}",
+                            ThoiGian = tenKho,
+                            SortDate = DateTime.Now.AddDays(-1),
+                            IconKind = icon,
+                            Color = color,
+                            BgColor = bgColor
+                        });
+                    }
+
+                    // 4. HIỂN THỊ
+                    var finalData = notiList.OrderByDescending(x => x.SortDate).ToList();
+                    lbThongBao.ItemsSource = finalData;
+
+                    if (finalData.Count > 0)
+                    {
+                        bdBadge.Visibility = Visibility.Visible;
+                        txtCountBadge.Text = finalData.Count.ToString();
+                    }
+                    else
+                    {
+                        bdBadge.Visibility = Visibility.Collapsed;
+                    }
                 }
             }
-            catch { }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải thông báo: " + ex.Message);
+            }
         }
 
         private void BtnXuatExcel_Click(object sender, RoutedEventArgs e)
@@ -225,37 +395,121 @@ namespace PharmaDistributionApp.Views.ProductView
         }
 
         private void BtnThongBao_Click(object sender, RoutedEventArgs e) { if (btnBell.IsChecked == true) LoadCanhBaoCount(); }
-        private void BtnDongPopup_Click(object sender, RoutedEventArgs e) { btnBell.IsChecked = false; }
+        private void BtnDongPopup_Click(object sender, RoutedEventArgs e)
+        {
+            btnBell.IsChecked = false;
+        }
         private void txtTimKiem_TextChanged(object sender, TextChangedEventArgs e) { LoadData(); }
-        private void UserControl_MouseDown(object sender, MouseButtonEventArgs e) { Keyboard.ClearFocus(); }
+        private void UserControl_MouseDown(object sender, MouseButtonEventArgs e) 
+        {
+            if (!dgvKhoHang.IsMouseOver)
+            {
+                dgvKhoHang.UnselectAll(); 
+                Keyboard.ClearFocus();    
+            }
+
+            if (!btnBell.IsMouseOver && btnBell.IsChecked == true)
+            {
+                btnBell.IsChecked = false;
+            }
+        }
+        private void Window_PreviewKeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape && btnBell.IsChecked == true)
+            {
+                btnBell.IsChecked = false; // Tắt nút -> Popup tự đóng
+                this.Focus();
+            }
+        }
         private void BtnNhapHang_Click(object sender, RoutedEventArgs e) { new NhapHangWindow(_currentMode == ViewMode.PhieuXuat).ShowDialog(); LoadData(); }
         private string Helper_FormatDate(object input) => input?.ToString() ?? "---";
-        private void BtnSua_Click(object sender, RoutedEventArgs e) { }
-        private void BtnXoa_Click(object sender, RoutedEventArgs e) { }
+        private void BtnSua_Click(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                var menuItem = sender as MenuItem;
+                if (menuItem == null) return;
+
+                var contextMenu = menuItem.Parent as ContextMenu;
+                if (contextMenu == null) return;
+                var btn = contextMenu.PlacementTarget as Button;
+                if (btn == null) return;
+                var rowData = btn.DataContext as KhoHangDisplayItem;
+                if (rowData == null) return;
+  
+                if (_currentMode == ViewMode.TonKho)
+                {
+                    // Đã đổi tên class ở đây
+                    var editWindow = new ChinhSuaTonKho(rowData.Masp, rowData.Malo, rowData.Makho);
+                    editWindow.ShowDialog();
+                    LoadData();
+                }
+                else if (_currentMode == ViewMode.PhieuNhap)
+                {
+                    MessageBox.Show($"Chức năng sửa Phiếu Nhập ({rowData.Mapn}) đang phát triển...", "Thông báo");
+                }
+                else if (_currentMode == ViewMode.PhieuXuat)
+                {
+                    MessageBox.Show($"Chức năng sửa Phiếu Xuất ({rowData.Mapx}) đang phát triển...", "Thông báo");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi mở cửa sổ chỉnh sửa: " + ex.Message);
+            }
+        }
+        private void BtnXoa_Click(object sender, RoutedEventArgs e)
+        {
+            var menuItem = sender as MenuItem;
+            if (menuItem == null) return;
+
+            var contextMenu = menuItem.Parent as ContextMenu;
+            if (contextMenu == null) return;
+
+            var btn = contextMenu.PlacementTarget as Button;
+            var rowData = btn.DataContext as KhoHangDisplayItem;
+
+            if (rowData != null)
+            {
+                string maCanXoa = _currentMode == ViewMode.TonKho ? rowData.Masp : (_currentMode == ViewMode.PhieuNhap ? rowData.Mapn : rowData.Mapx);
+
+                if (MessageBox.Show($"Bạn có chắc muốn xóa '{maCanXoa}' không?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    MessageBox.Show("Đã gửi yêu cầu xóa! (Chức năng cần kết nối Database)");
+                }
+            }
+        }
         private void dgvKhoHang_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            // Lấy dòng dữ liệu đang chọn và ép kiểu về Class DisplayItem đã tạo
             var row = dgvKhoHang.SelectedItem as KhoHangDisplayItem;
             if (row == null) return;
 
             try
             {
-                if (_currentMode == ViewMode.PhieuNhap)
+                if (_currentMode == ViewMode.TonKho)
                 {
-                    // Mở chi tiết phiếu nhập (truyền Mapn)
+                    if (!string.IsNullOrEmpty(row.Masp))
+                    {
+                        var detailWindow = new ChiTietTonKhoWindow(row.Masp);
+                        detailWindow.ShowDialog();
+                    }
+                }
+                else if (_currentMode == ViewMode.PhieuNhap)
+                {
                     if (!string.IsNullOrEmpty(row.Mapn))
                     {
                         ChiTietPhieuNhapWindow window = new ChiTietPhieuNhapWindow(row.Mapn);
                         window.ShowDialog();
+                        LoadData();
                     }
                 }
                 else if (_currentMode == ViewMode.PhieuXuat)
                 {
-                    // Mở chi tiết phiếu xuất (truyền Mapx)
                     if (!string.IsNullOrEmpty(row.Mapx))
                     {
                         ChiTietPhieuXuatWindow window = new ChiTietPhieuXuatWindow(row.Mapx);
                         window.ShowDialog();
+                        LoadData();
                     }
                 }
             }
@@ -264,6 +518,69 @@ namespace PharmaDistributionApp.Views.ProductView
                 MessageBox.Show("Lỗi mở chi tiết: " + ex.Message);
             }
         }
-        private void BtnHanhDong_Click(object sender, RoutedEventArgs e) { }
+
+        private void lbThongBao_MouseDoubleClick(object sender, MouseButtonEventArgs e)
+        {
+            var item = lbThongBao.SelectedItem as ThongBaoItem;
+            if (item == null) return;
+            btnBell.IsChecked = false;
+            txtTimKiem.Text = "";
+            if (item.LoaiThongBao == "PHIEU_NHAP")
+            {
+                RadPhieuNhap.IsChecked = true;
+                _currentMode = ViewMode.PhieuNhap;
+            }
+            else if (item.LoaiThongBao == "PHIEU_XUAT")
+            {
+                RadPhieuXuat.IsChecked = true;
+                _currentMode = ViewMode.PhieuXuat;
+            }
+            else if (item.LoaiThongBao == "CANH_BAO_HET" || item.LoaiThongBao == "CANH_BAO_SAP_HET" || item.LoaiThongBao == "CANH_BAO_HET_HAN")
+            {
+                RadTonKho.IsChecked = true;
+                _currentMode = ViewMode.TonKho;
+            }
+            LoadData();
+            UpdateColumnVisibility();
+
+            var listHienTai = dgvKhoHang.ItemsSource as List<KhoHangDisplayItem>;
+            if (listHienTai != null)
+            {
+                KhoHangDisplayItem targetRow = null;
+
+                if (_currentMode == ViewMode.PhieuNhap)
+                {
+                    targetRow = listHienTai.FirstOrDefault(x => x.Mapn == item.MaRef);
+                }
+                else if (_currentMode == ViewMode.PhieuXuat)
+                {
+                    targetRow = listHienTai.FirstOrDefault(x => x.Mapx == item.MaRef);
+                }
+                else 
+                {
+                    targetRow = listHienTai.FirstOrDefault(x => x.Masp == item.MaRef && x.Malo == item.MaKhoRef);
+                    if (targetRow == null)
+                        targetRow = listHienTai.FirstOrDefault(x => x.Masp == item.MaRef);
+                }
+
+                // 6. Thực hiện Focus
+                if (targetRow != null)
+                {
+                    dgvKhoHang.SelectedItem = targetRow;   
+                    dgvKhoHang.UpdateLayout();               
+                    dgvKhoHang.ScrollIntoView(targetRow);     
+                    dgvKhoHang.Focus();                       
+                }
+            }
+        }
+        private void BtnHanhDong_Click(object sender, RoutedEventArgs e) 
+        {
+            var btn = sender as Button;
+            if (btn != null && btn.ContextMenu != null)
+            {
+                btn.ContextMenu.PlacementTarget = btn; 
+                btn.ContextMenu.IsOpen = true; 
+            }
+        }
     }
 }

@@ -32,84 +32,42 @@ namespace PharmaDistributionApp.Views.ProductView
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    // 1. Lấy dữ liệu thô
-                    var rawData = (from sp in context.Sanphams
-                                   join l in context.Loaisps on sp.Maloai equals l.Maloai into tableLoai
-                                   from l in tableLoai.DefaultIfEmpty()
-                                   join tk in context.Tonkhos on sp.Masp equals tk.Masp into tableKho
-                                   let tongTon = tableKho.Sum(x => (int?)x.Soluongton) ?? 0
-                                   select new
-                                   {
-                                       sp.Masp,
-                                       sp.Tensp,
-                                       sp.Dvt,
-                                       sp.Giaban,
-                                       sp.Nhacungcap,
-                                       sp.Ghichu,
-                                       TenLoai = (l != null) ? l.Tenloai : "Khác",
-                                       SoLuongTon = tongTon
-                                   }).ToList();
+                    // Truy vấn trực tiếp và sắp xếp luôn từ Database
+                    var data = (from sp in context.Sanphams
+                                    // Join bảng Loại thuốc để lấy Tên loại
+                                join l in context.Loaisps on sp.Maloai equals l.Maloai into tableLoai
+                                from l in tableLoai.DefaultIfEmpty()
 
-                    // 2. Xử lý logic trạng thái màu sắc
-                    var finalResult = rawData.Select(x =>
-                    {
-                        string trangThaiText;
-                        string mauNen;
-                        string mauChu;
+                                    // Join bảng Tồn kho để tính tổng tồn (Nếu bạn muốn xem nhanh số lượng)
+                                    // Nếu muốn bỏ hẳn cột số lượng, bạn có thể xóa 2 dòng dưới này
+                                join tk in context.Tonkhos on sp.Masp equals tk.Masp into tableKho
+                                let tongTon = tableKho.Sum(x => (int?)x.Soluongton) ?? 0
 
-                        // Logic màu sắc
-                        if (!string.IsNullOrEmpty(x.Ghichu) && x.Ghichu == "Đang nhập")
-                        {
-                            trangThaiText = "Đang nhập";
-                            mauNen = "#E3F2FD"; // Xanh dương nhạt
-                            mauChu = "#1565C0"; // Xanh dương đậm
-                        }
-                        else
-                        {
-                            if (x.SoLuongTon > 10)
-                            {
-                                trangThaiText = "Còn hàng";
-                                mauNen = "#E8F5E9"; // Xanh lá nhạt
-                                mauChu = "#2E7D32"; // Xanh lá đậm
-                            }
-                            else if (x.SoLuongTon > 0 && x.SoLuongTon <= 10)
-                            {
-                                trangThaiText = "Sắp hết hàng";
-                                mauNen = "#FFF3E0"; // Cam nhạt
-                                mauChu = "#EF6C00"; // Cam đậm
-                            }
-                            else
-                            {
-                                trangThaiText = "Hết hàng";
-                                mauNen = "#FFEBEE"; // Đỏ nhạt
-                                mauChu = "#C62828"; // Đỏ đậm
-                            }
-                        }
+                                // Sắp xếp theo Mã sản phẩm
+                                orderby sp.Masp ascending
 
-                        return new
-                        {
-                            x.Masp,
-                            x.Tensp,
-                            x.Dvt,
-                            x.Giaban,
-                            x.Nhacungcap,
-                            x.TenLoai,
-                            x.SoLuongTon,
-                            TenTrangThai = trangThaiText,
-                            MauNenTrangThai = mauNen,
-                            MauChuTrangThai = mauChu
-                        };
-                    })
-                    // [QUAN TRỌNG] Sắp xếp theo Mã sản phẩm tăng dần (SP_001 -> SP_002)
-                    .OrderBy(x => x.Masp)
-                    .ToList();
+                                select new
+                                {
+                                    sp.Masp,
+                                    sp.Tensp,
+                                    sp.Dvt,
+                                    sp.Giaban,
+                                    sp.Nhacungcap,
+                                    sp.Nuocsx,   // Thêm nước sản xuất (nếu cần hiển thị)
 
-                    dgvSanPham.ItemsSource = finalResult;
+                                    TenLoai = (l != null) ? l.Tenloai : "Khác",
+
+                                    // Tổng tồn kho (Có thể xóa nếu không cần hiện ở bảng này)
+                                    SoLuongTon = tongTon
+                                }).ToList();
+
+                    // Gán dữ liệu vào lưới
+                    dgvSanPham.ItemsSource = data;
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
+                MessageBox.Show("Lỗi tải dữ liệu sản phẩm: " + ex.Message);
             }
         }
 
@@ -136,7 +94,6 @@ namespace PharmaDistributionApp.Views.ProductView
                                         sp.Giaban,
                                         sp.Nhacungcap,
                                         TenLoai = (l != null) ? l.Tenloai : "Khác",
-                                        sp.Hoatchat
                                     };
 
                     if (!string.IsNullOrEmpty(keyword))
@@ -276,7 +233,59 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private void BtnSua_Click(object sender, RoutedEventArgs e)
         {
-            MessageBox.Show("Chức năng sửa đang phát triển!", "Thông báo");
+            try
+            {
+                // 1. Lấy các thành phần UI từ Menu
+                var menuItem = sender as MenuItem;
+                if (menuItem == null) return;
+
+                var contextMenu = menuItem.Parent as ContextMenu;
+                if (contextMenu == null) return;
+
+                var btn = contextMenu.PlacementTarget as Button;
+                if (btn == null) return;
+
+                // 2. Lấy dữ liệu dòng hiện tại (Dùng object thay vì ép kiểu cứng)
+                object rowData = btn.DataContext;
+
+                if (rowData != null)
+                {
+                    string maSPCanSua = "";
+
+                    // 3. Sử dụng 'dynamic' để lấy thuộc tính Masp
+                    // Cách này hoạt động với cả Class Sanpham, DTO, hoặc Anonymous Type (select new { ... })
+                    try
+                    {
+                        dynamic data = rowData;
+                        maSPCanSua = data.Masp; // Đảm bảo trong câu lệnh Select của bạn có thuộc tính tên là "Masp"
+                    }
+                    catch
+                    {
+                        MessageBox.Show("Dòng dữ liệu này không chứa thuộc tính 'Masp'. Vui lòng kiểm tra lại câu lệnh Select.");
+                        return;
+                    }
+
+                    // 4. Mở cửa sổ sửa
+                    if (!string.IsNullOrEmpty(maSPCanSua))
+                    {
+                        // Đảm bảo đã using namespace chứa ThemSanPhamWindow
+                        var win = new PharmaDistributionApp.Views.ProductView.ThemSanPhamWindow(maSPCanSua);
+
+                        // Đăng ký sự kiện: Khi sửa xong thì load lại lưới
+                        win.OnProductAdded += () => LoadData();
+
+                        win.ShowDialog();
+                    }
+                }
+                else
+                {
+                    MessageBox.Show("Không lấy được dữ liệu dòng này (DataContext is null).");
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi: " + ex.Message);
+            }
         }
 
         private void BtnXoa_Click(object sender, RoutedEventArgs e)
@@ -297,7 +306,7 @@ namespace PharmaDistributionApp.Views.ProductView
                         {
                             var dbSp = context.Sanphams.Find(masp);
                             if (dbSp != null)
-                            {
+                            {   
                                 context.Sanphams.Remove(dbSp);
                                 context.SaveChanges();
                                 LoadData(); // Tải lại để cập nhật danh sách
@@ -337,7 +346,15 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            Keyboard.ClearFocus();
+            // Kiểm tra: Nếu con chuột KHÔNG nằm trên DataGrid thì mới bỏ chọn
+            // (Nếu chuột đang ở trên DataGrid nghĩa là người dùng đang muốn chọn dòng, ta không được can thiệp)
+            if (!dgvSanPham.IsMouseOver)
+            {
+                dgvSanPham.SelectedItem = null; // Bỏ chọn dòng hiện tại
+
+                // Tùy chọn: Làm mất focus của ô tìm kiếm nếu muốn
+                // Keyboard.ClearFocus(); 
+            }
         }
     }
 }

@@ -7,7 +7,8 @@
              mc:Ignorable="d" 
              d:DesignHeight="700" d:DesignWidth="1100"
              Background="#F3F5F9" FontFamily="{DynamicResource MaterialDesignFont}"
-             MouseDown="UserControl_MouseDown" Focusable="True">
+             MouseDown="UserControl_MouseDown" Focusable="True"
+             PreviewKeyDown="Window_PreviewKeyDown">
     <UserControl.Resources>
         <Style x:Key="TabButtonStyle" TargetType="RadioButton">
             <Setter Property="Height" Value="36"/>
@@ -176,7 +177,7 @@
             </Style.Triggers>
         </Style>
     </UserControl.Resources>
-    <Grid Margin="25" Background="Transparent" MouseDown="UserControl_MouseDown">
+    <Grid Margin="25" Background="Transparent" PreviewMouseDown="UserControl_MouseDown">
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="20"/>
@@ -195,12 +196,14 @@
             <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,15,0">
                 <StackPanel Orientation="Horizontal" Margin="0,0,15,0" VerticalAlignment="Center">
                     <Grid>
-                        <ToggleButton x:Name="btnBell" Width="40" Height="40" Padding="0" Style="{StaticResource BellBtnStyle}" Click="BtnThongBao_Click">
+                        <ToggleButton x:Name="btnBell" Width="40" Height="40" Padding="0" 
+                        Style="{StaticResource BellBtnStyle}" Click="BtnThongBao_Click">
                             <Grid>
-                                <materialDesign:PackIcon Width="30" Height="30" Foreground="#4C70BA" HorizontalAlignment="Center" VerticalAlignment="Center">
+                                <materialDesign:PackIcon Width="30" Height="30" HorizontalAlignment="Center" VerticalAlignment="Center">
                                     <materialDesign:PackIcon.Style>
                                         <Style TargetType="materialDesign:PackIcon">
                                             <Setter Property="Kind" Value="BellOutline"/>
+                                            <Setter Property="Foreground" Value="#4C70BA"/>
                                             <Style.Triggers>
                                                 <DataTrigger Binding="{Binding IsChecked, ElementName=btnBell}" Value="True">
                                                     <Setter Property="Kind" Value="Bell"/>
@@ -209,46 +212,107 @@
                                         </Style>
                                     </materialDesign:PackIcon.Style>
                                 </materialDesign:PackIcon>
-                                <Border x:Name="bdBadge" Background="#D32F2F" CornerRadius="10" Height="18" MinWidth="18" HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10,-2,-2,0" BorderBrush="White" BorderThickness="1.5" IsHitTestVisible="False" Visibility="Collapsed">
-                                    <TextBlock x:Name="txtCountBadge" Text="0" Foreground="White" FontSize="10" FontWeight="Bold" HorizontalAlignment="Center" VerticalAlignment="Center" Padding="2,0"/>
+
+                                <Border x:Name="bdBadge" Background="#D32F2F" CornerRadius="10" Height="18" MinWidth="18" 
+                                HorizontalAlignment="Right" VerticalAlignment="Top" Margin="10,-2,-2,0" 
+                                BorderBrush="White" BorderThickness="1.5" IsHitTestVisible="False" Visibility="Collapsed">
+                                <TextBlock x:Name="txtCountBadge" Text="0" Foreground="White" FontSize="10" FontWeight="Bold" 
+                               HorizontalAlignment="Center" VerticalAlignment="Center" Padding="2,0"/>
                                 </Border>
                             </Grid>
                         </ToggleButton>
-                        <Popup x:Name="popThongBao" PlacementTarget="{Binding ElementName=btnBell}" Placement="Bottom" IsOpen="{Binding IsChecked, ElementName=btnBell, Mode=TwoWay}" StaysOpen="False" HorizontalOffset="-460" VerticalOffset="5" AllowsTransparency="True" PopupAnimation="Slide">
-                            <Border Background="White" CornerRadius="8" BorderThickness="1" BorderBrush="#DDD" Width="500" MaxHeight="400">
+
+                        <Popup x:Name="popThongBao" PlacementTarget="{Binding ElementName=btnBell}" 
+                           IsOpen="{Binding IsChecked, ElementName=btnBell}" 
+                           StaysOpen="True" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Slide" HorizontalOffset="-380">
+
+                            <Border Background="White" CornerRadius="8" BorderBrush="#DDD" BorderThickness="1" Width="420" MaxHeight="520">
                                 <Border.Effect>
-                                    <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.2" Direction="270"/>
+                                    <DropShadowEffect BlurRadius="20" ShadowDepth="5" Opacity="0.2" Direction="270"/>
                                 </Border.Effect>
                                 <Grid>
                                     <Grid.RowDefinitions>
-                                        <RowDefinition Height="50"/>
+                                        <RowDefinition Height="Auto"/>
                                         <RowDefinition Height="*"/>
                                     </Grid.RowDefinitions>
-                                    <Border Background="#FFEBEE" CornerRadius="8,8,0,0">
-                                        <Grid>
-                                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="15,0">
-                                                <materialDesign:PackIcon Kind="WarningCircle" Foreground="#D32F2F" Width="24" Height="24" VerticalAlignment="Center"/>
-                                                <TextBlock Text="Cảnh báo hệ thống" Foreground="#D32F2F" FontWeight="Bold" FontSize="16" Margin="10,0,0,0" VerticalAlignment="Center"/>
-                                            </StackPanel>
-                                            <Button HorizontalAlignment="Right" Margin="0,0,10,0" Width="30" Height="30" Background="Transparent" BorderThickness="0" Click="BtnDongPopup_Click">
-                                                <materialDesign:PackIcon Kind="Close" Foreground="#D32F2F"/>
-                                            </Button>
-                                        </Grid>
+
+                                    <Border BorderBrush="#FFCDD2" BorderThickness="0,0,0,1" Padding="15,12" Background="#FFEBEE" CornerRadius="8,8,0,0">
+                                        <StackPanel Orientation="Horizontal">
+                                            <materialDesign:PackIcon Kind="WarningCircle" Width="20" Height="20" 
+                                             Foreground="#D32F2F" Margin="0,0,10,0" 
+                                             VerticalAlignment="Center"/>
+
+                                            <TextBlock Text="Thông báo hệ thống" FontWeight="Bold" 
+                                               Foreground="#D32F2F" FontSize="14" 
+                                               VerticalAlignment="Center"/>
+                                        </StackPanel>
                                     </Border>
-                                    <DataGrid Grid.Row="1" x:Name="dgvCanhBao" AutoGenerateColumns="False" IsReadOnly="True" HeadersVisibility="Column" GridLinesVisibility="Horizontal" Background="White" BorderThickness="0" RowHeaderWidth="0" MouseLeftButtonUp="dgvCanhBao_MouseLeftButtonUp">
-                                        <DataGrid.Columns>
-                                            <DataGridTextColumn Header="Mã SP" Binding="{Binding Masp}" Width="80" FontWeight="Bold" Foreground="#4C70BA"/>
-                                            <DataGridTextColumn Header="Nội dung" Binding="{Binding Message}" Width="*">
-                                                <DataGridTextColumn.ElementStyle>
-                                                    <Style TargetType="TextBlock">
-                                                        <Setter Property="Foreground" Value="{Binding WarningColor}"/>
-                                                        <Setter Property="TextWrapping" Value="Wrap"/>
-                                                    </Style>
-                                                </DataGridTextColumn.ElementStyle>
-                                            </DataGridTextColumn>
-                                            <DataGridTextColumn Header="Kho" Binding="{Binding TenKho}" Width="100"/>
-                                        </DataGrid.Columns>
-                                    </DataGrid>
+
+                                    <ListBox x:Name="lbThongBao" Grid.Row="1" BorderThickness="0" 
+                                     MouseDoubleClick="lbThongBao_MouseDoubleClick" 
+                                     Background="Transparent" MaxHeight="450" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                        <ListBox.ItemContainerStyle>
+                                            <Style TargetType="ListBoxItem">
+                                                <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+                                                <Setter Property="Padding" Value="0"/>
+                                                <Setter Property="Cursor" Value="Hand"/>
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="ListBoxItem">
+                                                            <Border x:Name="border" Background="White" BorderBrush="#F5F5F5" BorderThickness="0,0,0,1">
+                                                                <Grid Margin="15,12">
+                                                                    <ContentPresenter/>
+                                                                </Grid>
+                                                            </Border>
+                                                            <ControlTemplate.Triggers>
+                                                                <Trigger Property="IsMouseOver" Value="True">
+                                                                    <Setter TargetName="border" Property="Background" Value="#F0F7FF"/>
+                                                                </Trigger>
+                                                            </ControlTemplate.Triggers>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                            </Style>
+                                        </ListBox.ItemContainerStyle>
+
+                                        <ListBox.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                        <ColumnDefinition Width="*"/>
+                                                        <ColumnDefinition Width="Auto"/>
+                                                    </Grid.ColumnDefinitions>
+
+                                                    <Border Grid.Column="0" Width="40" Height="40" CornerRadius="20" Background="{Binding BgColor}" Margin="0,0,15,0">
+                                                        <materialDesign:PackIcon Kind="{Binding IconKind}" Width="20" Height="20" 
+                                                                 Foreground="{Binding Color}" 
+                                                                 HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                    </Border>
+
+                                                    <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                                        <StackPanel Orientation="Horizontal" Margin="0,0,0,2">
+                                                            <TextBlock Text="{Binding TieuDe}" FontWeight="Bold" Foreground="#333" FontSize="14"/>
+                                                            <Border Background="{Binding BgColor}" CornerRadius="4" Padding="6,1" Margin="8,0,0,0" VerticalAlignment="Center">
+                                                                <TextBlock Text="{Binding LoaiThongBao}" FontSize="9" FontWeight="Bold" Foreground="{Binding Color}"/>
+                                                            </Border>
+                                                        </StackPanel>
+
+                                                        <TextBlock Text="{Binding NoiDung}" FontSize="13" Foreground="#666" TextTrimming="CharacterEllipsis"/>
+                                                    </StackPanel>
+
+                                                    <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right">
+                                                        <TextBlock Text="{Binding ChiTiet}" FontWeight="Bold" Foreground="{Binding Color}" FontSize="14" HorizontalAlignment="Right" Margin="0,0,0,3"/>
+
+                                                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                                                            <materialDesign:PackIcon Kind="ClockOutline" Width="10" Height="10" Foreground="#999" VerticalAlignment="Center" Margin="0,0,4,0"/>
+                                                            <TextBlock Text="{Binding ThoiGian}" FontSize="11" Foreground="#999" FontStyle="Italic"/>
+                                                        </StackPanel>
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ListBox.ItemTemplate>
+                                    </ListBox>
                                 </Grid>
                             </Border>
                         </Popup>
@@ -265,8 +329,21 @@
                 </Border>
             </StackPanel>
             <StackPanel Grid.Column="3" Orientation="Horizontal">
-                <Button x:Name="BtnXuatExcel" Content="📊 Xuất excel" Height="44" Width="130" Margin="0,0,10,0" Style="{StaticResource RoundedBtn}" Background="White" Foreground="#4C70BA" BorderBrush="#4C70BA" BorderThickness="1" FontWeight="SemiBold" FontSize="14" Click="BtnXuatExcel_Click"/>
-                <Button x:Name="BtnNhapHang" Content="+   Tạo phiếu" Height="44" Width="130" Style="{StaticResource RoundedBtn}" Background="#4C70BA" Foreground="White" BorderThickness="0" FontWeight="Bold" FontSize="14" Click="BtnNhapHang_Click"/>
+                <Button x:Name="BtnXuatExcel" 
+                        Click="BtnXuatExcel_Click" 
+                        Foreground="White"
+                        Style="{StaticResource RoundedBtn}"
+                        Background="#217346" 
+                        BorderBrush="{x:Null}"  
+                        Height="45" 
+                        Margin="0,0,10,0"
+                        FontSize="14">
+                    <StackPanel Orientation="Horizontal" Margin="15,0">
+                        <materialDesign:PackIcon Kind="FileExcel" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Xuất Excel" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
+                    <Button x:Name="BtnNhapHang" Content="+   Tạo phiếu" Height="44" Width="130" Style="{StaticResource RoundedBtn}" Background="#4C70BA" Foreground="White" BorderThickness="0" FontWeight="Bold" FontSize="14" Click="BtnNhapHang_Click"/>
             </StackPanel>
         </Grid>
         <StackPanel Grid.Row="2" Orientation="Horizontal">
@@ -275,15 +352,40 @@
             <RadioButton x:Name="RadPhieuXuat" Content="Phiếu xuất" GroupName="ViewMode" Style="{StaticResource TabButtonStyle}" Checked="Filter_Checked"/>
         </StackPanel>
         <Border Grid.Row="4" Background="White" CornerRadius="8" BorderBrush="#DDD" BorderThickness="1" Padding="0" ClipToBounds="True">
-            <DataGrid x:Name="dgvKhoHang" AutoGenerateColumns="False" CanUserSortColumns="True" IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow" HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEEEEE" VerticalGridLinesBrush="Transparent" Background="White" BorderThickness="0" RowHeaderWidth="0" RowHeight="50" MouseDoubleClick="dgvKhoHang_MouseDoubleClick">
+            <DataGrid x:Name="dgvKhoHang" AutoGenerateColumns="False" CanUserSortColumns="False" IsReadOnly="True" SelectionMode="Single" SelectionUnit="FullRow" HeadersVisibility="Column" GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#EEEEEE" VerticalGridLinesBrush="Transparent" Background="White" BorderThickness="0" RowHeaderWidth="0" RowHeight="50" MouseDoubleClick="dgvKhoHang_MouseDoubleClick">
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Mã sản phẩm" Binding="{Binding Masp}" Width="120">
+                    <DataGridTextColumn Header="Mã Lô" Binding="{Binding Malo}" Width="120">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="Foreground" Value="#4C70BA"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="HorizontalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Mã sản phẩm" Binding="{Binding Masp}" Width="120">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+
+                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="FontWeight" Value="Normal"/>
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding LoaiRow}" Value="PHIEUNHAP">
+                                        <Setter Property="Foreground" Value="#4C70BA"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding LoaiRow}" Value="PHIEUXUAT">
+                                        <Setter Property="Foreground" Value="#4C70BA"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                        <Setter Property="Cursor" Value="Hand"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -305,10 +407,8 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Kho" Binding="{Binding TenKho}" Width="100"/>
-                    <DataGridTextColumn Header="Số Lô" Binding="{Binding SoHieuLo}" Width="90"/>
                     <DataGridTextColumn Header="Hạn Dùng" Binding="{Binding HSD}" Width="100"/>
-                    <DataGridTextColumn Header="Tồn Kho" Binding="{Binding SoLuongTon}" Width="90">
+                    <DataGridTextColumn Header="Tồn Kho" Binding="{Binding SoLuongTon, StringFormat={}{0:N0}}" Width="90">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Bold"/>
@@ -330,7 +430,35 @@
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Button Background="Transparent" BorderThickness="0" HorizontalAlignment="Center" Cursor="Hand" Click="BtnHanhDong_Click">
-                                    <TextBlock Text="⋮" FontSize="24" FontWeight="Bold" Foreground="#888" Margin="0,-8,0,0"/>
+                                    <TextBlock Text="⋮" FontSize="20" FontWeight="Bold" Foreground="Black" Margin="0,-8,0,0"/>
+                                    <Button.ContextMenu>
+                                        <ContextMenu Background="Transparent" BorderThickness="0">
+                                            <ContextMenu.Template>
+                                                <ControlTemplate TargetType="ContextMenu">
+                                                    <Border Background="White" CornerRadius="12" BorderThickness="1" BorderBrush="#EEEEEE" Padding="5">
+                                                        <Border.Effect>
+                                                            <DropShadowEffect BlurRadius="12" ShadowDepth="3" Opacity="0.15"/>
+                                                        </Border.Effect>
+                                                        <StackPanel IsItemsHost="True" KeyboardNavigation.DirectionalNavigation="Cycle"/>
+                                                    </Border>
+                                                </ControlTemplate>
+                                            </ContextMenu.Template>
+                                            <MenuItem Header="Chỉnh sửa" Click="BtnSua_Click" Foreground="#4C70BA" FontWeight="Bold" FontSize="14" Height="40">
+                                                <MenuItem.Icon>
+                                                    <Viewbox Width="16" Height="16">
+                                                        <Path Data="M20.71,7.04C21.1,6.65 21.1,6 20.71,5.63L18.37,3.29C18.17,3.09 17.92,3 17.66,3C17.41,3 17.15,3.1 16.96,3.29L15.13,5.12L18.88,8.87L20.71,7.04M3,17.25V21H6.75L17.81,9.94L14.06,6.19L3,17.25Z" Fill="#4C70BA" />
+                                                    </Viewbox>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                            <MenuItem Header="Xóa" Click="BtnXoa_Click" Foreground="#D32F2F" FontWeight="Bold" FontSize="14" Height="40">
+                                                <MenuItem.Icon>
+                                                    <Viewbox Width="16" Height="16">
+                                                        <Path Data="M19,4H15.5L14.5,3H9.5L8.5,4H5V6H19V4ZM6,19A2,2,0,0,0,8,21H16A2,2,0,0,0,18,19V7H6V19Z" Fill="#D32F2F" />
+                                                    </Viewbox>
+                                                </MenuItem.Icon>
+                                            </MenuItem>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
                                 </Button>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>

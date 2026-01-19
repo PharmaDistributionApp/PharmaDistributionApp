@@ -11,8 +11,6 @@ public partial class Sanpham
 
     public string? Dvt { get; set; }
 
-    public string? Hoatchat { get; set; }
-
     public string? Nuocsx { get; set; }
 
     public decimal Giaban { get; set; }
