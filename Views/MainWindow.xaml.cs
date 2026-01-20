@@ -2,39 +2,35 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PharmaDistributionApp.Services; // Để dùng UserSession
-using PharmaDistributionApp.Models;   // Để dùng Employee
+using PharmaDistributionApp.Services;
+using PharmaDistributionApp.Models;
 using PharmaDistributionApp.Views.DashBoardView;
 using PharmaDistributionApp.Views.EmployeeView;
 using PharmaDistributionApp.Views.LoginView;
 using PharmaDistributionApp.Views.NCCView;
 using PharmaDistributionApp.Views.ProductView;
 using PharmaDistributionApp.Views.Controls;
+using PharmaDistributionApp.Views.KhachHangView;
 
 namespace PharmaDistributionApp.Views
 {
     public partial class MainWindow : Window
     {
-        // Biến lưu thông tin người dùng cục bộ (Chỉ để binding nếu cần)
         public Employee CurrentUser { get; set; }
 
         public MainWindow()
         {
             InitializeComponent();
 
-            // [SỬA LỖI 1]: Lấy dữ liệu trực tiếp từ Session thay vì tham số
-            // Điều này đảm bảo dù khởi tạo ở đâu cũng có dữ liệu đúng
             if (UserSession.IsLoggedIn && UserSession.CurrentUser != null)
             {
                 this.CurrentUser = UserSession.CurrentUser;
             }
             else
             {
-                // Nếu chưa đăng nhập (Debug mode), gán dữ liệu mẫu hoặc rỗng
                 this.CurrentUser = new Employee { Tennv = "Admin (Debug)", Chucvu = "Quản lý" };
             }
 
-            // Hiển thị thông tin lên Header
             LoadUserData();
 
             // Mặc định chọn Menu Tổng quan
@@ -42,19 +38,14 @@ namespace PharmaDistributionApp.Views
             MainContent.Content = new DashBoardViewControl();
         }
 
-        // Hàm nạp dữ liệu lên Header
         public void LoadUserData()
         {
-            // Luôn lấy từ Session mới nhất (phòng trường hợp vừa đổi Avatar)
             var user = UserSession.CurrentUser ?? this.CurrentUser;
-
             if (user == null) return;
 
-            // 1. Gán Tên và Chức vụ
             txbUserName.Text = !string.IsNullOrEmpty(user.Tennv) ? user.Tennv : "Người dùng";
             txbUserRole.Text = !string.IsNullOrEmpty(user.Chucvu) ? user.Chucvu : "Nhân viên";
 
-            // 2. Xử lý Avatar (Dùng property AvatarSource đã có trong Model)
             if (user.AvatarSource != null)
             {
                 imgAvatarBrush.ImageSource = user.AvatarSource;
@@ -66,8 +57,6 @@ namespace PharmaDistributionApp.Views
                 if (iconAvatar != null) iconAvatar.Visibility = Visibility.Visible;
             }
         }
-
-        // --- CÁC HÀM XỬ LÝ MENU (GIỮ NGUYÊN) ---
 
         private void Menu_Click(object sender, MouseButtonEventArgs e)
         {
@@ -92,7 +81,7 @@ namespace PharmaDistributionApp.Views
 
         private void SetActiveMenu(Border activeBtn)
         {
-            // Reset tất cả nút về trong suốt
+            // Reset tất cả nút
             ResetButtonStyle(btnTongQuan);
             ResetButtonStyle(btnKho);
             ResetButtonStyle(btnNhanSu);
@@ -102,9 +91,10 @@ namespace PharmaDistributionApp.Views
             ResetButtonStyle(btnSanPham);
             ResetButtonStyle(btnAccount);
 
-            // Active nút được chọn
+            // Active nút được chọn (Nền trắng)
             activeBtn.Background = Brushes.White;
 
+            // Đổi màu icon và chữ sang xanh
             if (activeBtn.Child is StackPanel sp)
             {
                 var blueBrush = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
@@ -119,6 +109,7 @@ namespace PharmaDistributionApp.Views
         private void ResetButtonStyle(Border btn)
         {
             btn.Background = Brushes.Transparent;
+            // Đổi màu icon và chữ về trắng
             if (btn.Child is StackPanel sp)
             {
                 foreach (var child in sp.Children)
@@ -131,9 +122,7 @@ namespace PharmaDistributionApp.Views
 
         private void btnLogOut_Click(object sender, RoutedEventArgs e)
         {
-            // [QUAN TRỌNG]: Xóa session khi đăng xuất
             UserSession.Clear();
-
             new LoginWindow().Show();
             this.Close();
         }

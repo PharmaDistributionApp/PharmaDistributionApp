@@ -129,12 +129,12 @@
                     <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource MaterialDesignDataGridColumnHeader}">
                         <Setter Property="Background" Value="#F5F5F5"/>
                         <Setter Property="FontWeight" Value="Bold"/>
-                        <Setter Property="Foreground" Value="#555"/>
+                        <Setter Property="Foreground" Value="Black"/>
                         <Setter Property="HorizontalContentAlignment" Value="Center"/>
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="STT" Binding="{Binding STT}" Width="50" ElementStyle="{StaticResource CenterAlignCell}"/>
+                    <DataGridTextColumn Header="STT" Binding="{Binding STT}" Width="" ElementStyle="{StaticResource CenterAlignCell}"/>
                     <DataGridTextColumn Header="Mã SP" Binding="{Binding MaSP}" Width="80" ElementStyle="{StaticResource CenterAlignCell}"/>
                     <DataGridTextColumn Header="Tên sản phẩm" Binding="{Binding TenSP}" Width="*"/>
                     <DataGridTextColumn Header="ĐVT" Binding="{Binding DonVi}" Width="80" ElementStyle="{StaticResource CenterAlignCell}"/>

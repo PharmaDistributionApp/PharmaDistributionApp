@@ -13,30 +13,90 @@
         FontFamily="{DynamicResource MaterialDesignFont}"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
         Background="{DynamicResource MaterialDesignPaper}">
+
+    <Window.Resources>
+        <Style x:Key="FadeTextStyle" TargetType="TextBlock">
+            <Setter Property="Opacity" Value="0"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding ElementName=SidebarBorder, Path=IsMouseOver}" Value="True">
+                    <Setter Property="Visibility" Value="Visible"/>
+                    <DataTrigger.EnterActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="1" Duration="0:0:0.3" BeginTime="0:0:0.1"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.EnterActions>
+                    <DataTrigger.ExitActions>
+                        <BeginStoryboard>
+                            <Storyboard>
+                                <DoubleAnimation Storyboard.TargetProperty="Opacity" To="0" Duration="0:0:0.1"/>
+                            </Storyboard>
+                        </BeginStoryboard>
+                    </DataTrigger.ExitActions>
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="SidebarAnimationStyle" TargetType="Border">
+            <Setter Property="Width" Value="Auto"/>
+            <Setter Property="MinWidth" Value="80"/>
+            <Setter Property="MaxWidth" Value="80"/>
+            <Style.Triggers>
+                <EventTrigger RoutedEvent="MouseEnter">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="MaxWidth" To="400" Duration="0:0:0.3">
+                                <DoubleAnimation.EasingFunction>
+                                    <CubicEase EasingMode="EaseOut"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+                <EventTrigger RoutedEvent="MouseLeave">
+                    <BeginStoryboard>
+                        <Storyboard>
+                            <DoubleAnimation Storyboard.TargetProperty="MaxWidth" To="80" Duration="0:0:0.3">
+                                <DoubleAnimation.EasingFunction>
+                                    <CubicEase EasingMode="EaseOut"/>
+                                </DoubleAnimation.EasingFunction>
+                            </DoubleAnimation>
+                        </Storyboard>
+                    </BeginStoryboard>
+                </EventTrigger>
+            </Style.Triggers>
+        </Style>
+    </Window.Resources>
+
     <Grid>
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="250"/>
+            <ColumnDefinition Width="Auto"/>
             <ColumnDefinition Width="*"/>
         </Grid.ColumnDefinitions>
-        <Border Grid.Column="0" Background="#4C70BA">
+
+        <Border Grid.Column="0" x:Name="SidebarBorder" Background="#4C70BA" 
+                Style="{StaticResource SidebarAnimationStyle}"
+                HorizontalAlignment="Left" ClipToBounds="True">
             <Grid>
                 <Grid.RowDefinitions>
                     <RowDefinition Height="Auto"/>
                     <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
+
                 <StackPanel Grid.Row="0">
-                    <Grid Margin="20,30,20,20">
+                    <Grid Margin="15,30,20,20">
                         <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="50"/>
                             <ColumnDefinition Width="Auto"/>
-                            <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
                         <Border x:Name="bdrAvatar" Width="50" Height="50" CornerRadius="25" BorderBrush="White" BorderThickness="1">
                             <Border.Background>
                                 <ImageBrush x:Name="imgAvatarBrush" Stretch="UniformToFill"/>
                             </Border.Background>
-
                             <materialDesign:PackIcon x:Name="iconAvatar" Kind="AccountCircle" 
                                                      Width="48" Height="48" Foreground="White" 
                                                      HorizontalAlignment="Center" VerticalAlignment="Center"/>
@@ -44,91 +104,103 @@
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
                             <TextBlock x:Name="txbUserName" Text="Người dùng" 
+                                       Style="{StaticResource FadeTextStyle}"
                                        Foreground="White" FontWeight="Bold" FontSize="15" 
-                                       TextTrimming="CharacterEllipsis"
-                                       MaxWidth="155"
-                                       ToolTip="{Binding Text, RelativeSource={RelativeSource Self}}"/>
-                            
+                                       TextWrapping="NoWrap"
+                                       VerticalAlignment="Center"/>
+
                             <Border Background="#40FFFFFF" CornerRadius="10" HorizontalAlignment="Left" Padding="8,2" Margin="0,5,0,0">
-                                <TextBlock x:Name="txbUserRole" Text="Nhân viên" Foreground="White" FontSize="11"/>
+                                <TextBlock x:Name="txbUserRole" Text="Nhân viên" 
+                                           Style="{StaticResource FadeTextStyle}"
+                                           Foreground="White" FontSize="11"
+                                           TextWrapping="NoWrap"/>
                             </Border>
                         </StackPanel>
                     </Grid>
-                    <Separator Background="White" Opacity="0.3" Margin="20,0,20,10"/>
+                    <Separator Background="White" Opacity="0.3" Margin="15,0,15,10"/>
                 </StackPanel>
-                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+
+                <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
                     <StackPanel Margin="0,10,0,10">
                         <Border x:Name="btnTongQuan" Tag="TongQuan" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
                             Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="ViewDashboard" Foreground="White" Width="22" Height="22"/>
-                                <TextBlock Text="Tổng quan" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                                <materialDesign:PackIcon Kind="ViewDashboard" Foreground="White" Width="24" Height="24"/>
+                                <TextBlock Text="Tổng quan" Foreground="White" FontSize="15" Margin="20,0,20,0" Style="{StaticResource FadeTextStyle}" TextWrapping="NoWrap"/>
                             </StackPanel>
                         </Border>
+
                         <Border x:Name="btnKho" Tag="Kho" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
                             Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="PackageVariant" Foreground="White" Width="22" Height="22"/>
-                                <TextBlock Text="Kho hàng" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                                <materialDesign:PackIcon Kind="PackageVariant" Foreground="White" Width="24" Height="24"/>
+                                <TextBlock Text="Kho hàng" Foreground="White" FontSize="15" Margin="20,0,20,0" Style="{StaticResource FadeTextStyle}" TextWrapping="NoWrap"/>
                             </StackPanel>
                         </Border>
+
                         <Border x:Name="btnNhanSu" Tag="NhanSu" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
                             Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="AccountGroupOutline" Foreground="White" Width="22" Height="22"/>
-                                <TextBlock Text="Nhân sự" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                                <materialDesign:PackIcon Kind="AccountGroupOutline" Foreground="White" Width="24" Height="24"/>
+                                <TextBlock Text="Nhân sự" Foreground="White" FontSize="15" Margin="20,0,20,0" Style="{StaticResource FadeTextStyle}" TextWrapping="NoWrap"/>
                             </StackPanel>
                         </Border>
+
                         <Border x:Name="btnHoaDon" Tag="HoaDon" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
                             Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
-                            <StackPanel Orientation="Horizontal">   
-                                <materialDesign:PackIcon Kind="ReceiptTextOutline" Foreground="White" Width="22" Height="22"/>
-                                <TextBlock Text="Hóa đơn" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                            <StackPanel Orientation="Horizontal">
+                                <materialDesign:PackIcon Kind="ReceiptTextOutline" Foreground="White" Width="24" Height="24"/>
+                                <TextBlock Text="Hóa đơn" Foreground="White" FontSize="15" Margin="20,0,20,0" Style="{StaticResource FadeTextStyle}" TextWrapping="NoWrap"/>
                             </StackPanel>
                         </Border>
+
                         <Border x:Name="btnNhaCungCap" Tag="NhaCungCap" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
                             Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="TruckDeliveryOutline" Foreground="White" Width="22" Height="22"/>
-                                <TextBlock Text="Nhà cung cấp" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                                <materialDesign:PackIcon Kind="TruckDeliveryOutline" Foreground="White" Width="24" Height="24"/>
+                                <TextBlock Text="Nhà cung cấp" Foreground="White" FontSize="15" Margin="20,0,20,0" Style="{StaticResource FadeTextStyle}" TextWrapping="NoWrap"/>
                             </StackPanel>
                         </Border>
+
                         <Border x:Name="btnKhachHang" Tag="KhachHang" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
                                 Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="AccountTie" Foreground="White" Width="22" Height="22"/>
-                                <TextBlock Text="Khách hàng" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                                <materialDesign:PackIcon Kind="AccountTie" Foreground="White" Width="24" Height="24"/>
+                                <TextBlock Text="Khách hàng" Foreground="White" FontSize="15" Margin="20,0,20,0" Style="{StaticResource FadeTextStyle}" TextWrapping="NoWrap"/>
                             </StackPanel>
                         </Border>
 
                         <Border x:Name="btnSanPham" Tag="SanPham" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
                             Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="MedicalBag" Foreground="White" Width="22" Height="22"/>
-                                <TextBlock Text="Sản phẩm" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                                <materialDesign:PackIcon Kind="MedicalBag" Foreground="White" Width="24" Height="24"/>
+                                <TextBlock Text="Sản phẩm" Foreground="White" FontSize="15" Margin="20,0,20,0" Style="{StaticResource FadeTextStyle}" TextWrapping="NoWrap"/>
                             </StackPanel>
                         </Border>
+
                         <Border x:Name="btnAccount" Tag="Account" MouseLeftButtonDown="Menu_Click" Cursor="Hand"
                             Background="Transparent" Margin="10,0,0,5" CornerRadius="10,0,0,10" Padding="15">
                             <StackPanel Orientation="Horizontal">
-                                <materialDesign:PackIcon Kind="Account" Foreground="White" Width="22" Height="22"/>
-                                <TextBlock Text="Tài khoản" Foreground="White" FontSize="15" Margin="15,0,0,0"/>
+                                <materialDesign:PackIcon Kind="Account" Foreground="White" Width="24" Height="24"/>
+                                <TextBlock Text="Tài khoản" Foreground="White" FontSize="15" Margin="20,0,20,0" Style="{StaticResource FadeTextStyle}" TextWrapping="NoWrap"/>
                             </StackPanel>
                         </Border>
                     </StackPanel>
                 </ScrollViewer>
-                <Button Grid.Row="2" Margin="20" HorizontalAlignment="Left"
+
+                <Button Grid.Row="2" Margin="15,20,0,20" HorizontalAlignment="Left" MinWidth="50" Height="50"
                         Style="{StaticResource MaterialDesignFlatButton}"
                         Foreground="White"
                         Click="btnLogOut_Click"
                         ToolTip="Thoát khỏi hệ thống">
                     <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Logout" Margin="0,0,10,0"/>
-                        <TextBlock Text="Đăng xuất"/>
+                        <materialDesign:PackIcon Kind="Logout" Width="24" Height="24"/>
+                        <TextBlock Text="Đăng xuất" Margin="15,0,20,0" VerticalAlignment="Center" Style="{StaticResource FadeTextStyle}" TextWrapping="NoWrap"/>
                     </StackPanel>
                 </Button>
             </Grid>
         </Border>
+
         <Grid Grid.Column="1" Background="#F0F2F5">
             <Border VerticalAlignment="Top" Height="10" >
                 <Border.Background>
