@@ -45,6 +45,7 @@ namespace PharmaDistributionApp.Views
                 using (var conn = new SQLiteConnection("Data Source=PharmaDB.db"))
                 {
                     conn.Open();
+                    // Lấy thông tin Header
                     string sqlH = $"SELECT H.*, P.{colName} as DoiTac, P.DIACHI FROM {tblHead} H LEFT JOIN {tblPartner} P ON H.{colPartner}=P.{colPartner} WHERE H.{colID}=@id";
                     var cmdH = new SQLiteCommand(sqlH, conn);
                     cmdH.Parameters.AddWithValue("@id", _invoice.MaHD);
@@ -62,6 +63,7 @@ namespace PharmaDistributionApp.Views
                     }
                     reader.Close();
 
+                    // Lấy thông tin Chi tiết
                     string sqlD = $"SELECT CT.MASP, SP.TENSP, SP.DVT, CT.MALO, CT.SOLUONG, CT.{colGia} as Gia, CT.THANHTIEN FROM {tblCT} CT LEFT JOIN SANPHAM SP ON CT.MASP=SP.MASP WHERE CT.{colID}=@id";
                     var cmdD = new SQLiteCommand(sqlD, conn);
                     cmdD.Parameters.AddWithValue("@id", _invoice.MaHD);
@@ -78,13 +80,34 @@ namespace PharmaDistributionApp.Views
                         {
                             decimal tt = Convert.ToDecimal(r["THANHTIEN"]);
                             total += tt;
-                            list.Add(new ChiTietHoaDonItem { STT = i++, MaSP = r["MASP"].ToString(), TenSP = r["TENSP"].ToString(), DonVi = r["DVT"].ToString(), MaLo = r["MALO"].ToString(), SoLuong = Convert.ToInt32(r["SOLUONG"]), DonGia = Convert.ToDecimal(r["Gia"]), ThanhTien = tt });
+                            list.Add(new ChiTietHoaDonItem
+                            {
+                                STT = i++,
+                                MaSP = r["MASP"].ToString(),
+                                TenSP = r["TENSP"].ToString(),
+                                DonVi = r["DVT"].ToString(),
+                                MaLo = r["MALO"].ToString(),
+                                SoLuong = Convert.ToInt32(r["SOLUONG"]),
+                                DonGia = Convert.ToDecimal(r["Gia"]),
+                                ThanhTien = tt
+                            });
                         }
                         dgChiTiet.ItemsSource = list;
-                        if (txtTienHang != null) txtTienHang.Text = $"{total:N0} VND";
+
+                        // --- PHẦN SỬA ĐỔI ĐỊNH DẠNG TIỀN TỆ ---
+                        // Tạo CultureInfo en-US để bắt buộc dùng dấu phẩy (,) làm dấu phân cách hàng nghìn
+                        var culture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
+
+                        if (txtTienHang != null)
+                            txtTienHang.Text = total.ToString("#,##0", culture) + " VND";
+
                         decimal vat = total * _vatRate / 100;
-                        if (txtVAT != null) txtVAT.Text = $"{vat:N0} VND";
-                        if (txtTongTien != null) txtTongTien.Text = $"{total + vat:N0} VND";
+                        if (txtVAT != null)
+                            txtVAT.Text = vat.ToString("#,##0", culture) + " VND";
+
+                        if (txtTongTien != null)
+                            txtTongTien.Text = (total + vat).ToString("#,##0", culture) + " VND";
+                        // ----------------------------------------
                     }
                 }
             }

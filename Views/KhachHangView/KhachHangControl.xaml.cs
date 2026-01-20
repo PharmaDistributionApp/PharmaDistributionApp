@@ -161,6 +161,30 @@ namespace PharmaDistributionApp.Views
                 MessageBox.Show("Lỗi khi xóa: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
+        private void Root_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Kiểm tra xem vị trí click chuột
+            var hitResult = VisualTreeHelper.HitTest(dgvKhachHang, e.GetPosition(dgvKhachHang));
+
+            // Nếu click ra ngoài bảng hoặc vào bảng nhưng không trúng dòng dữ liệu (vùng trắng)
+            if (hitResult == null || !IsClickOnRow(e.OriginalSource as DependencyObject))
+            {
+                dgvKhachHang.SelectedItem = null; // Hủy chọn dòng
+                Keyboard.ClearFocus(); // Bỏ focus khỏi ô tìm kiếm
+            }
+        }
+
+        // Hàm phụ trợ kiểm tra xem có click trúng DataGridRow không
+        private bool IsClickOnRow(DependencyObject target)
+        {
+            while (target != null)
+            {
+                if (target is DataGridRow) return true; // Trúng dòng
+                if (target is DataGrid) return false;   // Trúng DataGrid nhưng không trúng dòng (vùng trắng)
+                target = VisualTreeHelper.GetParent(target);
+            }
+            return false;
+        }
         private void BtnXuatExcel_Click(object sender, RoutedEventArgs e)
         {
             // 1. Lấy dữ liệu từ DataGrid khách hàng
@@ -257,43 +281,7 @@ namespace PharmaDistributionApp.Views
                     MessageBox.Show($"Có lỗi khi xuất file khách hàng: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
-        }
-        private void Root_MouseDown(object sender, MouseButtonEventArgs e)
-        {
-            // Kiểm tra xem chuột có đang nằm trên DataGrid hay không
-            // Nếu chuột click vào vùng trống (trong hoặc ngoài bảng) -> Hủy chọn dòng
 
-            // Cách đơn giản nhất:
-            // Nếu điểm click không phải là một phần tử con của DataGridRow, ta hủy chọn.
-            // Tuy nhiên, để đơn giản hóa cho yêu cầu "click vào vị trí bất kỳ (trống)":
-
-            // HitTest để xem click vào đâu
-            var hitResult = VisualTreeHelper.HitTest(dgvKhachHang, e.GetPosition(dgvKhachHang));
-
-            // Nếu click ra ngoài bảng hoàn toàn (hitResult == null)
-            // HOẶC click vào bảng nhưng không trúng dòng dữ liệu nào (click vào vùng trắng dưới các dòng)
-            if (hitResult == null || !IsClickOnRow(e.OriginalSource as DependencyObject))
-            {
-                dgvKhachHang.SelectedItem = null; // Bỏ chọn dòng
-                Keyboard.ClearFocus(); // Bỏ focus khỏi ô tìm kiếm hoặc các control khác
-            }
-        }
-
-        // Hàm phụ trợ để kiểm tra xem có click trúng dòng dữ liệu không
-        private bool IsClickOnRow(DependencyObject target)
-        {
-            // Duyệt cây giao diện từ điểm click đi lên
-            while (target != null)
-            {
-                // Nếu gặp DataGridRow -> Đang click vào dòng -> Không hủy chọn
-                if (target is DataGridRow) return true;
-
-                // Nếu gặp DataGrid -> Đã duyệt hết bên trong bảng mà chưa gặp Row -> Click vào vùng trắng
-                if (target is DataGrid) return false;
-
-                target = VisualTreeHelper.GetParent(target);
-            }
-            return false;
         }
     }
 }

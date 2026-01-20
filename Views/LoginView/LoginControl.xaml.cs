@@ -9,6 +9,7 @@ using PharmaDistributionApp.Models;
 using PharmaDistributionApp.Views;
 using PharmaDistributionApp.Services;
 using Microsoft.Data.Sqlite;
+using MaterialDesignThemes.Wpf;
 
 namespace PharmaDistributionApp.Views.LoginView
 {

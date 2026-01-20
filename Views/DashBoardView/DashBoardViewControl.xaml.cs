@@ -2,12 +2,13 @@
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media; // Dùng cho SolidColorBrush
+using System.Windows.Media;
 
 namespace PharmaDistributionApp.Views.DashBoardView
 {
-    // 1. Model cho danh sách tồn kho
+    // Model cho tồn kho (Giữ nguyên)
     public class StockItemModel
     {
         public string TenSP { get; set; }
@@ -16,19 +17,46 @@ namespace PharmaDistributionApp.Views.DashBoardView
         public SolidColorBrush ColorCode { get; set; }
     }
 
+    // Model MỚI cho Nhật ký hoạt động
+    public class ActivityLogModel
+    {
+        public DateTime ThoiGian { get; set; }
+        public string NguoiThucHien { get; set; }
+        public string HanhDong { get; set; }
+        public string LoaiHoatDong { get; set; } // 'NHẬP', 'XUẤT', 'HỦY'
+
+        // Màu sắc hiển thị badge
+        public SolidColorBrush MauNen { get; set; }
+        public SolidColorBrush MauChu { get; set; }
+    }
+
     public partial class DashBoardViewControl : UserControl
     {
         public DashBoardViewControl()
         {
             InitializeComponent();
-
             txtDate.Text = "Hôm nay: " + DateTime.Now.ToString("dd/MM/yyyy");
 
             LoadDashboardData();
             LoadStockInventory();
+            LoadRecentActivities(); // <--- Gọi hàm này
         }
 
-        // --- HÀM 1: Load số liệu tổng quan ---
+        private void BtnRefresh_Click(object sender, RoutedEventArgs e)
+        {
+            LoadDashboardData();
+            LoadStockInventory();
+            LoadRecentActivities();
+        }
+
+        private void LoadAllData()
+        {
+            LoadDashboardData();
+            LoadStockInventory();
+            LoadRecentActivities(); // Hàm mới thay cho LoadRecentOrders
+        }
+
+        // --- HÀM 1: Load số liệu tổng quan (GIỮ NGUYÊN) ---
         private void LoadDashboardData()
         {
             try
@@ -54,9 +82,6 @@ namespace PharmaDistributionApp.Views.DashBoardView
                 string sqlCustomer = "SELECT COUNT(*) FROM KHACHHANG";
                 object custObj = Database.ExecuteScalar(sqlCustomer);
                 txtCustomerCount.Text = custObj != null ? custObj.ToString() : "0";
-
-                // Load đơn hàng gần đây
-                LoadRecentOrders();
             }
             catch (Exception ex)
             {
@@ -64,31 +89,95 @@ namespace PharmaDistributionApp.Views.DashBoardView
             }
         }
 
-        // --- HÀM 2: Load danh sách đơn hàng ---
-        private void LoadRecentOrders()
+        // --- HÀM 2 (MỚI): Load Hoạt động gần đây (Truy vết) ---
+        private void LoadRecentActivities()
         {
             try
             {
-                string sql = "SELECT SOHDXUAT, NGAYLAP, TONGTIEN FROM HOADONXUAT ORDER BY NGAYLAP DESC LIMIT 10";
-                DataTable dt = Database.GetTable(sql);
+                // Câu lệnh SQL sử dụng UNION để gộp dữ liệu Nhập và Xuất
+                // Logic:
+                // - Nếu Trạng thái là 'Đã hủy' -> Coi là thao tác XÓA/HỦY
+                // - Hóa đơn Xuất -> Coi là thao tác XUẤT KHO (Bán hàng)
+                // - Hóa đơn Nhập -> Coi là thao tác NHẬP KHO
 
-                if (!dt.Columns.Contains("TONGTIEN_FMT"))
-                    dt.Columns.Add("TONGTIEN_FMT", typeof(string));
+                string sql = @"
+                    SELECT * FROM (
+                        -- 1. Lấy dữ liệu Hóa Đơn Xuất
+                        SELECT 
+                            NGAYLAP as ThoiGian, 
+                            IFNULL(MANV, 'NV???') as NguoiThucHien,
+                            CASE 
+                                WHEN TRANGTHAI = 'Đã hủy' THEN 'Đã hủy đơn xuất ' || SOHDXUAT
+                                ELSE 'Xuất kho đơn ' || SOHDXUAT || ' (' || printf('%,d', TONGTIEN) || ' đ)'
+                            END as HanhDong,
+                            CASE 
+                                WHEN TRANGTHAI = 'Đã hủy' THEN 'HỦY BỎ'
+                                ELSE 'XUẤT KHO'
+                            END as Loai
+                        FROM HOADONXUAT
+
+                        UNION ALL
+
+                        -- 2. Lấy dữ liệu Hóa Đơn Nhập
+                        SELECT 
+                            NGAYLAP as ThoiGian, 
+                            IFNULL(MANV, 'NV???') as NguoiThucHien,
+                            CASE 
+                                WHEN TRANGTHAI = 'Đã hủy' THEN 'Đã hủy đơn nhập ' || SOHDNHAP
+                                ELSE 'Nhập kho đơn ' || SOHDNHAP || ' (' || printf('%,d', TONGTIEN) || ' đ)'
+                            END as HanhDong,
+                            CASE 
+                                WHEN TRANGTHAI = 'Đã hủy' THEN 'HỦY BỎ'
+                                ELSE 'NHẬP KHO'
+                            END as Loai
+                        FROM HOADONNHAP
+                    ) 
+                    ORDER BY ThoiGian DESC 
+                    LIMIT 20"; // Lấy 20 hoạt động mới nhất
+
+                DataTable dt = Database.GetTable(sql);
+                var activities = new List<ActivityLogModel>();
 
                 foreach (DataRow row in dt.Rows)
                 {
-                    if (row["TONGTIEN"] != DBNull.Value)
+                    string loai = row["Loai"].ToString();
+
+                    // Cấu hình màu sắc Badge (Tag)
+                    string bgCode = "#EEEEEE";
+                    string fgCode = "#333333";
+
+                    switch (loai)
                     {
-                        double money = Convert.ToDouble(row["TONGTIEN"]);
-                        row["TONGTIEN_FMT"] = money.ToString("#,##0") + " đ";
+                        case "XUẤT KHO":
+                            bgCode = "#E3F2FD"; fgCode = "#1976D2"; break; // Xanh dương
+                        case "NHẬP KHO":
+                            bgCode = "#E8F5E9"; fgCode = "#2E7D32"; break; // Xanh lá
+                        case "HỦY BỎ":
+                            bgCode = "#FFEBEE"; fgCode = "#C62828"; break; // Đỏ
                     }
+
+                    activities.Add(new ActivityLogModel
+                    {
+                        ThoiGian = Convert.ToDateTime(row["ThoiGian"]),
+                        NguoiThucHien = row["NguoiThucHien"].ToString(),
+                        HanhDong = row["HanhDong"].ToString(),
+                        LoaiHoatDong = loai,
+                        MauNen = (SolidColorBrush)new BrushConverter().ConvertFrom(bgCode),
+                        MauChu = (SolidColorBrush)new BrushConverter().ConvertFrom(fgCode)
+                    });
                 }
-                dgRecentOrders.ItemsSource = dt.DefaultView;
+
+                // Gán vào DataGrid (dgActivities là tên DataGrid trong file XAML)
+                dgActivities.ItemsSource = activities;
             }
-            catch { }
+            catch (Exception ex)
+            {
+                // Ghi log lỗi ra cửa sổ Output để debug nếu cần
+                System.Diagnostics.Debug.WriteLine("Activity Log Error: " + ex.Message);
+            }
         }
 
-        // --- HÀM 3: Load tồn kho (Top giá trị) ---
+        // --- HÀM 3: Load tồn kho (GIỮ NGUYÊN) ---
         private void LoadStockInventory()
         {
             try

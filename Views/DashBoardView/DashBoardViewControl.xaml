@@ -17,7 +17,7 @@
 
         <StackPanel Grid.Row="0" Margin="0,0,0,20">
             <TextBlock Text="TỔNG QUAN HỆ THỐNG" FontSize="24" FontWeight="Bold" Foreground="#4C70BA"/>
-            <TextBlock x:Name="txtDate" Text="Hôm nay: 22/12/2025" FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
+            <TextBlock x:Name="txtDate" Text="Hôm nay: ..." FontSize="14" Foreground="Gray" Margin="0,5,0,0"/>
         </StackPanel>
 
         <Grid Grid.Row="1" Margin="0,0,0,20">
@@ -107,30 +107,46 @@
                     </Grid.RowDefinitions>
 
                     <DockPanel Margin="20">
-                        <TextBlock Text="Đơn xuất hàng gần đây" FontWeight="Bold" FontSize="16" Foreground="#444" VerticalAlignment="Center"/>
-                        <Button Style="{StaticResource MaterialDesignFlatButton}" Content="Xem tất cả" HorizontalAlignment="Right" Foreground="#4C70BA"/>
+                        <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                            <materialDesign:PackIcon Kind="History" Width="20" Height="20" Foreground="#4C70BA" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                            <TextBlock Text="Hoạt động gần đây" FontWeight="Bold" FontSize="16" Foreground="#444" VerticalAlignment="Center"/>
+                        </StackPanel>
+                        <Button Style="{StaticResource MaterialDesignFlatButton}" Content="Làm mới" Click="BtnRefresh_Click" HorizontalAlignment="Right" Foreground="#4C70BA"/>
                     </DockPanel>
 
-                    <DataGrid x:Name="dgRecentOrders" Grid.Row="1" Margin="10,0,10,10"
+                    <DataGrid x:Name="dgActivities" Grid.Row="1" Margin="10,0,10,10"
                               AutoGenerateColumns="False" CanUserAddRows="False" IsReadOnly="True"
                               HeadersVisibility="Column" GridLinesVisibility="Horizontal"
-                              HorizontalGridLinesBrush="#EEE" Background="White" BorderThickness="0">
+                              HorizontalGridLinesBrush="#F0F0F0" Background="White" BorderThickness="0"
+                              VerticalScrollBarVisibility="Auto">
                         <DataGrid.Columns>
-                            <DataGridTextColumn Header="Mã HĐ" Binding="{Binding SOHDXUAT}" Width="100"/>
-                            <DataGridTextColumn Header="Ngày lập" Binding="{Binding NGAYLAP}" Width="120"/>
-                            <DataGridTextColumn Header="Tổng tiền" Binding="{Binding TONGTIEN_FMT}" FontWeight="Bold" Width="*">
-                                <DataGridTextColumn.ElementStyle>
-                                    <Style TargetType="TextBlock">
-                                        <Setter Property="HorizontalAlignment" Value="Right"/>
-                                        <Setter Property="Padding" Value="0,0,10,0"/>
-                                    </Style>
-                                </DataGridTextColumn.ElementStyle>
-                            </DataGridTextColumn>
-                            <DataGridTemplateColumn Header="Trạng thái" Width="100">
+                            <DataGridTextColumn Header="Thời gian" Binding="{Binding ThoiGian, StringFormat='dd/MM HH:mm'}" Width="110" Foreground="#666"/>
+
+                            <DataGridTemplateColumn Header="Nhân viên" Width="130">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
-                                        <Border Background="#E8F5E9" CornerRadius="5" Padding="5,2" Margin="5">
-                                            <TextBlock Text="Hoàn thành" Foreground="#2E7D32" FontSize="11" HorizontalAlignment="Center"/>
+                                        <StackPanel Orientation="Horizontal">
+                                            <materialDesign:PackIcon Kind="AccountCircle" Foreground="#4C70BA" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                                            <TextBlock Text="{Binding NguoiThucHien}" FontWeight="SemiBold" VerticalAlignment="Center"/>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Hành động" Width="350">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TextBlock Text="{Binding HanhDong}" TextWrapping="Wrap" VerticalAlignment="Center"/>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+
+                            <DataGridTemplateColumn Header="Loại" Width="90">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <Border CornerRadius="4" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Center" 
+                                                Background="{Binding MauNen}" BorderBrush="{Binding MauChu}" BorderThickness="1">
+                                            <TextBlock Text="{Binding LoaiHoatDong}" FontSize="10" FontWeight="Bold" Foreground="{Binding MauChu}"/>
                                         </Border>
                                     </DataTemplate>
                                 </DataGridTemplateColumn.CellTemplate>
