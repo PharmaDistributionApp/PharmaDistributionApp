@@ -223,6 +223,56 @@ namespace PharmaDistributionApp.Views.ProductView
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
                     var notiList = new List<ThongBaoItem>();
+
+                    // --- [MỚI] PHẦN XỬ LÝ YÊU CẦU TỪ HÓA ĐƠN ---
+                    // 1. Tìm yêu cầu Nhập kho (Trạng thái chứa 'Yêu cầu từ HD')
+                    var listReqNhap = context.Phieunhaps.ToList()
+                        .Where(p => !string.IsNullOrEmpty(p.Trangthai) &&
+                                   (p.Trangthai.Contains("Yêu cầu từ HD") || p.Trangthai.Contains("Cập nhật từ HD")))
+                        .ToList();
+
+                    foreach (var p in listReqNhap)
+                    {
+                        notiList.Add(new ThongBaoItem
+                        {
+                            LoaiThongBao = "REQ_NHAP_KHO",
+                            MaRef = p.Mapn,
+                            TieuDe = "Yêu cầu nhập kho",
+                            NoiDung = $"Hóa đơn: {p.Sohdnhap}",
+                            ChiTiet = "Cần tạo phiếu chi tiết",
+                            ThoiGian = DateTime.Now.ToString("HH:mm dd/MM"),
+                            SortDate = DateTime.Now.AddDays(1), // Ưu tiên hiển thị đầu
+                            IconKind = "TruckDelivery",
+                            Color = "#FFFFFF",
+                            BgColor = "#2962FF" // Xanh đậm
+                        });
+                    }
+
+                    // 2. Tìm yêu cầu Xuất kho
+                    var listReqXuat = context.Phieuxuats.ToList()
+                        .Where(p => !string.IsNullOrEmpty(p.Trangthai) &&
+                                   (p.Trangthai.Contains("Yêu cầu từ HD") || p.Trangthai.Contains("Cập nhật từ HD")))
+                        .ToList();
+
+                    foreach (var p in listReqXuat)
+                    {
+                        notiList.Add(new ThongBaoItem
+                        {
+                            LoaiThongBao = "REQ_XUAT_KHO",
+                            MaRef = p.Mapx,
+                            TieuDe = "Yêu cầu xuất kho",
+                            NoiDung = $"Hóa đơn: {p.Sohdxuat}",
+                            ChiTiet = "Cần xuất hàng ngay",
+                            ThoiGian = DateTime.Now.ToString("HH:mm dd/MM"),
+                            SortDate = DateTime.Now.AddDays(1),
+                            IconKind = "Dolly",
+                            Color = "#FFFFFF",
+                            BgColor = "#FF6D00" // Cam đậm
+                        });
+                    }
+                    // --- [KẾT THÚC PHẦN MỚI] ---
+
+                    // --- [LOGIC CŨ - GIỮ NGUYÊN] ---
                     var listNhap = context.Phieunhaps.ToList()
                         .Where(p => !string.IsNullOrEmpty(p.Trangthai) && p.Trangthai.ToLower().Contains("chờ duyệt"))
                         .ToList();
@@ -271,7 +321,7 @@ namespace PharmaDistributionApp.Views.ProductView
 
                     var listHetHan = (from t in context.Tonkhos
                                       join l in context.Lohangs on t.Malo equals l.Malo
-                                      where l.Hsd < homNay && t.Soluongton > 0 
+                                      where l.Hsd < homNay && t.Soluongton > 0
                                       select new { t, l }).ToList();
 
                     foreach (var item in listHetHan)
@@ -291,10 +341,10 @@ namespace PharmaDistributionApp.Views.ProductView
                             NoiDung = $"ĐÃ HẾT HẠN! - {sp.Tensp}",
                             ChiTiet = $"Lô: {item.t.Malo}",
                             ThoiGian = item.l.Hsd.HasValue ? item.l.Hsd.Value.ToString("dd/MM/yyyy") : "---",
-                            SortDate = DateTime.Now.AddDays(-1), 
-                            IconKind = "CalendarRemove",      
-                            Color = "#D32F2F",                   
-                            BgColor = "#212121"                  
+                            SortDate = DateTime.Now.AddDays(-1),
+                            IconKind = "CalendarRemove",
+                            Color = "#D32F2F",
+                            BgColor = "#212121"
                         });
                     }
 

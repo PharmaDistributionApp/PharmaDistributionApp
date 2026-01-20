@@ -79,6 +79,7 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
+
                 <StackPanel VerticalAlignment="Center">
                     <TextBlock Text="CHỈNH SỬA HÓA ĐƠN" FontSize="24" FontWeight="Bold" Foreground="{StaticResource PrimaryBlue}" Margin="0"/>
                     <TextBlock Text="Cập nhật thông tin và hàng hóa" FontSize="13" Foreground="Gray" Margin="0,4,0,0"/>
@@ -108,7 +109,7 @@
 
                     <StackPanel Grid.Column="0">
                         <TextBlock Text="Mã Hóa Đơn" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
-                        <TextBox x:Name="txtMaHD" IsReadOnly="True" FontWeight="Bold" Foreground="#333" Background="#F5F5F5"/>
+                        <TextBox x:Name="txtMaHD" IsReadOnly="True" FontWeight="Bold" Foreground="{StaticResource PrimaryBlue}" Background="#F5F5F5"/>
                     </StackPanel>
                     <StackPanel Grid.Column="2">
                         <TextBlock Text="Ngày lập" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
@@ -149,6 +150,7 @@
                 <Grid Margin="15,12">
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                     </Grid.RowDefinitions>
 
                     <Grid Grid.Row="0">
@@ -164,7 +166,7 @@
 
                         <StackPanel Grid.Column="0">
                             <Grid>
-                                <TextBlock Text="Thêm sản phẩm bổ sung" HorizontalAlignment="Left" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
+                                <TextBlock Text="Sản phẩm" HorizontalAlignment="Left" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
                                 <TextBlock x:Name="lblTonKho" Text="Tồn: 0" FontSize="11" Foreground="#4C70BA" HorizontalAlignment="Right" FontWeight="Bold"/>
                             </Grid>
                             <ComboBox x:Name="cboSanPham" DisplayMemberPath="TenSP" SelectionChanged="cboSanPham_SelectionChanged" IsEditable="True"/>
@@ -188,7 +190,8 @@
 
                         <StackPanel Grid.Column="4">
                             <TextBlock Text="Đơn giá" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
-                            <TextBox x:Name="txtDonGia" IsReadOnly="True" Focusable="False" HorizontalContentAlignment="Right" FontWeight="Bold" Foreground="#333" Background="#F8F9FA"/>
+                            <TextBox x:Name="txtDonGia" IsReadOnly="True" Focusable="False" 
+                                     HorizontalContentAlignment="Right" FontWeight="Bold" Foreground="#333" Background="#F8F9FA"/>
                         </StackPanel>
 
                         <StackPanel Grid.Column="6" Orientation="Horizontal" VerticalAlignment="Bottom">
@@ -202,18 +205,54 @@
                                 </Button.Resources>
                             </Button>
 
-                            <Button x:Name="btnUndo" Click="btnUndo_Click" Height="36" Width="50" Margin="10,0,0,0" ToolTip="Hoàn tác"
-                                    Background="White" BorderBrush="{StaticResource PrimaryBlue}" BorderThickness="1" Cursor="Hand">
+                            <Button x:Name="btnUndo" Click="btnUndo_Click" Height="36" Width="50" Margin="10,0,0,0" 
+                                    ToolTip="Hoàn tác" Background="White" BorderBrush="{StaticResource PrimaryBlue}" BorderThickness="1" Cursor="Hand">
                                 <Button.Resources>
                                     <Style TargetType="Border">
                                         <Setter Property="CornerRadius" Value="4"/>
                                     </Style>
                                 </Button.Resources>
-                                <Path Data="M 12,6 L 7,11 L 12,16 M 7,11 H 15 C 19,11 22,14 22,18"
-                                      Stroke="{StaticResource PrimaryBlue}" StrokeThickness="2" StrokeStartLineCap="Round" StrokeEndLineCap="Round" StrokeLineJoin="Round"
-                                      Width="18" Height="18" Stretch="Uniform" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                <materialDesign:PackIcon Kind="Undo" Foreground="{StaticResource PrimaryBlue}" Width="20" Height="20"/>
                             </Button>
                         </StackPanel>
+                    </Grid>
+
+                    <Grid x:Name="pnlNhapHang" Grid.Row="1" Margin="0,15,0,0" Visibility="Collapsed">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid Grid.Row="0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="1.2*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="1.2*"/>
+                                <ColumnDefinition Width="15"/>
+                                <ColumnDefinition Width="0.8*"/>
+                                <ColumnDefinition Width="2*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Ngày sản xuất" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
+                                <DatePicker x:Name="dpNSX"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Hạn sử dụng" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
+                                <DatePicker x:Name="dpHSD"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Tách lô (SL)" FontWeight="SemiBold" Foreground="#666" Margin="0,0,0,6"/>
+                                <TextBox x:Name="txtSoLoTach" Text="1" PreviewTextInput="NumberValidationTextBox" TextChanged="txtSoLoTach_TextChanged"
+                                         HorizontalContentAlignment="Center" FontWeight="Bold"/>
+                            </StackPanel>
+                        </Grid>
+                        <Grid Grid.Row="1" Margin="0,10,0,0">
+                            <StackPanel>
+                                <TextBlock Text="Mã quản lý hệ thống sẽ tạo tự động:" Foreground="#4C70BA" FontSize="11" FontStyle="Italic" Margin="0,0,0,4"/>
+                                <TextBox x:Name="txtMaLoList" Height="60" Background="#F9FAFB" BorderBrush="#EEEEEE"
+                                         VerticalContentAlignment="Top" Padding="5" TextWrapping="Wrap" AcceptsReturn="True" 
+                                         VerticalScrollBarVisibility="Auto" IsReadOnly="True" FontSize="11" FontFamily="Consolas"/>
+                            </StackPanel>
+                        </Grid>
                     </Grid>
                 </Grid>
             </Border>
@@ -223,8 +262,7 @@
                       Background="White" BorderBrush="{StaticResource BorderColor}" BorderThickness="1"
                       GridLinesVisibility="Horizontal" HorizontalGridLinesBrush="#F0F0F0"
                       HeadersVisibility="Column" RowBackground="White" AlternatingRowBackground="#FAFAFA" RowHeight="40"
-                      VerticalScrollBarVisibility="Auto"
-                      CanUserSortColumns="False">
+                      VerticalScrollBarVisibility="Auto" CanUserSortColumns="False">
 
                 <DataGrid.Resources>
                     <Style TargetType="DataGridColumnHeader">
