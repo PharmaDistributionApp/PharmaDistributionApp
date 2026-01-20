@@ -202,7 +202,7 @@ namespace PharmaDistributionApp.Views.ProductView
             dgvKhoHang.Columns[2].Visibility = Visibility.Visible; 
             dgvKhoHang.Columns[5].Visibility = Visibility.Visible;
             dgvKhoHang.Columns[6].Visibility = Visibility.Visible;
-            Visibility actionVisibility = Visibility.Collapsed; // Mặc định là ẩn
+            Visibility actionVisibility = Visibility.Collapsed; 
 
             if (UserSession.CurrentUser != null)
             {
@@ -244,7 +244,6 @@ namespace PharmaDistributionApp.Views.ProductView
                         });
                     }
 
-                    // 2. LẤY PHIẾU XUẤT (Giữ nguyên)
                     var listXuat = context.Phieuxuats.ToList()
                         .Where(p => !string.IsNullOrEmpty(p.Trangthai) && p.Trangthai.ToLower().Contains("chờ duyệt"))
                         .ToList();
@@ -291,10 +290,10 @@ namespace PharmaDistributionApp.Views.ProductView
                             NoiDung = $"ĐÃ HẾT HẠN! - {sp.Tensp}",
                             ChiTiet = $"Lô: {item.t.Malo}",
                             ThoiGian = item.l.Hsd.HasValue ? item.l.Hsd.Value.ToString("dd/MM/yyyy") : "---",
-                            SortDate = DateTime.Now.AddDays(-1), // Ưu tiên cao
-                            IconKind = "CalendarRemove",         // Icon lịch có dấu X
-                            Color = "#D32F2F",                   // Chữ Đỏ
-                            BgColor = "#212121"                  // Nền Đen (Cảnh báo nguy hiểm/Hủy)
+                            SortDate = DateTime.Now.AddDays(-1), 
+                            IconKind = "CalendarRemove",      
+                            Color = "#D32F2F",                   
+                            BgColor = "#212121"                  
                         });
                     }
 
@@ -307,17 +306,11 @@ namespace PharmaDistributionApp.Views.ProductView
                         var sp = context.Sanphams.FirstOrDefault(s => s.Masp == t.Masp);
                         var kho = context.Khos.FirstOrDefault(k => k.Makho == t.Makho);
 
-                        // --- THÊM ĐOẠN NÀY ---
-                        // Nếu không tìm thấy sản phẩm trong danh mục (đã bị xóa), 
-                        // thì BỎ QUA dòng tồn kho này, không hiện thông báo rác nữa.
                         if (sp == null) continue;
-                        // ---------------------
 
                         string tenSP = sp.Tensp;
                         string dvt = sp.Dvt;
                         string tenKho = kho != null ? kho.Tenkho : t.Makho;
-
-                        // --- PHÂN LOẠI MÀU SẮC ---
                         string loaiTB, icon, color, bgColor, noiDungTB;
 
                         if (t.Soluongton == 0)
@@ -352,8 +345,6 @@ namespace PharmaDistributionApp.Views.ProductView
                             BgColor = bgColor
                         });
                     }
-
-                    // 4. HIỂN THỊ
                     var finalData = notiList.OrderByDescending(x => x.SortDate).ToList();
                     lbThongBao.ItemsSource = finalData;
 
@@ -417,7 +408,7 @@ namespace PharmaDistributionApp.Views.ProductView
         {
             if (e.Key == Key.Escape && btnBell.IsChecked == true)
             {
-                btnBell.IsChecked = false; // Tắt nút -> Popup tự đóng
+                btnBell.IsChecked = false; 
                 this.Focus();
             }
         }
@@ -439,7 +430,6 @@ namespace PharmaDistributionApp.Views.ProductView
   
                 if (_currentMode == ViewMode.TonKho)
                 {
-                    // Đã đổi tên class ở đây
                     var editWindow = new ChinhSuaTonKho(rowData.Masp, rowData.Malo, rowData.Makho);
                     editWindow.ShowDialog();
                     LoadData();
@@ -581,33 +571,24 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private void NotificationItem_Click(object sender, MouseButtonEventArgs e)
         {
-            // 1. Lấy dữ liệu từ item được click
             var element = sender as FrameworkElement;
             var item = element?.DataContext as ThongBaoItem;
             if (item == null) return;
-
-            // 2. Đóng ngay Popup thông báo
             btnBell.IsChecked = false;
             string loai = (item.LoaiThongBao ?? "").ToUpper();
-
-            // 3. Xử lý tập trung qua Dispatcher
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (loai == "PHIEU_NHAP")
                 {
-                    // Chuyển Tab và nạp dữ liệu bảng chính
                     RadPhieuNhap.IsChecked = true;
                     _currentMode = ViewMode.PhieuNhap;
                     LoadData();
 
-                    // Mở cửa sổ chi tiết để duyệt
                     var window = new ChiTietPhieuNhapWindow(item.MaRef);
                     window.Owner = Window.GetWindow(this);
-                    window.ShowDialog(); // Chương trình sẽ dừng ở đây cho đến khi bạn đóng Window
-
-                    // --- SAU KHI ĐÓNG CỬA SỔ -> CẬP NHẬT LẠI TẤT CẢ ---
-                    LoadData();           // Cập nhật lại danh sách phiếu trong bảng chính
-                    LoadCanhBaoCount();   // Cập nhật lại danh sách thông báo và số Badge trên nút chuông
+                    window.ShowDialog(); 
+                    LoadData();         
+                    LoadCanhBaoCount();   
                 }
                 else if (loai == "PHIEU_XUAT")
                 {
@@ -618,8 +599,6 @@ namespace PharmaDistributionApp.Views.ProductView
                     var window = new ChiTietPhieuXuatWindow(item.MaRef);
                     window.Owner = Window.GetWindow(this);
                     window.ShowDialog();
-
-                    // --- CẬP NHẬT LẠI ---
                     LoadData();
                     LoadCanhBaoCount();
                 }
