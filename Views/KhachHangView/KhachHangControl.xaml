@@ -28,7 +28,7 @@
                 <Setter.Value>
                     <ControlTemplate TargetType="DataGridCell">
                         <Border Background="{TemplateBinding Background}" BorderThickness="0" Padding="{TemplateBinding Padding}">
-                            <ContentPresenter VerticalAlignment="Center" />
+                            <ContentPresenter VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -81,6 +81,7 @@
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="-4" Duration="0:0:0.2"/>
                                         <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="BlurRadius" To="15" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="ShadowDepth" To="4" Duration="0:0:0.2"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
@@ -89,9 +90,17 @@
                                     <Storyboard>
                                         <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="0" Duration="0:0:0.2"/>
                                         <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="BlurRadius" To="5" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="ShadowDepth" To="1" Duration="0:0:0.2"/>
                                     </Storyboard>
                                 </BeginStoryboard>
                             </EventTrigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
                         </ControlTemplate.Triggers>
                     </ControlTemplate>
                 </Setter.Value>
@@ -106,7 +115,7 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Margin="0,0,0,25">
-            <TextBlock Text="Khách hàng" FontSize="32" FontWeight="Bold" Foreground="#4C70BA" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            <TextBlock Text="KHÁCH HÀNG" FontSize="32" FontWeight="Bold" Foreground="#4C70BA" VerticalAlignment="Center" HorizontalAlignment="Left"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
                 <Border Background="White" CornerRadius="22" Width="300" Height="44" Margin="0,0,10,0">
@@ -125,13 +134,24 @@
                     </Grid>
                 </Border>
 
-                <Button Content="📊 Xuất excel" Height="44" Width="130" Margin="0,0,10,0"
-                        Style="{StaticResource RoundedBtn}" Background="White" Foreground="#4C70BA" 
-                        BorderBrush="#4C70BA" BorderThickness="1" FontWeight="SemiBold" FontSize="14" Click="BtnXuatExcel_Click"/>
+                <Button x:Name="BtnXuatExcel" 
+                        Click="BtnXuatExcel_Click" 
+                        Foreground="White"
+                        Style="{StaticResource RoundedBtn}"
+                        Background="#217346" 
+                        BorderBrush="{x:Null}"  
+                        Height="45" 
+                        Margin="0,0,10,0"
+                        FontSize="14">
+                    <StackPanel Orientation="Horizontal" Margin="15,0">
+                        <materialDesign:PackIcon Kind="FileExcel" Margin="0,0,8,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Xuất Excel" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                </Button>
 
                 <Button Content="+ Thêm mới" Height="44" Width="130"
-                        Style="{StaticResource RoundedBtn}" Background="#4C70BA" Foreground="White" 
-                        FontWeight="Bold" FontSize="14" Click="BtnThemMoi_Click"/>
+        Style="{StaticResource RoundedBtn}" Background="#4C70BA" Foreground="White" BorderThickness="0"
+        FontWeight="Bold" FontSize="14" Click="BtnThemMoi_Click"/>
             </StackPanel>
         </Grid>
 
@@ -157,7 +177,7 @@
                             <Style TargetType="TextBlock">
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="Padding" Value="10,0"/>
-                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="FontWeight" Value="Medium"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>

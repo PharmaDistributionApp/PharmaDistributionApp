@@ -243,39 +243,66 @@ namespace PharmaDistributionApp.Views.NCCView
         // --- MỚI: Xử lý nút Xóa (trong Menu) ---
         private void BtnXoa_Click(object sender, RoutedEventArgs e)
         {
+            // 1. Lấy Nhà cung cấp từ dòng được chọn
             var menuItem = sender as MenuItem;
             var ncc = menuItem.DataContext as Nhacungcap;
 
-            if (ncc != null)
+            if (ncc == null) return;
+
+            try
             {
-                var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa '{ncc.Tenncc}' không?",
-                                             "Xác nhận xóa",
-                                             MessageBoxButton.YesNo,
-                                             MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Yes)
+                using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    try
-                    {
-                        using (var context = new QuanlyphanphoiduocphamContext())
-                        {
-                            // Tìm đối tượng trong DB để xóa
-                            var dbNcc = context.Nhacungcaps.Find(ncc.Mancc);
-                            if (dbNcc != null)
-                            {
-                                context.Nhacungcaps.Remove(dbNcc);
-                                context.SaveChanges(); // Lưu thay đổi
+                    // --- LOGIC MỚI: KIỂM TRA RÀNG BUỘC DỮ LIỆU ---
+                    // Kiểm tra xem NCC này có bất kỳ hóa đơn nhập nào không (bất kể trạng thái)
+                    bool hasHistory = context.Hoadonnhaps.Any(hd => hd.Mancc == ncc.Mancc);
 
-                                MessageBox.Show("Đã xóa thành công!", "Thông báo");
-                                LoadData(); // Tải lại danh sách
+                    if (hasHistory)
+                    {
+                        MessageBox.Show(
+                            $"Không thể xóa nhà cung cấp '{ncc.Tenncc}'.\n\n" +
+                            "Lý do: Nhà cung cấp này đã có lịch sử giao dịch (Hóa đơn nhập).\n" +
+                            "Việc xóa sẽ làm mất tính toàn vẹn của dữ liệu kế toán.\n\n" +
+                            "Gợi ý: Bạn có thể sửa thông tin hoặc ngừng nhập hàng từ NCC này thay vì xóa.",
+                            "Không thể xóa",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Stop);
+                        return; // Dừng ngay lập tức
+                    }
+
+                    // 3. Nếu chưa có hóa đơn nào, hỏi xác nhận xóa
+                    var result = MessageBox.Show(
+                        $"Bạn có chắc chắn muốn xóa nhà cung cấp: {ncc.Tenncc}?\n" +
+                        "Lưu ý: Các sản phẩm thuộc NCC này sẽ bị gỡ bỏ thông tin nhà cung cấp.",
+                        "Xác nhận xóa",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        var dbNCC = context.Nhacungcaps.Find(ncc.Mancc);
+                        if (dbNCC != null)
+                        {
+                            // Update các sản phẩm liên quan: Set Mancc = null (để SP không bị mất, chỉ mất liên kết NCC)
+                            var products = context.Sanphams.Where(p => p.Nhacungcap == ncc.Mancc).ToList();
+                            foreach (var p in products)
+                            {
+                                p.Nhacungcap = null;
                             }
+
+                            // Xóa NCC
+                            context.Nhacungcaps.Remove(dbNCC);
+                            context.SaveChanges();
+
+                            MessageBox.Show("Đã xóa nhà cung cấp thành công.", "Thông báo");
+                            LoadData(); // Tải lại bảng hiển thị
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Không thể xóa (Có thể NCC này đang dính líu đến dữ liệu nhập hàng):\n" + ex.Message, "Lỗi");
-                    }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi xóa: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)

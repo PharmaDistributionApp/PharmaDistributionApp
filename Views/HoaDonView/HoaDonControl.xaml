@@ -34,6 +34,53 @@
         <Style x:Key="LeftCell" TargetType="DataGridCell" BasedOn="{StaticResource CenterCell}">
             <Setter Property="TextBlock.TextAlignment" Value="Left"/>
         </Style>
+        <Style x:Key="RoundedBtn" TargetType="Button">
+            <Setter Property="RenderTransform">
+                <Setter.Value>
+                    <TranslateTransform Y="0"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="border" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="8">
+                            <Border.Effect>
+                                <DropShadowEffect x:Name="shadow" BlurRadius="5" ShadowDepth="1" Direction="270" Opacity="0.3" Color="#888"/>
+                            </Border.Effect>
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <EventTrigger RoutedEvent="MouseEnter">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="-4" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="BlurRadius" To="15" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="ShadowDepth" To="4" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <EventTrigger RoutedEvent="MouseLeave">
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="(UIElement.RenderTransform).(TranslateTransform.Y)" To="0" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="BlurRadius" To="5" Duration="0:0:0.2"/>
+                                        <DoubleAnimation Storyboard.TargetName="shadow" Storyboard.TargetProperty="ShadowDepth" To="1" Duration="0:0:0.2"/>
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </EventTrigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="border" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <ScaleTransform ScaleX="0.98" ScaleY="0.98"/>
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
     </UserControl.Resources>
 
     <Grid Margin="20" Background="Transparent" MouseLeftButtonDown="RootGrid_MouseLeftButtonDown">
@@ -175,18 +222,29 @@
             </Grid>
 
             <StackPanel Grid.Column="3" Orientation="Horizontal" HorizontalAlignment="Right">
-                <Button x:Name="btnExportExcel" Click="btnExportExcel_Click" Background="#217346" BorderBrush="{x:Null}" Height="40" Margin="0,0,10,0" materialDesign:ButtonAssist.CornerRadius="8" Padding="15,0">
-                    <StackPanel Orientation="Horizontal">
+
+                <Button x:Name="btnExportExcel" 
+                        Click="btnExportExcel_Click" 
+                        Foreground="White"
+                        Style="{StaticResource RoundedBtn}"
+                        Background="#217346" 
+                        BorderBrush="{x:Null}"  
+                        Height="45" 
+                        Margin="0,0,10,0"
+                        FontSize="14">
+                    <StackPanel Orientation="Horizontal" Margin="15,0">
                         <materialDesign:PackIcon Kind="FileExcel" Margin="0,0,8,0" VerticalAlignment="Center"/>
                         <TextBlock Text="Xuất Excel" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                <Button x:Name="btnAddNew" Click="btnAddNew_Click" Background="#4C70BA" BorderBrush="{x:Null}" Height="40" materialDesign:ButtonAssist.CornerRadius="8" Padding="20,0">
-                    <StackPanel Orientation="Horizontal">
-                        <materialDesign:PackIcon Kind="Plus" Margin="0,0,8,0" VerticalAlignment="Center"/>
-                        <TextBlock Text="Thêm mới" FontWeight="Bold" VerticalAlignment="Center"/>
-                    </StackPanel>
-                </Button>
+
+                <Button x:Name="btnAddNew" 
+                        Click="btnAddNew_Click"
+                        Content="+ Thêm mới" 
+                        Height="45" Width="130"
+                        Style="{StaticResource RoundedBtn}" 
+                        Background="#4C70BA" Foreground="White" BorderThickness="0"
+                        FontWeight="Bold" FontSize="14"/>
             </StackPanel>
         </Grid>
 

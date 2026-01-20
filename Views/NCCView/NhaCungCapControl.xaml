@@ -115,7 +115,7 @@
         </Grid.RowDefinitions>
 
         <Grid Grid.Row="0" Margin="0,0,0,25">
-            <TextBlock Text="Nhà cung cấp" FontSize="32" FontWeight="Bold" Foreground="#4C70BA" VerticalAlignment="Center" HorizontalAlignment="Left"/>
+            <TextBlock Text="NHÀ CUNG CẤP" FontSize="32" FontWeight="Bold" Foreground="#4C70BA" VerticalAlignment="Center" HorizontalAlignment="Left"/>
 
             <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
 
