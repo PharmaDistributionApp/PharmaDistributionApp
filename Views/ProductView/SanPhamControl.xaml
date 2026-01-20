@@ -254,6 +254,7 @@
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Center"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -265,6 +266,7 @@
                                 <Setter Property="HorizontalAlignment" Value="Left"/>
                                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                 <Setter Property="ToolTip" Value="{Binding TenLoai}"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -275,7 +277,7 @@
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="FontWeight" Value="Bold"/>
-                                <Setter Property="Foreground" Value="Black"/>
+                                <Setter Property="Foreground" Value="#4C70BA"/>
                                 <Setter Property="Padding" Value="0,0,15,0"/>
                                 <Setter Property="ToolTip" Value="{Binding Giaban, StringFormat={}{0:N0} VNĐ}"/>
                             </Style>
@@ -283,6 +285,14 @@
                     </DataGridTextColumn>
 
                     <DataGridTextColumn Header="Nhà cung cấp" Binding="{Binding Tenncc}" Width="200">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                                <Setter Property="HorizontalAlignment" Value="Left"/>
+                                <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
                     <DataGridTemplateColumn Header="Thao tác" Width="90">

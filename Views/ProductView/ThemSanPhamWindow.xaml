@@ -84,9 +84,23 @@
 
             <Border Grid.Row="2" Background="#F9FAFB" CornerRadius="0,0,18,18" BorderBrush="#EEE" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,30,0">
-                    <Button Content="HỦY BỎ" Width="100" Height="40" 
-                            Style="{StaticResource MaterialDesignFlatButton}" IsCancel="True"
-                            Foreground="Gray" Click="BtnThoat_Click" Margin="0,0,15,0"/>
+                    <Button Content="Hủy bỏ" 
+                        Width="100" Height="40" 
+                        Margin="0,0,15,0" Background="White" Foreground="#444" 
+                        FontWeight="Bold" BorderThickness="0" Cursor="Hand"
+                        IsCancel="True" Click="BtnThoat_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                        <Button.Effect>
+                            <DropShadowEffect BlurRadius="10" 
+                          ShadowDepth="1" 
+                          Opacity="0.2" 
+                          Color="Gray"/>
+                        </Button.Effect>
+                    </Button>
                     <Button x:Name="btnLuu" Content="LƯU SẢN PHẨM" Width="160" Height="45" 
                             Background="#4C70BA" Foreground="White" BorderThickness="0" 
                             Click="BtnLuu_Click" IsDefault="True" FontSize="14" FontWeight="Bold"
