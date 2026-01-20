@@ -271,7 +271,7 @@
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Giá bán" Binding="{Binding Giaban, StringFormat={}{0:N0} VNĐ}" Width="180">
+                    <DataGridTextColumn Header="Giá bán" Binding="{Binding Giaban, StringFormat={}{0:N0} VND}" Width="180">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>

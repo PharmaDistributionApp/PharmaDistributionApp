@@ -61,6 +61,7 @@ namespace PharmaDistributionApp.Views.ProductView
             public string Mapx { get; set; }
             public string Sohdxuat { get; set; }
             public string Malo { get; set; }
+            public string HienThiCotSoLuong { get; set; }
         }
 
         private void Filter_Checked(object sender, RoutedEventArgs e)
@@ -93,38 +94,36 @@ namespace PharmaDistributionApp.Views.ProductView
                         if (!string.IsNullOrEmpty(keyword))
                             query = query.Where(x => x.sp.Masp.ToLower().Contains(keyword) || x.sp.Tensp.ToLower().Contains(keyword));
 
-                        // Lấy ngày hiện tại để so sánh
                         var homNay = DateOnly.FromDateTime(DateTime.Now);
 
                         resultList = query.ToList().Select(x =>
                         {
-                            // 1. Tính toán logic trạng thái
                             string status, bg, fg;
                             bool isHetHan = x.subLh != null && x.subLh.Hsd.HasValue && x.subLh.Hsd.Value < homNay;
 
                             if (x.tk.Soluongton == 0)
                             {
                                 status = "Hết hàng";
-                                bg = "#FFEBEE"; // Đỏ nhạt
-                                fg = "#C62828"; // Đỏ đậm
+                                bg = "#FFEBEE";
+                                fg = "#C62828"; 
                             }
                             else if (isHetHan)
                             {
                                 status = "Hết hạn SD";
-                                bg = "#37474F"; // Màu xám đen (hoặc đen) để cảnh báo nguy hiểm
-                                fg = "#FF5252"; // Chữ đỏ sáng
+                                bg = "#37474F"; 
+                                fg = "#FF5252"; 
                             }
                             else if (x.tk.Soluongton <= 10)
                             {
                                 status = "Sắp hết";
-                                bg = "#FFF3E0"; // Cam nhạt
-                                fg = "#EF6C00"; // Cam đậm
+                                bg = "#FFF3E0"; 
+                                fg = "#EF6C00"; 
                             }
                             else
                             {
                                 status = "Còn hàng";
-                                bg = "#E8F5E9"; // Xanh nhạt
-                                fg = "#2E7D32"; // Xanh đậm
+                                bg = "#E8F5E9"; 
+                                fg = "#2E7D32"; 
                             }
 
                             return new KhoHangDisplayItem
@@ -138,7 +137,7 @@ namespace PharmaDistributionApp.Views.ProductView
                                 SoLuongTon = (int)x.tk.Soluongton,
                                 Malo = x.tk.Malo,
 
-                                // Gán các biến đã tính toán ở trên
+                                HienThiCotSoLuong = ((int)x.tk.Soluongton).ToString("N0"),
                                 TenTrangThai = status,
                                 MauNenTrangThai = bg,
                                 MauChuTrangThai = fg,
@@ -175,7 +174,7 @@ namespace PharmaDistributionApp.Views.ProductView
                                 Mapn = x.pn.Mapn,
                                 Sohdnhap = x.pn.Sohdnhap,
                                 SoLuongTon = (int)tongTien,
-
+                                HienThiCotSoLuong = tongTien.ToString("N0") + " VND",
                                 TenTrangThai = x.pn.Trangthai,
                                 LoaiRow = "PHIEUNHAP",
                                 MauNenTrangThai = "#E3F2FD",
@@ -213,7 +212,7 @@ namespace PharmaDistributionApp.Views.ProductView
                                 Mapx = x.px.Mapx,
                                 Sohdxuat = x.px.Sohdxuat,
                                 SoLuongTon = (int)tongTien,
-
+                                HienThiCotSoLuong = tongTien.ToString("N0") + " VND",
                                 TenTrangThai = x.px.Trangthai,
                                 LoaiRow = "PHIEUXUAT",
                                 MauNenTrangThai = "#FCE4EC",
@@ -234,6 +233,14 @@ namespace PharmaDistributionApp.Views.ProductView
             dgvKhoHang.Columns[1].Header = isPhieu ? "Mã phiếu" : "Mã sản phẩm";
             dgvKhoHang.Columns[2].Header = isPhieu ? "Thời gian tạo" : "Tên sản phẩm";
             dgvKhoHang.Columns[5].Header = isPhieu ? "Tổng tiền" : "Tồn kho";
+            if (isPhieu)
+            {
+                dgvKhoHang.Columns[5].Width = new DataGridLength(160);
+            }
+            else
+            {
+                dgvKhoHang.Columns[5].Width = new DataGridLength(100);
+            }
             Visibility productMode = isPhieu ? Visibility.Collapsed : Visibility.Visible;
             dgvKhoHang.Columns[0].Visibility = productMode; 
             dgvKhoHang.Columns[3].Visibility = productMode;
@@ -550,14 +557,91 @@ namespace PharmaDistributionApp.Views.ProductView
             var btn = contextMenu.PlacementTarget as Button;
             var rowData = btn.DataContext as KhoHangDisplayItem;
 
-            if (rowData != null)
-            {
-                string maCanXoa = _currentMode == ViewMode.TonKho ? rowData.Masp : (_currentMode == ViewMode.PhieuNhap ? rowData.Mapn : rowData.Mapx);
+            if (rowData == null) return;
 
-                if (MessageBox.Show($"Bạn có chắc muốn xóa '{maCanXoa}' không?", "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+            string maCanXoa = "";
+            string loaiDoiTuong = "";
+
+            if (_currentMode == ViewMode.TonKho) { maCanXoa = rowData.Masp; loaiDoiTuong = "Sản phẩm tồn kho"; }
+            else if (_currentMode == ViewMode.PhieuNhap) { maCanXoa = rowData.Mapn; loaiDoiTuong = "Phiếu nhập"; }
+            else { maCanXoa = rowData.Mapx; loaiDoiTuong = "Phiếu xuất"; }
+
+            var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa {loaiDoiTuong} '{maCanXoa}' không?\nHành động này không thể hoàn tác!",
+                                         "Xác nhận xóa",
+                                         MessageBoxButton.YesNo,
+                                         MessageBoxImage.Warning);
+
+            if (result != MessageBoxResult.Yes) return;
+
+            try
+            {
+                using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    MessageBox.Show("Đã gửi yêu cầu xóa! (Chức năng cần kết nối Database)");
+                    if (_currentMode == ViewMode.TonKho)
+                    {
+                        var item = context.Tonkhos.FirstOrDefault(t =>
+                            t.Masp == rowData.Masp &&
+                            t.Malo == rowData.Malo &&
+                            t.Makho == rowData.Makho);
+
+                        if (item != null)
+                        {
+                            if (item.Soluongton > 0)
+                            {
+                                MessageBox.Show($"Không thể xóa! Sản phẩm này vẫn còn tồn {item.Soluongton} cái.\nVui lòng xuất hết hoặc hủy hàng trước khi xóa dòng kho.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Error);
+                                return;
+                            }
+
+                            context.Tonkhos.Remove(item);
+                            context.SaveChanges();
+                            MessageBox.Show("Đã xóa dòng tồn kho thành công!", "Thành công");
+                        }
+                        else
+                        {
+                            MessageBox.Show("Dữ liệu không còn tồn tại!", "Lỗi");
+                        }
+                    }
+                    else if (_currentMode == ViewMode.PhieuNhap)
+                    {
+                        var phieu = context.Phieunhaps.FirstOrDefault(p => p.Mapn == rowData.Mapn);
+                        if (phieu != null)
+                        {
+                            if (phieu.Trangthai == "Đã duyệt" || phieu.Trangthai == "Hoàn thành")
+                            {
+                                MessageBox.Show("Không thể xóa phiếu đã được Duyệt/Hoàn thành vì đã ảnh hưởng đến kho hàng.\nBạn chỉ có thể Hủy phiếu.", "Cảnh báo lỗi");
+                                return;
+                            }
+
+                            context.Phieunhaps.Remove(phieu);
+                            context.SaveChanges();
+                            MessageBox.Show($"Đã xóa phiếu nhập {rowData.Mapn} thành công!", "Thành công");
+                        }
+                    }
+                    else if (_currentMode == ViewMode.PhieuXuat)
+                    {
+                        var phieu = context.Phieuxuats.FirstOrDefault(p => p.Mapx == rowData.Mapx);
+                        if (phieu != null)
+                        {
+                            if (phieu.Trangthai == "Đã duyệt" || phieu.Trangthai == "Hoàn thành")
+                            {
+                                MessageBox.Show("Không thể xóa phiếu xuất đã Duyệt/Hoàn thành.", "Cảnh báo lỗi");
+                                return;
+                            }
+
+                            context.Phieuxuats.Remove(phieu);
+                            context.SaveChanges();
+                            MessageBox.Show($"Đã xóa phiếu xuất {rowData.Mapx} thành công!", "Thành công");
+                        }
+                    }
+                    LoadData();
+                    LoadCanhBaoCount(); 
                 }
+            }
+            catch (Exception ex)
+            {
+                // Bắt lỗi ràng buộc khóa ngoại (ví dụ: Tồn kho đang được tham chiếu bởi bảng khác)
+                string msg = ex.InnerException != null ? ex.InnerException.Message : ex.Message;
+                MessageBox.Show("Lỗi Database: " + msg, "Lỗi Hệ Thống", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void dgvKhoHang_MouseDoubleClick(object sender, MouseButtonEventArgs e)
