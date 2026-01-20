@@ -1,113 +1,115 @@
 ﻿<Window x:Class="PharmaDistributionApp.Views.NCCView.ThemSuaNhaCungCapWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Cập nhật Nhà cung cấp" Height="550" Width="800"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Cập nhật Nhà cung cấp" Height="520" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
-        Background="White" FontFamily="Segoe UI">
+        Background="Transparent" AllowsTransparency="True" WindowStyle="None"
+        FontFamily="Segoe UI">
 
     <Window.Resources>
-        <Style TargetType="TextBox">
-            <Setter Property="Padding" Value="0,5"/>
-            <Setter Property="FontSize" Value="14"/>
-            <Setter Property="BorderThickness" Value="0,0,0,1"/>
-            <Setter Property="BorderBrush" Value="#888"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="VerticalContentAlignment" Value="Bottom"/>
-            <Setter Property="Margin" Value="0,0,0,20"/>
-        </Style>
-
-        <Style TargetType="TextBlock" x:Key="LabelTitle">
-            <Setter Property="Foreground" Value="#999"/>
-            <Setter Property="FontSize" Value="12"/>
+        <Style TargetType="TextBlock" x:Key="LabelStyle">
+            <Setter Property="Foreground" Value="#666"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
             <Setter Property="Margin" Value="0,0,0,5"/>
         </Style>
 
-        <Style TargetType="TextBlock" x:Key="SectionHeader">
-            <Setter Property="Foreground" Value="#6FA6E7"/>
+        <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignTextBox}">
             <Setter Property="FontSize" Value="14"/>
-            <Setter Property="FontWeight" Value="Bold"/>
-            <Setter Property="Margin" Value="0,20,0,15"/>
+            <Setter Property="Padding" Value="0,5"/>
+            <Setter Property="materialDesign:HintAssist.IsFloating" Value="False"/>
+            <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="#4C70BA"/>
+            <Setter Property="CaretBrush" Value="#4C70BA"/>
+            <Setter Property="SelectionBrush" Value="#4C70BA"/>
+        </Style>
+
+        <Style TargetType="TextBlock" x:Key="ErrorTextStyle">
+            <Setter Property="Foreground" Value="#D32F2F"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
         </Style>
     </Window.Resources>
 
-    <Grid Margin="30">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Border Background="White" CornerRadius="15" BorderThickness="1" BorderBrush="#EEEEEE">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="3" Opacity="0.2" Color="Black"/>
+        </Border.Effect>
 
-        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
-            <StackPanel>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-                <TextBlock Text="THÔNG TIN CƠ BẢN" Style="{StaticResource SectionHeader}"/>
-
+            <Border Grid.Row="0" Background="#4C70BA" CornerRadius="14,14,0,0" Height="55" MouseLeftButtonDown="Header_MouseLeftButtonDown">
                 <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Mã nhà cung cấp (Bắt buộc)" Style="{StaticResource LabelTitle}"/>
-                        <TextBox x:Name="txtMaNCC" FontWeight="Bold"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="DomainPlus" Foreground="White" Width="24" Height="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="lblTitle" Text="THÊM NHÀ CUNG CẤP" Foreground="White" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
-
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="Tên nhà cung cấp (Bắt buộc)" Style="{StaticResource LabelTitle}"/>
-                        <TextBox x:Name="txtTenNCC"/>
-                    </StackPanel>
+                    <Button HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" BorderBrush="Transparent" Click="BtnThoat_Click" Margin="0,0,10,0">
+                        <materialDesign:PackIcon Kind="Close" Foreground="White" Opacity="0.7"/>
+                    </Button>
                 </Grid>
+            </Border>
 
-                <TextBlock Text="LIÊN HỆ &amp; ĐỊA CHỈ" Style="{StaticResource SectionHeader}" Margin="0,10,0,15"/>
+            <Grid Grid.Row="1" Margin="40,30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <Grid>
-                    <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="*"/>
-                        <ColumnDefinition Width="20"/>
-                        <ColumnDefinition Width="*"/>
-                    </Grid.ColumnDefinitions>
-
-                    <StackPanel Grid.Column="0">
-                        <TextBlock Text="Số điện thoại" Style="{StaticResource LabelTitle}"/>
-                        <TextBox x:Name="txtSdt"/>
-                    </StackPanel>
-
-                    <StackPanel Grid.Column="2">
-                        <TextBlock Text="Email" Style="{StaticResource LabelTitle}"/>
-                        <TextBox x:Name="txtEmail"/>
-                    </StackPanel>
-                </Grid>
-
-                <StackPanel>
-                    <TextBlock Text="Địa chỉ" Style="{StaticResource LabelTitle}"/>
-                    <TextBox x:Name="txtDiaChi"/>
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,20">
+                    <TextBlock Text="Mã nhà cung cấp" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="txtMaNCC" IsReadOnly="True" Background="#F5F5F5" FontWeight="Bold" Foreground="#1A237E" BorderBrush="#DDD" materialDesign:HintAssist.Hint="Tự động tạo..."/>
                 </StackPanel>
 
-            </StackPanel>
-        </ScrollViewer>
+                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,20">
+                    <TextBlock Text="Tên nhà cung cấp (Bắt buộc)" Style="{StaticResource LabelStyle}" Foreground="#D32F2F"/>
+                    <TextBox x:Name="txtTenNCC" materialDesign:HintAssist.Hint="Nhập tên đầy đủ..."/>
+                    <TextBlock x:Name="errTenNCC" Style="{StaticResource ErrorTextStyle}"/>
+                </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Thoát" IsCancel="True" Click="BtnThoat_Click"
-                    Width="120" Height="40" Background="White" Foreground="#555"
-                    BorderBrush="#CCC" BorderThickness="1" Margin="0,0,15,0">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="4"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,20">
+                    <TextBlock Text="Số điện thoại (Bắt buộc)" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="txtSdt" materialDesign:HintAssist.Hint="Nhập số điện thoại"/>
+                    <TextBlock x:Name="errSdt" Style="{StaticResource ErrorTextStyle}"/>
+                </StackPanel>
 
-            <Button Content="LƯU DỮ LIỆU" Click="BtnLuu_Click"
-                    Width="140" Height="40" Background="#4F7CC9" Foreground="White"
-                    BorderThickness="0" FontWeight="Bold">
-                <Button.Resources>
-                    <Style TargetType="Border">
-                        <Setter Property="CornerRadius" Value="4"/>
-                    </Style>
-                </Button.Resources>
-            </Button>
-        </StackPanel>
-    </Grid>
+                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,20">
+                    <TextBlock Text="Email liên hệ" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="txtEmail" materialDesign:HintAssist.Hint="example@domain.com"/>
+                    <TextBlock x:Name="errEmail" Style="{StaticResource ErrorTextStyle}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3">
+                    <TextBlock Text="Địa chỉ trụ sở (Bắt buộc)" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="txtDiaChi" TextWrapping="Wrap" materialDesign:HintAssist.Hint="Nhập địa chỉ chi tiết..." />
+                    <TextBlock x:Name="errDiaChi" Style="{StaticResource ErrorTextStyle}"/>
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="2" Background="#FAFAFA" CornerRadius="0,0,14,14" Padding="20,15">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="HỦY BỎ" IsCancel="True" Click="BtnThoat_Click" Width="100" Height="40" Background="White" Foreground="#666" BorderBrush="#DDD" BorderThickness="1" Margin="0,0,15,0" materialDesign:ButtonAssist.CornerRadius="20"/>
+                    <Button Content="LƯU DỮ LIỆU" Click="BtnLuu_Click" Width="140" Height="40" Background="#4C70BA" Foreground="White" BorderThickness="0" FontWeight="Bold" materialDesign:ButtonAssist.CornerRadius="20">
+                        <Button.Effect>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.3" Color="#1A237E"/>
+                        </Button.Effect>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
 </Window>
