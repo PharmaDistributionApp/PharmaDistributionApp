@@ -85,12 +85,12 @@
             <Border Grid.Row="2" Background="#F9FAFB" CornerRadius="0,0,18,18" BorderBrush="#EEE" BorderThickness="0,1,0,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,30,0">
                     <Button Content="HỦY BỎ" Width="100" Height="40" 
-                            Style="{StaticResource MaterialDesignFlatButton}" 
+                            Style="{StaticResource MaterialDesignFlatButton}" IsCancel="True"
                             Foreground="Gray" Click="BtnThoat_Click" Margin="0,0,15,0"/>
                     <Button x:Name="btnLuu" Content="LƯU SẢN PHẨM" Width="160" Height="45" 
                             Background="#4C70BA" Foreground="White" BorderThickness="0" 
-                            Click="BtnLuu_Click" FontSize="14" FontWeight="Bold"
-                            materialDesign:ButtonAssist.CornerRadius="22"/>
+                            Click="BtnLuu_Click" IsDefault="True" FontSize="14" FontWeight="Bold"
+                            materialDesign:ButtonAssist.CornerRadius="8"/>
                 </StackPanel>
             </Border>
         </Grid>

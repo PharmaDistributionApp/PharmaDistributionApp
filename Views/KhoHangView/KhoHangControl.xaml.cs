@@ -413,7 +413,7 @@ namespace PharmaDistributionApp.Views.ProductView
                 this.Focus();
             }
         }
-        private void BtnNhapHang_Click(object sender, RoutedEventArgs e) { new NhapHangWindow(_currentMode == ViewMode.PhieuXuat).ShowDialog(); LoadData(); }
+        private void BtnTaoPhieu_Click(object sender, RoutedEventArgs e) { new TaoPhieuWindow(_currentMode == ViewMode.PhieuXuat).ShowDialog(); LoadData(); }
         private string Helper_FormatDate(object input) => input?.ToString() ?? "---";
         private void BtnSua_Click(object sender, RoutedEventArgs e)
         {

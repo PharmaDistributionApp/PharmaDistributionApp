@@ -346,7 +346,7 @@
                         <TextBlock Text="Xuất Excel" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
                 </Button>
-                    <Button x:Name="BtnNhapHang" Content="+   Tạo phiếu" Height="44" Width="130" Style="{StaticResource RoundedBtn}" Background="#4C70BA" Foreground="White" BorderThickness="0" FontWeight="Bold" FontSize="14" Click="BtnNhapHang_Click"/>
+                    <Button x:Name="BtnTaoPhieu" Content="+   Tạo phiếu" Height="44" Width="130" Style="{StaticResource RoundedBtn}" Background="#4C70BA" Foreground="White" BorderThickness="0" FontWeight="Bold" FontSize="14" Click="BtnTaoPhieu_Click"/>
             </StackPanel>
         </Grid>
         <StackPanel Grid.Row="2" Orientation="Horizontal">

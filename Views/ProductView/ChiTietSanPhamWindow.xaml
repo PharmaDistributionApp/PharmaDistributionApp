@@ -1,45 +1,43 @@
 ﻿<Window x:Class="PharmaDistributionApp.Views.ProductView.ChiTietSanPhamWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        Title="Chi tiết sản phẩm" Height="550" Width="800"
+        xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
+        Title="Chi tiết sản phẩm" Height="480" Width="500"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
-        WindowStyle="None" Background="Transparent" AllowsTransparency="True">
+        WindowStyle="None" Background="Transparent" AllowsTransparency="True"
+        FontFamily="{DynamicResource MaterialDesignFont}">
 
-    <Border Background="White" CornerRadius="15" BorderBrush="#4C70BA" BorderThickness="2">
+    <Border Background="White" CornerRadius="20" BorderBrush="#4C70BA" BorderThickness="1.5">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="60"/>
+                <RowDefinition Height="65"/>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="70"/>
+                <RowDefinition Height="75"/>
             </Grid.RowDefinitions>
 
-            <Border Grid.Row="0" Background="#4C70BA" CornerRadius="13,13,0,0">
+            <Border Grid.Row="0" Background="#4C70BA" CornerRadius="18,18,0,0" MouseDown="Border_MouseDown">
                 <Grid>
-                    <TextBlock Text="THÔNG TIN SẢN PHẨM" Foreground="White" 
-                               HorizontalAlignment="Center" VerticalAlignment="Center" 
-                               FontSize="20" FontWeight="Bold"/>
-                    <Button Content="✕" HorizontalAlignment="Right" VerticalAlignment="Top" 
-                            Margin="0,10,10,0" Width="30" Height="30"
-                            Background="Transparent" BorderThickness="0" Foreground="White" 
-                            FontSize="16" FontWeight="Bold" Cursor="Hand" Click="BtnThoat_Click"/>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="InformationOutline" 
+                                     Foreground="White" 
+                                     Width="25" 
+                                     Height="25" 
+                                     VerticalAlignment="Center" 
+                                     Margin="0,0,10,0"/>
+                        <TextBlock Text="THÔNG TIN CHI TIẾT" 
+                       Foreground="White" 
+                       FontSize="18" 
+                       FontWeight="Bold" 
+                       VerticalAlignment="Center"/>
+                    </StackPanel>
+
                 </Grid>
             </Border>
 
-            <Grid Grid.Row="1" Margin="20">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="250"/>
-                    <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>
-
-                <Border Grid.Column="0" Background="#F5F5F5" CornerRadius="10" Margin="0,0,20,0">
-                    <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
-                        <TextBlock Text="🖼️" FontSize="60" HorizontalAlignment="Center"/>
-                        <TextBlock Text="Hình ảnh sản phẩm" Foreground="Gray" Margin="0,10,0,0"/>
-                    </StackPanel>
-                </Border>
-
-                <StackPanel Grid.Column="1">
-                    <TextBlock x:Name="lblTenSP" Text="Tên sản phẩm..." FontSize="22" FontWeight="Bold" Foreground="#4C70BA" TextWrapping="Wrap" Margin="0,0,0,15"/>
+            <Grid Grid.Row="1" Margin="35,20">
+                <StackPanel>
+                    <TextBlock x:Name="lblTenSP" Text="Tên sản phẩm..." FontSize="22" 
+                               FontWeight="Bold" Foreground="#4C70BA" TextWrapping="Wrap" Margin="0,0,0,20"/>
 
                     <Grid>
                         <Grid.ColumnDefinitions>
@@ -47,54 +45,46 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Grid.RowDefinitions>
-                            <RowDefinition Height="35"/>
-                            <RowDefinition Height="35"/>
-                            <RowDefinition Height="35"/>
-                            <RowDefinition Height="35"/>
-                            <RowDefinition Height="35"/>
-                            <RowDefinition Height="35"/>
-                            <RowDefinition Height="35"/>
-                            <RowDefinition Height="35"/>
+                            <RowDefinition Height="38"/>
+                            <RowDefinition Height="38"/>
+                            <RowDefinition Height="38"/>
+                            <RowDefinition Height="38"/>
+                            <RowDefinition Height="38"/>
+                            <RowDefinition Height="50"/>
                         </Grid.RowDefinitions>
 
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Mã sản phẩm:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#555"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="txtMaSP" Text="..." VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Mã sản phẩm:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#777"/>
+                        <TextBlock Grid.Row="0" Grid.Column="1" x:Name="txtMaSP" Text="..." VerticalAlignment="Center" FontSize="14" FontWeight="Bold"/>
 
-                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Loại thuốc:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#555"/>
-                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="txtLoai" Text="..." VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Loại thuốc:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#777"/>
+                        <TextBlock Grid.Row="1" Grid.Column="1" x:Name="txtLoai" Text="..." VerticalAlignment="Center" FontSize="14"/>
 
-                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Hoạt chất:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#555"/>
-                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="txtHoatChat" Text="..." VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Đơn vị tính:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#777"/>
+                        <TextBlock Grid.Row="2" Grid.Column="1" x:Name="txtDVT" Text="..." VerticalAlignment="Center" FontSize="14"/>
 
-                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Đơn vị tính:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#555"/>
-                        <TextBlock Grid.Row="3" Grid.Column="1" x:Name="txtDVT" Text="..." VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Nước sản xuất:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#777"/>
+                        <TextBlock Grid.Row="3" Grid.Column="1" x:Name="txtNuocSX" Text="..." VerticalAlignment="Center" FontSize="14"/>
 
-                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Nước sản xuất:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#555"/>
-                        <TextBlock Grid.Row="4" Grid.Column="1" x:Name="txtNuocSX" Text="..." VerticalAlignment="Center"/>
+                        <TextBlock Grid.Row="4" Grid.Column="0" Text="Nhà cung cấp:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#777"/>
+                        <TextBlock Grid.Row="4" Grid.Column="1" x:Name="txtNhaCungCap" Text="..." VerticalAlignment="Center" Foreground="#4C70BA" FontWeight="Bold" FontSize="14"/>
 
-                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Nhà cung cấp:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#555"/>
-                        <TextBlock Grid.Row="5" Grid.Column="1" x:Name="txtNhaCungCap" Text="..." VerticalAlignment="Center" Foreground="#4C70BA" FontWeight="Bold"/>
+                        <Separator Grid.Row="5" Grid.ColumnSpan="2" VerticalAlignment="Top" Margin="0,5" Background="#EEE"/>
 
-                        <TextBlock Grid.Row="6" Grid.Column="0" Text="Trạng thái:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#555"/>
-                        <Border Grid.Row="6" Grid.Column="1" x:Name="borderTrangThai" HorizontalAlignment="Left" CornerRadius="10" Padding="10,4" VerticalAlignment="Center">
-                            <TextBlock x:Name="txtTrangThai" Text="..." FontWeight="Bold" FontSize="12"/>
-                        </Border>
-
-                        <TextBlock Grid.Row="7" Grid.Column="0" Text="Giá bán:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#555"/>
-                        <TextBlock Grid.Row="7" Grid.Column="1" x:Name="txtGiaBan" Text="..." VerticalAlignment="Center" Foreground="#D32F2F" FontWeight="Bold" FontSize="16"/>
+                        <TextBlock Grid.Row="5" Grid.Column="0" Text="Giá bán niêm yết:" FontWeight="SemiBold" VerticalAlignment="Center" Foreground="#777"/>
+                        <TextBlock Grid.Row="5" Grid.Column="1" x:Name="txtGiaBan" Text="0 đ" VerticalAlignment="Center" Foreground="#D32F2F" FontWeight="Bold" FontSize="20"/>
                     </Grid>
                 </StackPanel>
             </Grid>
 
-            <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,0,20,0">
-                <Button Content="Thoát" Width="100" Height="35" Background="#EEE" Foreground="#333" BorderThickness="0" Click="BtnThoat_Click">
-                    <Button.Resources>
-                        <Style TargetType="Border">
-                            <Setter Property="CornerRadius" Value="17"/>
-                        </Style>
-                    </Button.Resources>
-                </Button>
-            </StackPanel>
+            <Button Grid.Row="2" Content="Đóng" Width="100" Margin="0,0,20,20"
+                    Background="#4C70BA" BorderBrush="#4C70BA" Foreground="White"
+                    HorizontalAlignment="Right" Click="BtnThoat_Click" IsCancel="True">
+                <Button.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="8"/>
+                    </Style>
+                </Button.Resources>
+            </Button>
         </Grid>
     </Border>
 </Window>
