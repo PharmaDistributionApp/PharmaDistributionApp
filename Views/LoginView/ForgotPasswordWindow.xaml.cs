@@ -6,7 +6,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
 using PharmaDistributionApp.Views.LoginView;
 
 namespace PharmaDistributionApp.Views
@@ -56,13 +56,17 @@ namespace PharmaDistributionApp.Views
             try
             {
                 string sqlCheck = "SELECT COUNT(*) FROM NHANVIEN WHERE EMAIL = @email";
-                SQLiteParameter[] p = { new SQLiteParameter("@email", email) };
-                DataTable dt = Database.GetTable(sqlCheck, p);
+                SqliteParameter[] p =
+                {
+                    new SqliteParameter("@email", email)
+                };
+
+                object result = Database.ExecuteScalar(sqlCheck, p);
                 long count = 0;
 
-                if (dt.Rows.Count > 0)
+                if (result != null && result != DBNull.Value)
                 {
-                    count = Convert.ToInt64(dt.Rows[0][0]);
+                    count = Convert.ToInt64(result);
                 }
 
                 if (count == 0)

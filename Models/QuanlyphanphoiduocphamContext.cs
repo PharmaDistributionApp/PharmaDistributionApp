@@ -38,7 +38,6 @@ namespace PharmaDistributionApp.Models
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            // 1. CẤU HÌNH CHI TIẾT HÓA ĐƠN (KHÓA TỔ HỢP)
             modelBuilder.Entity<Cthdnhap>(entity =>
             {
                 entity.ToTable("CTHDNHAP");
@@ -75,8 +74,6 @@ namespace PharmaDistributionApp.Models
                 entity.Property(e => e.Makho).HasColumnName("MAKHO");
                 entity.Property(e => e.Soluongton).HasColumnName("SOLUONGTON");
             });
-
-            // 2. CẤU HÌNH HÓA ĐƠN NHẬP (ĐÃ SỬA: FK NHÀ CUNG CẤP & NHÂN VIÊN)
             modelBuilder.Entity<Hoadonnhap>(entity =>
             {
                 entity.ToTable("HOADONNHAP");
@@ -90,21 +87,16 @@ namespace PharmaDistributionApp.Models
                 entity.Property(e => e.Trangthai).HasColumnName("TRANGTHAI");
                 entity.Property(e => e.Vat).HasColumnName("VAT");
                 entity.Property(e => e.Ghichu).HasColumnName("GHICHU");
-
-                // Cấu hình Khóa Ngoại Nhà Cung Cấp
                 entity.HasOne(d => d.ManccNavigation)
                       .WithMany()
                       .HasForeignKey(d => d.Mancc)
                       .HasConstraintName("FK_HOADONNHAP_NHACUNGCAP");
 
-                // --- SỬA LỖI MỚI: Cấu hình Khóa Ngoại Nhân Viên ---
                 entity.HasOne(d => d.ManvNavigation)
                       .WithMany()
                       .HasForeignKey(d => d.Manv)
                       .HasConstraintName("FK_HOADONNHAP_NHANVIEN");
             });
-
-            // 3. CẤU HÌNH HÓA ĐƠN XUẤT (ĐÃ SỬA: FK KHÁCH HÀNG & NHÂN VIÊN)
             modelBuilder.Entity<Hoadonxuat>(entity =>
             {
                 entity.ToTable("HOADONXUAT");
@@ -119,20 +111,18 @@ namespace PharmaDistributionApp.Models
                 entity.Property(e => e.Trangthai).HasColumnName("TRANGTHAI");
                 entity.Property(e => e.Ghichu).HasColumnName("GHICHU");
 
-                // Cấu hình Khóa Ngoại Khách Hàng
+
                 entity.HasOne(d => d.MakhNavigation)
                       .WithMany()
                       .HasForeignKey(d => d.Makh)
                       .HasConstraintName("FK_HOADONXUAT_KHACHHANG");
 
-                // --- SỬA LỖI MỚI: Cấu hình Khóa Ngoại Nhân Viên ---
                 entity.HasOne(d => d.ManvNavigation)
                       .WithMany()
                       .HasForeignKey(d => d.Manv)
                       .HasConstraintName("FK_HOADONXUAT_NHANVIEN");
             });
 
-            // 4. CẤU HÌNH SẢN PHẨM & LOẠI SP
             modelBuilder.Entity<Sanpham>(entity =>
             {
                 entity.ToTable("SANPHAM");
@@ -161,14 +151,16 @@ namespace PharmaDistributionApp.Models
                 entity.Property(e => e.Tenloai).HasColumnName("TENLOAI");
             });
 
-            // 5. CẤU HÌNH LÔ HÀNG
             modelBuilder.Entity<Lohang>(e => {
                 e.ToTable("LOHANG");
                 e.HasKey(x => x.Malo);
                 e.Property(x => x.Malo).HasColumnName("MALO");
                 e.Property(x => x.Masp).HasColumnName("MASP");
                 e.Property(x => x.Nsx).HasColumnName("NSX");
-                e.Property(x => x.Hsd).HasColumnName("HSD");
+                e.Property(x => x.Hsd).HasColumnName("HSD").HasConversion(
+                v => v.HasValue ? v.Value.ToString("yyyy-MM-dd") : null,
+                v => !string.IsNullOrEmpty(v) ? DateOnly.Parse(v) : null
+            );
                 e.Property(x => x.Nhacungcap).HasColumnName("NHACUNGCAP");
             });
 

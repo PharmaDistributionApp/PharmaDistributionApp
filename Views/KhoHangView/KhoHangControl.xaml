@@ -224,7 +224,7 @@
 
                         <Popup x:Name="popThongBao" PlacementTarget="{Binding ElementName=btnBell}" 
                            IsOpen="{Binding IsChecked, ElementName=btnBell}" 
-                           StaysOpen="True" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Slide" HorizontalOffset="-380">
+                           StaysOpen="True" Placement="Bottom" AllowsTransparency="True" PopupAnimation="Slide" Width="480" HorizontalOffset="-380">
 
                             <Border Background="White" CornerRadius="8" BorderBrush="#DDD" BorderThickness="1" Width="420" MaxHeight="520">
                                 <Border.Effect>

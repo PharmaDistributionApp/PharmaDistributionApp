@@ -48,19 +48,15 @@ namespace PharmaDistributionApp.Views
             InvoiceType_Checked(null, null);
         }
 
-        // --- HÀM LOGIC MỚI: TÌM MÃ LÔ TRỐNG (L001, L002...) ---
         private List<string> GetNextBatchCodes(int countNeeded)
         {
             var usedNumbers = new HashSet<int>();
-
-            // 1. Lấy tất cả mã lô đang tồn tại trong Database
             try
             {
                 DataTable dt = Database.GetTable("SELECT MALO FROM LOHANG WHERE MALO LIKE 'L%'");
                 foreach (DataRow row in dt.Rows)
                 {
                     string dbCode = row["MALO"].ToString();
-                    // Cắt bỏ chữ 'L', lấy phần số
                     if (dbCode.Length > 1 && int.TryParse(dbCode.Substring(1), out int num))
                     {
                         usedNumbers.Add(num);
@@ -68,9 +64,6 @@ namespace PharmaDistributionApp.Views
                 }
             }
             catch { }
-
-            // 2. Lấy các mã lô đang nằm trong danh sách tạm (chưa lưu vào DB)
-            // Để tránh trường hợp bạn thêm 2 lần liên tiếp: lần 1 lấy L003, lần 2 cũng lấy L003
             foreach (var item in _tempItems)
             {
                 if (!string.IsNullOrEmpty(item.MaLo) && item.MaLo.StartsWith("L") && item.MaLo.Length > 1)
@@ -81,31 +74,26 @@ namespace PharmaDistributionApp.Views
                     }
                 }
             }
-
-            // 3. Tìm các số còn trống bắt đầu từ 1
             var result = new List<string>();
             int currentCheck = 1;
 
             while (result.Count < countNeeded)
             {
-                // Nếu số này chưa dùng -> Lấy nó
+                
                 if (!usedNumbers.Contains(currentCheck))
                 {
-                    result.Add($"L{currentCheck:D3}"); // Format L001, L002...
+                    result.Add($"L{currentCheck:D3}"); 
 
-                    // Đánh dấu là đã dùng tạm thời để vòng lặp tiếp theo không lấy trùng
                     usedNumbers.Add(currentCheck);
                 }
                 currentCheck++;
 
-                // Safety break (tránh lặp vô tận nếu logic sai)
                 if (currentCheck > 999999) break;
             }
 
             return result;
         }
 
-        // --- SỰ KIỆN TEXT CHANGED: HIỂN THỊ PREVIEW MÃ LÔ ---
         private void txtSoLoTach_TextChanged(object sender, TextChangedEventArgs e)
         {
             GenerateBatchCodesPreview();
@@ -117,7 +105,6 @@ namespace PharmaDistributionApp.Views
 
             if (int.TryParse(txtSoLoTach.Text, out int count) && count > 0)
             {
-                // Gọi hàm logic mới để xem trước các mã sẽ được tạo
                 List<string> codes = GetNextBatchCodes(count);
                 txtMaLoList.Text = string.Join(", ", codes);
             }
@@ -127,7 +114,6 @@ namespace PharmaDistributionApp.Views
             }
         }
 
-        // --- XỬ LÝ THÊM SẢN PHẨM (SỬA LOGIC TẠO MÃ) ---
         private void btnThemSP_Click(object sender, RoutedEventArgs e)
         {
             if (cboSanPham.SelectedItem == null) { MessageBox.Show("Vui lòng chọn sản phẩm!"); return; }
@@ -186,47 +172,73 @@ namespace PharmaDistributionApp.Views
                 return;
             }
 
-            // === 2. XUẤT HÀNG (Giữ nguyên logic cũ) ===
-            if (tongSL > _totalAvailableStock) { MessageBox.Show($"Kho không đủ hàng! Còn {_totalAvailableStock}"); return; }
+            // === 2. XUẤT HÀNG (Logic tách lô tự động FIFO - Đã sửa lỗi Read-only) ===
+            if (tongSL > _totalAvailableStock)
+            {
+                MessageBox.Show($"Kho không đủ hàng! Hiện có {_totalAvailableStock}, bạn đòi xuất {tongSL}.");
+                return;
+            }
 
             int canLay = tongSL;
             int countAdded = 0;
-            foreach (var lot in _currentProductLots)
+
+            // Sắp xếp lô: Ưu tiên HSD gần nhất (hoặc Lô cũ nhất)
+            var sortedLots = _currentProductLots.OrderBy(l => l.HSD).ThenBy(l => l.MaLo).ToList();
+
+            foreach (var lot in sortedLots)
             {
                 if (canLay <= 0) break;
-                if (lot.TonKho > 0)
+                if (lot.TonKho <= 0) continue;
+
+                // Tính số lượng lấy từ lô này
+                int take = Math.Min(canLay, lot.TonKho);
+
+                // Kiểm tra xem trong lưới đã có dòng của (Sản phẩm + Lô) này chưa
+                var existItem = _tempItems.FirstOrDefault(x => x.MaSP == maSP && x.MaLo == lot.MaLo);
+
+                if (existItem != null)
                 {
-                    int take = Math.Min(canLay, lot.TonKho);
-                    var exist = _tempItems.FirstOrDefault(x => x.MaSP == maSP && x.MaLo == lot.MaLo);
-                    if (exist != null)
-                    {
-                        exist.SoLuong += take;
-                        int i = _tempItems.IndexOf(exist); _tempItems.RemoveAt(i); _tempItems.Insert(i, exist);
-                    }
-                    else
-                    {
-                        _tempItems.Add(new InvoiceTempItem
-                        {
-                            MaSP = maSP,
-                            TenSP = tenSP,
-                            DonVi = dvt,
-                            MaLo = lot.MaLo,
-                            SoLuong = take,
-                            DonGia = donGia
-                        });
-                        countAdded++;
-                    }
-                    canLay -= take;
-                    lot.TonKho -= take;
+                    // TRƯỜNG HỢP 1: Đã có dòng này -> Chỉ cần cộng thêm số lượng
+                    // [QUAN TRỌNG]: Không cần gán ThanhTien, nó tự nhảy theo SoLuong mới
+                    existItem.SoLuong += take;
+
+                    // Mẹo: Refresh lại view trên DataGrid (Remove rồi Insert lại) để UI cập nhật số tiền
+                    int index = _tempItems.IndexOf(existItem);
+                    _tempItems.RemoveAt(index);
+                    _tempItems.Insert(index, existItem);
                 }
+                else
+                {
+                    // TRƯỜNG HỢP 2: Chưa có -> Tạo dòng mới
+                    // [QUAN TRỌNG]: Không gán ThanhTien ở đây
+                    _tempItems.Add(new InvoiceTempItem
+                    {
+                        MaSP = maSP,
+                        TenSP = tenSP,
+                        DonVi = dvt,
+                        MaLo = lot.MaLo, // Lấy đúng mã lô đang xét (L004, L005...)
+                        SoLuong = take,
+                        DonGia = donGia, // Gán đơn giá, ThanhTien sẽ tự = take * donGia
+                        NSX = dpNSX.SelectedDate.HasValue ? dpNSX.SelectedDate.Value.ToString("yyyy-MM-dd") : "", // Nếu cần hiển thị
+                        HSD = lot.HSD // Lấy HSD thực tế của lô đó
+                    });
+                    countAdded++;
+                }
+
+                // Trừ số lượng cần lấy và trừ tồn kho ảo
+                canLay -= take;
+                lot.TonKho -= take;
             }
+
             if (countAdded > 0) _addHistory.Push(countAdded);
+
             CalculateTotal();
+
+            // Cập nhật lại UI tồn kho tổng
             _totalAvailableStock -= tongSL;
             lblTonKho.Text = $"Tổng tồn: {_totalAvailableStock:N0}";
             txtSoLuong.Text = "0";
         }
-
         // --- CÁC HÀM UI KHÁC GIỮ NGUYÊN ---
         private void InvoiceType_Checked(object sender, RoutedEventArgs e)
         {
@@ -361,6 +373,7 @@ namespace PharmaDistributionApp.Views
                 txtSoLuong.Text = "0";
             }
         }
+        
 
         private void btnLuu_Click(object sender, RoutedEventArgs e)
         {
@@ -435,30 +448,29 @@ namespace PharmaDistributionApp.Views
 
             // 4. Gửi yêu cầu sang kho (Block 2 - Chạy độc lập)
             // Chỉ chạy khi Block 1 đã thành công và đóng kết nối
+            // 4. GỬI YÊU CẦU SANG KHO (LOGIC MỚI: CHỈ GỬI KHI ĐÃ DUYỆT)
             if (isSavedSuccess)
             {
-                try
+                if (isBoss || finalStatus == "Đã thanh toán" || finalStatus == "Hoàn thành")
                 {
-                    WarehouseRequestService.GuiYeuCauTaoPhieuKho(txtMaHD.Text, isExport, cboDoiTac.SelectedValue.ToString(), _currentMaNV);
-
-                    string msg = isBoss
-                        ? "Đã lưu hóa đơn và gửi yêu cầu tạo phiếu kho thành công!"
-                        : "Đã gửi yêu cầu phê duyệt hóa đơn!";
-
-                    MessageBox.Show(msg, "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
-
-                    try { this.DialogResult = true; } catch { }
-                    Close();
+                    try
+                    {
+                        WarehouseRequestService.GuiYeuCauTaoPhieuKho(txtMaHD.Text, isExport, cboDoiTac.SelectedValue.ToString(), _currentMaNV);
+                        MessageBox.Show("Đã lưu hóa đơn và gửi yêu cầu tạo phiếu kho thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show("Hóa đơn đã lưu, nhưng lỗi gửi Kho: " + ex.Message, "Cảnh báo");
+                    }
                 }
-                catch (Exception ex)
+                else
                 {
-                    // Nếu lỗi ở đây nghĩa là Hóa đơn đã lưu rồi, nhưng gửi kho bị lỗi
-                    // Không được Rollback hóa đơn, chỉ báo lỗi cho user biết
-                    MessageBox.Show("Hóa đơn đã được lưu, nhưng có lỗi khi gửi yêu cầu sang Kho:\n" + ex.Message, "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-
-                    try { this.DialogResult = true; } catch { }
-                    Close();
+                    // Trường hợp Nhân viên tạo: Chỉ thông báo đã gửi duyệt
+                    MessageBox.Show("Đã tạo hóa đơn và gửi yêu cầu phê duyệt lên cấp trên!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
+
+                try { this.DialogResult = true; } catch { }
+                Close();
             }
         }
 

@@ -10,6 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using PharmaDistributionApp.Models;
 using MaterialDesignThemes.Wpf;
 using PharmaDistributionApp.Services;
+using Microsoft.Data.Sqlite;
 
 namespace PharmaDistributionApp.Views.ProductView
 {
@@ -17,6 +18,7 @@ namespace PharmaDistributionApp.Views.ProductView
     {
         private enum Mode { Nhap, Xuat }
         private Mode _currentMode = Mode.Nhap;
+        private string _targetSoHD;
 
         public class ChiTietView
         {
@@ -33,9 +35,10 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private List<ChiTietView> _listChiTiet = new List<ChiTietView>();
 
-        public TaoPhieuWindow(bool isXuat = false)
+        public TaoPhieuWindow(bool isXuat = false, string initSoHD = null)
         {
             InitializeComponent();
+            _targetSoHD = initSoHD;
             dpNgayLap.SelectedDate = DateTime.Now;
 
             if (isXuat)
@@ -50,7 +53,12 @@ namespace PharmaDistributionApp.Views.ProductView
             }
 
             UpdateUIMode();
-            LoadInitData();
+            LoadInitData(); 
+
+            if (!string.IsNullOrEmpty(initSoHD))
+            {
+                cboHoaDon.SelectedValue = initSoHD;
+            }
         }
 
         private void RootGrid_MouseDown(object sender, MouseButtonEventArgs e)
@@ -104,77 +112,93 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private void LoadInitData()
         {
-            try
+            using (var context = new QuanlyphanphoiduocphamContext())
             {
-                using (var context = new QuanlyphanphoiduocphamContext())
+                var listKho = context.Khos.ToList();
+                CollectionViewSource cvs = (CollectionViewSource)this.Resources["cvsKhos"];
+                cvs.Source = listKho;
+                string target = _targetSoHD ?? "";
+
+                if (_currentMode == Mode.Nhap)
                 {
-                    
-                    var listKho = context.Khos.ToList();
-                    CollectionViewSource cvs = (CollectionViewSource)this.Resources["cvsKhos"];
-                    cvs.Source = listKho;
+                    var listDaCoPhieu = context.Phieunhaps
+                        .Where(p => p.Trangthai != "Đã hủy")
+                        .Select(p => p.Sohdnhap)
+                        .ToList();
 
-                    if (_currentMode == Mode.Nhap)
-                    {
-                        var list = context.Hoadonnhaps
-                            .Where(h => !context.Phieunhaps.Any(p => p.Sohdnhap == h.Sohdnhap))
-                            .Select(h => new { Ma = h.Sohdnhap, HienThi = h.Sohdnhap }).ToList();
-                        cboHoaDon.ItemsSource = list;
-                    }
-                    else
-                    {
-                        var list = context.Hoadonxuats
-                            .Where(h => !context.Phieuxuats.Any(p => p.Sohdxuat == h.Sohdxuat))
-                            .Select(h => new { Ma = h.Sohdxuat, HienThi = h.Sohdxuat }).ToList();
-                        cboHoaDon.ItemsSource = list;
-                    }
+                    var list = context.Hoadonnhaps
+                        .Where(h => !listDaCoPhieu.Contains(h.Sohdnhap) || h.Sohdnhap == target)
+                        .Select(h => new { Ma = h.Sohdnhap, HienThi = h.Sohdnhap })
+                        .ToList();
 
-                    cboHoaDon.DisplayMemberPath = "HienThi";
-                    cboHoaDon.SelectedValuePath = "Ma";
+                    cboHoaDon.ItemsSource = list;
                 }
-            }
-            catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
-        }
+                else // Mode.Xuat
+                {
+                    // Tương tự cho phiếu xuất
+                    var listDaCoPhieu = context.Phieuxuats
+                        .Where(p => p.Trangthai != "Đã hủy")
+                        .Select(p => p.Sohdxuat)
+                        .ToList();
 
+                    var list = context.Hoadonxuats
+                        .Where(h => !listDaCoPhieu.Contains(h.Sohdxuat) || h.Sohdxuat == target)
+                        .Select(h => new { Ma = h.Sohdxuat, HienThi = h.Sohdxuat })
+                        .ToList();
+
+                    cboHoaDon.ItemsSource = list;
+                }
+
+                cboHoaDon.DisplayMemberPath = "HienThi";
+                cboHoaDon.SelectedValuePath = "Ma";
+            }
+        }
         private void cboHoaDon_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
             if (cboHoaDon.SelectedValue == null) return;
-            string soHD = cboHoaDon.SelectedValue.ToString();
+            string soHD = cboHoaDon.SelectedValue.ToString().Trim();
             string defaultKho = "";
-            try
-            {
-                using (var ctx = new QuanlyphanphoiduocphamContext())
-                {
-                    var k = ctx.Khos.FirstOrDefault();
-                    if (k != null) defaultKho = k.Makho;
-                }
-            }
-            catch { }
 
             try
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
+                    var k = context.Khos.FirstOrDefault();
+                    if (k != null) defaultKho = k.Makho;
                     if (_currentMode == Mode.Nhap)
                     {
                         var hd = context.Hoadonnhaps.FirstOrDefault(h => h.Sohdnhap == soHD);
-                        if (hd != null) { txtKhachHang.Text = hd.Mancc; txtNgayHD.Text = hd.Ngaylap; txtTongTienHD.Text = string.Format("{0:N0} đ", hd.Tongtien); }
+                        if (hd != null)
+                        {
+                            txtKhachHang.Text = hd.Mancc;
+                            txtNgayHD.Text = hd.Ngaylap;
+                            txtTongTienHD.Text = string.Format("{0:N0} đ", hd.Tongtien);
+                        }
 
-                        _listChiTiet = context.Cthdnhaps.Where(ct => ct.Sohdnhap == soHD)
-                            .Include(ct => ct.MaspNavigation).Include(ct => ct.MaloNavigation)
-                            .Select(ct => new ChiTietView
-                            {
-                                Masp = ct.Masp,
-                                Tensp = ct.MaspNavigation.Tensp,
-                                Dvt = ct.MaspNavigation.Dvt,
-                                Malo = ct.Malo, 
-                                Hsd = ct.MaloNavigation.Hsd != null ? ct.MaloNavigation.Hsd.Value.ToString("dd/MM/yyyy") : "",
-                                Soluong = ct.Soluong,
-                                Dongia = ct.Dongianhap,
-                                Thanhtien = ct.Thanhtien,
-                                SelectedMakho = defaultKho
-                            }).ToList();
+                        var query = from ct in context.Cthdnhaps
+                                    where ct.Sohdnhap == soHD
+                                    join sp in context.Sanphams on ct.Masp equals sp.Masp into spGroup
+                                    from subSp in spGroup.DefaultIfEmpty()
+                                    join lh in context.Lohangs on ct.Malo equals lh.Malo into lhGroup
+                                    from subLh in lhGroup.DefaultIfEmpty()
+                                    select new ChiTietView
+                                    {
+                                        Masp = ct.Masp,
+                                        Tensp = subSp != null ? subSp.Tensp : "Sản phẩm không tồn tại",
+                                        Dvt = subSp != null ? subSp.Dvt : "",
+                                        Malo = ct.Malo,
+                                        Hsd = (subLh != null && subLh.Hsd.HasValue)
+                                              ? subLh.Hsd.Value.ToString("dd/MM/yyyy")
+                                              : "---",
+                                        Soluong = ct.Soluong,
+                                        Dongia = ct.Dongianhap,
+                                        Thanhtien = ct.Thanhtien,
+                                        SelectedMakho = defaultKho
+                                    };
+
+                        _listChiTiet = query.ToList();
                     }
-                    else // CHẾ ĐỘ PHIẾU XUẤT
+                    else
                     {
                         var hd = context.Hoadonxuats.FirstOrDefault(h => h.Sohdxuat == soHD);
                         if (hd != null)
@@ -184,106 +208,253 @@ namespace PharmaDistributionApp.Views.ProductView
                             txtTongTienHD.Text = string.Format("{0:N0} đ", hd.Tongtien ?? 0);
                         }
 
-                        var rawDetails = context.Cthdxuats.Where(ct => ct.Sohdxuat == soHD).ToList();
-                        _listChiTiet = rawDetails.Select(ct => {
-                            var sp = context.Sanphams.FirstOrDefault(s => s.Masp == ct.Masp);
-                            var lh = context.Lohangs.FirstOrDefault(l => l.Malo == ct.Malo);
-                            return new ChiTietView
-                            {
-                                Masp = ct.Masp,
-                                Tensp = sp?.Tensp ?? "Không xác định",
-                                Dvt = sp?.Dvt ?? "",
-                                Malo = ct.Malo,
-                                Hsd = lh?.Hsd != null ? lh.Hsd.Value.ToString("dd/MM/yyyy") : "---",
-                                Soluong = ct.Soluong,
-                                Dongia = ct.Dongiaban,
-                                Thanhtien = ct.Thanhtien,
-                                SelectedMakho = defaultKho
-                            };
-                        }).ToList();
+                        var query = from ct in context.Cthdxuats
+                                    where ct.Sohdxuat == soHD
+                                    join sp in context.Sanphams on ct.Masp equals sp.Masp into spGroup
+                                    from subSp in spGroup.DefaultIfEmpty()
+                                    join lh in context.Lohangs on ct.Malo equals lh.Malo into lhGroup
+                                    from subLh in lhGroup.DefaultIfEmpty()
+                                    select new ChiTietView
+                                    {
+                                        Masp = ct.Masp,
+                                        Tensp = subSp != null ? subSp.Tensp : "Sản phẩm không tồn tại",
+                                        Dvt = subSp != null ? subSp.Dvt : "",
+                                        Malo = ct.Malo,
+                                        Hsd = (subLh != null && subLh.Hsd.HasValue)
+                                              ? subLh.Hsd.Value.ToString("dd/MM/yyyy")
+                                              : "---",
+                                        Soluong = ct.Soluong,
+                                        Dongia = ct.Dongiaban, 
+                                        Thanhtien = ct.Thanhtien,
+                                        SelectedMakho = defaultKho
+                                    };
+
+                        _listChiTiet = query.ToList();
                     }
+
+ 
                     dgvChiTiet.ItemsSource = null;
                     dgvChiTiet.ItemsSource = _listChiTiet;
+
+                    if (_listChiTiet.Count == 0)
+                    {
+                        MessageBox.Show("Không tìm thấy sản phẩm nào trong hóa đơn này!");
+                    }
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Lỗi load chi tiết: " + ex.Message); }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi hiển thị chi tiết: " + ex.Message);
+            }
         }
 
         private void BtnLuu_Click(object sender, RoutedEventArgs e)
         {
-            if (cboHoaDon.SelectedValue == null) { MessageBox.Show("Chưa chọn hóa đơn!"); return; }
+            // 1. Kiểm tra đầu vào
+            if (cboHoaDon.SelectedValue == null)
+            {
+                MessageBox.Show("Vui lòng chọn một hóa đơn để tạo phiếu!");
+                return;
+            }
+
             string soHD = cboHoaDon.SelectedValue.ToString();
             string ngay = dpNgayLap.SelectedDate?.ToString("yyyy-MM-dd") ?? DateTime.Now.ToString("yyyy-MM-dd");
-            string khoDaiDien = (_listChiTiet.Count > 0) ? _listChiTiet[0].SelectedMakho : "";
 
-            string maNhanVien = "NV01";
-            if (UserSession.CurrentUser != null)
+            string khoDaiDien = (_listChiTiet.Count > 0) ? _listChiTiet[0].SelectedMakho : "";
+            if (string.IsNullOrEmpty(khoDaiDien))
             {
-                maNhanVien = UserSession.CurrentUser.Manv;
+                MessageBox.Show("Vui lòng chọn kho nhập/xuất cho các mặt hàng!");
+                return;
             }
+
+            // 2. Xác định quyền hạn và trạng thái
+            string maNhanVien = UserSession.CurrentUser?.Manv ?? "NV01";
+            string chucVu = UserSession.CurrentUser?.Chucvu ?? "";
+
+            // Danh sách các chức vụ được quyền duyệt thẳng (Auto-Approve)
+            string[] ssep = { "Admin", "Giám đốc", "Quản lý kho" };
+            bool isBoss = ssep.Any(r => r.Equals(chucVu, StringComparison.OrdinalIgnoreCase));
+
+            string trangThaiPhieu = isBoss ? "Đã duyệt" : "Chờ duyệt";
 
             try
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
+                    // --- LOGIC XỬ LÝ PHIẾU NHẬP ---
                     if (_currentMode == Mode.Nhap)
                     {
-                        // Logic tạo mã PN tự động
-                        var danhSachMa = context.Phieunhaps.Select(x => x.Mapn).ToList();
-                        int maxNum = 0;
-                        foreach (var ma in danhSachMa)
+                        // Kiểm tra xem đã có phiếu chưa để update hoặc tạo mới
+                        var phieuHienTai = context.Phieunhaps.FirstOrDefault(p => p.Sohdnhap == soHD);
+
+                        if (phieuHienTai != null)
                         {
-                            if (!string.IsNullOrEmpty(ma) && ma.StartsWith("PN") && int.TryParse(ma.Substring(2), out int num))
+                            // Update phiếu cũ
+                            phieuHienTai.Makho = khoDaiDien;
+                            phieuHienTai.Ngaynhap = ngay;
+                            phieuHienTai.Manv = maNhanVien;
+                            phieuHienTai.Trangthai = trangThaiPhieu;
+                        }
+                        else
+                        {
+                            // Tạo mã phiếu mới tự động (PN001...)
+                            var maxPn = context.Phieunhaps
+                                .Where(p => p.Mapn.StartsWith("PN"))
+                                .Select(p => p.Mapn)
+                                .AsEnumerable() // Chuyển về client để parse số
+                                .Select(m => int.TryParse(m.Substring(2), out int n) ? n : 0)
+                                .DefaultIfEmpty(0)
+                                .Max();
+
+                            string newID = "PN" + (maxPn + 1).ToString("D3");
+
+                            var pn = new Phieunhap
                             {
-                                if (num > maxNum) maxNum = num;
+                                Mapn = newID,
+                                Sohdnhap = soHD,
+                                Makho = khoDaiDien,
+                                Ngaynhap = ngay,
+                                Manv = maNhanVien,
+                                Trangthai = trangThaiPhieu
+                            };
+                            context.Phieunhaps.Add(pn);
+                        }
+
+                        // [QUAN TRỌNG] NẾU LÀ SẾP -> CẬP NHẬT KHO NGAY LẬP TỨC
+                        if (isBoss)
+                        {
+                            // Lấy chi tiết nhập để cộng kho
+                            var listChiTiet = context.Cthdnhaps.Where(ct => ct.Sohdnhap == soHD).ToList();
+                            foreach (var item in listChiTiet)
+                            {
+                                // 1. Update/Tạo Lô hàng
+                                var loHang = context.Lohangs.FirstOrDefault(l => l.Malo == item.Malo);
+                                var hsdDef = DateOnly.FromDateTime(DateTime.Now.AddYears(2));
+                                var nsxDef = DateOnly.FromDateTime(DateTime.Now);
+
+                                if (loHang == null)
+                                {
+                                    context.Lohangs.Add(new Lohang { Malo = item.Malo, Masp = item.Masp, Nhacungcap = soHD, Nsx = nsxDef, Hsd = hsdDef });
+                                }
+                                else
+                                {
+                                    if (loHang.Nsx == null) loHang.Nsx = nsxDef;
+                                    context.Entry(loHang).State = EntityState.Modified;
+                                }
+
+                                // 2. Cộng Tồn kho
+                                var tonKho = context.Tonkhos.FirstOrDefault(t => t.Masp == item.Masp && t.Malo == item.Malo && t.Makho == khoDaiDien);
+                                if (tonKho != null)
+                                {
+                                    tonKho.Soluongton += item.Soluong;
+                                    context.Entry(tonKho).State = EntityState.Modified;
+                                }
+                                else
+                                {
+                                    context.Tonkhos.Add(new Tonkho { Masp = item.Masp, Malo = item.Malo, Makho = khoDaiDien, Soluongton = item.Soluong });
+                                }
                             }
                         }
-                        string newID = "PN" + (maxNum + 1).ToString("D3");
-
-                        var pn = new Phieunhap
-                        {
-                            Mapn = newID,
-                            Sohdnhap = soHD,
-                            Makho = khoDaiDien,
-                            Ngaynhap = ngay,
-                            Manv = maNhanVien,
-                            Trangthai = "Chờ duyệt"
-                        };
-                        context.Phieunhaps.Add(pn);
                     }
-                    else 
+                    // --- LOGIC XỬ LÝ PHIẾU XUẤT ---
+                    else
                     {
-                        var danhSachMa = context.Phieuxuats.Select(x => x.Mapx).ToList();
-                        int maxNum = 0;
-                        foreach (var ma in danhSachMa)
+                        var phieuHienTai = context.Phieuxuats.FirstOrDefault(p => p.Sohdxuat == soHD);
+
+                        if (phieuHienTai != null)
                         {
-                            if (!string.IsNullOrEmpty(ma) && ma.StartsWith("PX") && int.TryParse(ma.Substring(2), out int num))
+                            phieuHienTai.Makho = khoDaiDien;
+                            phieuHienTai.Ngayxuat = ngay;
+                            phieuHienTai.Manv = maNhanVien;
+                            phieuHienTai.Trangthai = trangThaiPhieu;
+                        }
+                        else
+                        {
+                            var maxPx = context.Phieuxuats
+                                .Where(p => p.Mapx.StartsWith("PX"))
+                                .Select(p => p.Mapx)
+                                .AsEnumerable()
+                                .Select(m => int.TryParse(m.Substring(2), out int n) ? n : 0)
+                                .DefaultIfEmpty(0)
+                                .Max();
+
+                            string newID = "PX" + (maxPx + 1).ToString("D3");
+
+                            var px = new Phieuxuat
                             {
-                                if (num > maxNum) maxNum = num;
+                                Mapx = newID,
+                                Sohdxuat = soHD,
+                                Makho = khoDaiDien,
+                                Ngayxuat = ngay,
+                                Manv = maNhanVien,
+                                Trangthai = trangThaiPhieu
+                            };
+                            context.Phieuxuats.Add(px);
+                        }
+
+                        // [QUAN TRỌNG] NẾU LÀ SẾP -> TRỪ KHO NGAY LẬP TỨC
+                        if (isBoss)
+                        {
+                            var listChiTiet = context.Cthdxuats.Where(ct => ct.Sohdxuat == soHD).ToList();
+
+                            // Kiểm tra đủ hàng trước
+                            foreach (var item in listChiTiet)
+                            {
+                                var tongTon = context.Tonkhos.Where(t => t.Masp == item.Masp && t.Malo == item.Malo).Sum(t => (int?)t.Soluongton) ?? 0;
+                                if (tongTon < item.Soluong)
+                                {
+                                    MessageBox.Show($"Không đủ hàng để xuất ngay!\nSP: {item.Masp} (Lô {item.Malo})\nTồn: {tongTon} < Cần: {item.Soluong}", "Lỗi Kho");
+                                    return; // Ngưng transaction
+                                }
+                            }
+
+                            // Trừ kho thật
+                            foreach (var item in listChiTiet)
+                            {
+                                int canTru = item.Soluong;
+                                // Tìm các dòng kho có hàng để trừ (ưu tiên kho nào nhiều hàng hoặc theo thứ tự)
+                                var cacDongTon = context.Tonkhos
+                                    .Where(t => t.Masp == item.Masp && t.Malo == item.Malo && t.Soluongton > 0)
+                                    .OrderByDescending(t => t.Soluongton)
+                                    .ToList();
+
+                                foreach (var kho in cacDongTon)
+                                {
+                                    if (canTru <= 0) break;
+                                    int tru = Math.Min(canTru, kho.Soluongton);
+
+                                    kho.Soluongton -= tru;
+                                    canTru -= tru;
+
+                                    if (kho.Soluongton == 0) context.Tonkhos.Remove(kho);
+                                    else context.Entry(kho).State = EntityState.Modified;
+                                }
                             }
                         }
-                        string newID = "PX" + (maxNum + 1).ToString("D3");
-
-                        var px = new Phieuxuat
-                        {
-                            Mapx = newID,
-                            Sohdxuat = soHD,
-                            Makho = khoDaiDien,
-                            Ngayxuat = ngay,
-                            Manv = maNhanVien,
-                            Trangthai = "Chờ duyệt"
-                        };
-                        context.Phieuxuats.Add(px);
                     }
-
+                        
+                    // Lưu tất cả thay đổi (Phiếu + Kho) vào Database
                     context.SaveChanges();
-                    MessageBox.Show("Tạo phiếu thành công!");
+
+                    string msg = isBoss
+                        ? "Đã tạo phiếu và cập nhật kho THÀNH CÔNG (Đã duyệt)!"
+                        : "Đã tạo lệnh kho và chuyển sang trạng thái CHỜ DUYỆT!";
+
+                    MessageBox.Show(msg, "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+
+                    this.DialogResult = true;
                     this.Close();
                 }
             }
-            catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi lưu phiếu kho: " + ex.Message, "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
         }
 
-        private void BtnHuy_Click(object sender, RoutedEventArgs e) { this.Close(); }
+        private void BtnHuy_Click(object sender, RoutedEventArgs e)
+        {
+            this.Close();
+        }
     }
 }

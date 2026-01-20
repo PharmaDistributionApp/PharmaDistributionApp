@@ -102,8 +102,8 @@ namespace PharmaDistributionApp.Views.ProductView
         private void BtnPheDuyet_Click(object sender, RoutedEventArgs e)
         {
             var result = MessageBox.Show(
-                "Bạn có chắc chắn muốn PHÊ DUYỆT phiếu nhập này?\n(Kho sẽ được CỘNG thêm số lượng)",
-                "Xác nhận", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
+                "Xác nhận xử lý phiếu nhập này?\n\n- YES: Phê duyệt (Nhập kho)\n- NO: Từ chối (Hủy phiếu - Chỉ xóa tồn kho)\n- CANCEL: Thoát",
+                "Xử lý phiếu", MessageBoxButton.YesNoCancel, MessageBoxImage.Question);
 
             string trangThaiMoi = "";
             if (result == MessageBoxResult.Yes) trangThaiMoi = "Đã duyệt";
@@ -118,69 +118,83 @@ namespace PharmaDistributionApp.Views.ProductView
 
                     if (phieu != null)
                     {
-                        // [FIX 1] Kiểm tra xem phiếu đã xử lý chưa để tránh cộng kho 2 lần
                         if (phieu.Trangthai == "Đã duyệt" || phieu.Trangthai == "Đã hủy")
                         {
-                            MessageBox.Show("Phiếu này đã được xử lý rồi!", "Cảnh báo");
+                            MessageBox.Show($"Phiếu này đã xử lý rồi ({phieu.Trangthai})!", "Cảnh báo");
                             return;
                         }
 
-                        // [FIX 2] Kiểm tra chi tiết rỗng
                         var listChiTiet = context.Cthdnhaps.Where(ct => ct.Sohdnhap == phieu.Sohdnhap).ToList();
-                        if (listChiTiet.Count == 0 && trangThaiMoi == "Đã duyệt")
-                        {
-                            MessageBox.Show("Lỗi: Không tìm thấy chi tiết sản phẩm để nhập kho!", "Lỗi dữ liệu");
-                            return;
-                        }
 
-                        // --- LOGIC CẬP NHẬT TỒN KHO ---
+                        // ---------------------------------------------------------
+                        // TRƯỜNG HỢP 1: DUYỆT (YES) - Logic cũ (Không đổi)
+                        // ---------------------------------------------------------
                         if (trangThaiMoi == "Đã duyệt")
                         {
+                            if (listChiTiet.Count == 0) { MessageBox.Show("Phiếu rỗng!"); return; }
+
                             foreach (var item in listChiTiet)
                             {
-                                // Tìm hàng trong bảng Tonkho
-                                var tonKho = context.Tonkhos.FirstOrDefault(t =>
-                                    t.Masp == item.Masp &&
-                                    t.Malo == item.Malo &&
-                                    t.Makho == phieu.Makho);
+                                // 1. Tạo/Update Lô (Giữ nguyên)
+                                var loHangCheck = context.Lohangs.FirstOrDefault(l => l.Malo == item.Malo);
+                                var nsxDefault = DateOnly.FromDateTime(DateTime.Now);
+                                var hsdDefault = DateOnly.FromDateTime(DateTime.Now.AddYears(2));
 
+                                if (loHangCheck == null)
+                                {
+                                    context.Lohangs.Add(new Lohang { Malo = item.Malo, Masp = item.Masp, Nhacungcap = phieu.Sohdnhap, Nsx = nsxDefault, Hsd = hsdDefault });
+                                }
+                                else
+                                {
+                                    if (loHangCheck.Nsx == null) loHangCheck.Nsx = nsxDefault;
+                                    context.Entry(loHangCheck).State = EntityState.Modified;
+                                }
+
+                                // 2. Cộng kho (Giữ nguyên)
+                                var tonKho = context.Tonkhos.FirstOrDefault(t => t.Masp == item.Masp && t.Malo == item.Malo && t.Makho == phieu.Makho);
                                 if (tonKho != null)
                                 {
-                                    // Đã có -> Cộng thêm
                                     tonKho.Soluongton += item.Soluong;
-
-                                    // [QUAN TRỌNG] Báo cho EF biết dòng này đã sửa
                                     context.Entry(tonKho).State = EntityState.Modified;
                                 }
                                 else
                                 {
-                                    // Chưa có -> Tạo mới
-                                    var moi = new Tonkho
-                                    {
-                                        Masp = item.Masp,
-                                        Malo = item.Malo,
-                                        Makho = phieu.Makho,
-                                        Soluongton = item.Soluong
-                                    };
-                                    context.Tonkhos.Add(moi);
+                                    context.Tonkhos.Add(new Tonkho { Masp = item.Masp, Malo = item.Malo, Makho = phieu.Makho, Soluongton = item.Soluong });
                                 }
                             }
                         }
-                        // ------------------------------
+                        else if (trangThaiMoi == "Đã hủy")
+                        {
+                            var loCanXet = listChiTiet.Select(x => x.Malo).Distinct().ToList();
 
+                            foreach (var maLo in loCanXet)
+                            {
+                                if (string.IsNullOrEmpty(maLo)) continue;
+                                var tonKho = context.Tonkhos.FirstOrDefault(t => t.Malo == maLo);
+                                bool laTonKhoRac = (tonKho != null) && (tonKho.Soluongton == 0);
+
+                                if (laTonKhoRac)
+                                {
+                                    context.Tonkhos.Remove(tonKho);
+                                }
+                            }
+                        }
+
+                        // Cập nhật trạng thái phiếu
                         phieu.Trangthai = trangThaiMoi;
-                        context.Entry(phieu).State = EntityState.Modified; // Đảm bảo lưu trạng thái phiếu
+                        context.Entry(phieu).State = EntityState.Modified;
 
+                        // Lưu tất cả
                         context.SaveChanges();
 
-                        MessageBox.Show($"Đã cập nhật: {trangThaiMoi} và nhập kho thành công!", "Thông báo");
+                        MessageBox.Show($"Đã {trangThaiMoi} thành công!", "Thông báo");
                         LoadData(_maPN);
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi cập nhật: " + ex.Message);
+                MessageBox.Show("Lỗi: " + ex.Message);
             }
         }
 

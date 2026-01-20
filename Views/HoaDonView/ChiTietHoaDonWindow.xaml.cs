@@ -29,10 +29,6 @@ namespace PharmaDistributionApp.Views
             LoadData();
             CheckApprovalMode();
         }
-
-        // ===================================================================
-        // PHẦN 1: TẢI DỮ LIỆU TỪ SQL (GIỮ NGUYÊN)
-        // ===================================================================
         private void LoadData()
         {
             try
@@ -49,7 +45,6 @@ namespace PharmaDistributionApp.Views
                 using (var conn = new SQLiteConnection("Data Source=PharmaDB.db"))
                 {
                     conn.Open();
-                    // Load Header
                     string sqlH = $"SELECT H.*, P.{colName} as DoiTac, P.DIACHI FROM {tblHead} H LEFT JOIN {tblPartner} P ON H.{colPartner}=P.{colPartner} WHERE H.{colID}=@id";
                     var cmdH = new SQLiteCommand(sqlH, conn);
                     cmdH.Parameters.AddWithValue("@id", _invoice.MaHD);
@@ -63,10 +58,10 @@ namespace PharmaDistributionApp.Views
                         if (txtNhanVien != null) txtNhanVien.Text = reader["MANV"].ToString();
                         if (txtDiaChi != null) txtDiaChi.Text = reader["DIACHI"].ToString();
                         _vatRate = Convert.ToInt32(reader["VAT"]);
+                        _invoice.MaDT = reader[colPartner].ToString();
                     }
                     reader.Close();
 
-                    // Load Chi Tiet
                     string sqlD = $"SELECT CT.MASP, SP.TENSP, SP.DVT, CT.MALO, CT.SOLUONG, CT.{colGia} as Gia, CT.THANHTIEN FROM {tblCT} CT LEFT JOIN SANPHAM SP ON CT.MASP=SP.MASP WHERE CT.{colID}=@id";
                     var cmdD = new SQLiteCommand(sqlD, conn);
                     cmdD.Parameters.AddWithValue("@id", _invoice.MaHD);
@@ -96,15 +91,11 @@ namespace PharmaDistributionApp.Views
             catch (Exception ex) { MessageBox.Show("Lỗi load: " + ex.Message); }
         }
 
-        // ===================================================================
-        // PHẦN 2: LOGIC DUYỆT / TỪ CHỐI (QUAN TRỌNG)
-        // ===================================================================
         private void CheckApprovalMode()
         {
             string role = UserSession.CurrentUser?.Chucvu?.Trim() ?? "";
             bool isBoss = _approverRoles.Any(r => r.Equals(role, StringComparison.OrdinalIgnoreCase));
 
-            // Chỉ hiện nút duyệt nếu: Sếp + Đơn đang chờ (PheDuyet=1)
             if (isBoss && _invoice.PheDuyet == 1)
             {
                 if (pnlApprovalButtons != null) pnlApprovalButtons.Visibility = Visibility.Visible;
@@ -133,14 +124,18 @@ namespace PharmaDistributionApp.Views
 
         private void ProcessApproval(bool isApproved)
         {
-            // Chuẩn hóa ID
-            string cleanID = _invoice.MaHD.Trim();
+            string cleanID = _invoice.MaHD?.Trim();
+            if (string.IsNullOrEmpty(cleanID))
+            {
+                MessageBox.Show("Lỗi: Mã hóa đơn bị rỗng!", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
 
-            // Xác định bảng dựa vào Mã (HDX... là Xuất, còn lại là Nhập)
             bool isExport = cleanID.StartsWith("HDX", StringComparison.OrdinalIgnoreCase);
-
             string tblH = isExport ? "HOADONXUAT" : "HOADONNHAP";
             string colID = isExport ? "SOHDXUAT" : "SOHDNHAP";
+
+            bool updateSuccess = false; // Cờ đánh dấu cập nhật DB thành công
 
             using (var conn = new SQLiteConnection(Database.ConnectionString))
             {
@@ -153,23 +148,15 @@ namespace PharmaDistributionApp.Views
 
                         if (isApproved)
                         {
-                            // A. DUYỆT ĐƠN
-                            // 1. Cập nhật trạng thái Header
+                            // Cập nhật trạng thái
                             string sqlUpdate = $"UPDATE {tblH} SET PheDuyet=0, TRANGTHAI='Đã thanh toán' WHERE {colID}=@id";
                             var cmdUpdate = new SQLiteCommand(sqlUpdate, conn, trans);
                             cmdUpdate.Parameters.AddWithValue("@id", cleanID);
                             rowsAffected = cmdUpdate.ExecuteNonQuery();
-
-                            // 2. [QUAN TRỌNG] GỌI HÀM CẬP NHẬT KHO NGAY TẠI ĐÂY
-                            if (rowsAffected > 0)
-                            {
-                                // Truyền đúng connection và transaction đang mở vào
-                                UpdateStockAfterApproval(conn, trans, isExport, cleanID);
-                            }
                         }
                         else
                         {
-                            // B. TỪ CHỐI (Chỉ cập nhật trạng thái, KHÔNG trừ kho)
+                            // Hủy đơn
                             string sqlReject = $"UPDATE {tblH} SET PheDuyet=0, TRANGTHAI='Đã hủy' WHERE {colID}=@id";
                             var cmdReject = new SQLiteCommand(sqlReject, conn, trans);
                             cmdReject.Parameters.AddWithValue("@id", cleanID);
@@ -183,18 +170,40 @@ namespace PharmaDistributionApp.Views
                             return;
                         }
 
-                        trans.Commit();
-
-                        MessageBox.Show(isApproved ? "Duyệt và cập nhật kho thành công!" : "Đã từ chối đơn hàng.");
-                        this.DialogResult = true; // Báo reload
-                        Close();
+                        trans.Commit(); // [QUAN TRỌNG] Lưu và nhả khóa DB ngay tại đây
+                        updateSuccess = true;
                     }
                     catch (Exception ex)
                     {
                         trans.Rollback();
-                        MessageBox.Show("Lỗi SQL: " + ex.Message);
+                        MessageBox.Show("Lỗi SQL khi duyệt: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                     }
                 }
+            }
+            if (updateSuccess && isApproved)
+            {
+                try
+                {
+                    // Bây giờ mới gọi ông Kho
+                    WarehouseRequestService.GuiYeuCauTaoPhieuKho(cleanID, isExport, _invoice.MaDT, UserSession.CurrentUser.Manv);
+
+                    MessageBox.Show("Đã duyệt đơn và gửi yêu cầu sang Kho thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                    this.DialogResult = true;
+                    Close();
+                }
+                catch (Exception ex)
+                {
+                    // Nếu lỗi ở đây thì chỉ báo lỗi Service, còn Hóa đơn thì đã duyệt rồi (không Rollback nữa)
+                    MessageBox.Show("Đã duyệt hóa đơn, NHƯNG lỗi gửi sang Kho: " + ex.Message, "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    this.DialogResult = true;
+                    Close();
+                }
+            }
+            else if (updateSuccess && !isApproved)
+            {
+                MessageBox.Show("Đã từ chối đơn hàng.", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
+                this.DialogResult = true;
+                Close();
             }
         }
         private void UpdateStock(SQLiteConnection conn, SQLiteTransaction trans, bool isExport)
@@ -216,20 +225,15 @@ namespace PharmaDistributionApp.Views
 
                         if (isExport)
                         {
-                            // Xuất duyệt -> TRỪ KHO
                             new SQLiteCommand($"UPDATE TONKHO SET SOLUONGTON = SOLUONGTON - {sl} WHERE MALO='{ml}'", conn, trans).ExecuteNonQuery();
                         }
                         else
                         {
-                            // Nhập duyệt -> CỘNG KHO
-                            // Insert nếu chưa có
                             string sqlIns = "INSERT OR IGNORE INTO TONKHO (MAKHO, MASP, MALO, SOLUONGTON) VALUES ('KHO01', @msp, @ml, 0)";
                             var cmdIns = new SQLiteCommand(sqlIns, conn, trans);
                             cmdIns.Parameters.AddWithValue("@msp", msp);
                             cmdIns.Parameters.AddWithValue("@ml", ml);
                             cmdIns.ExecuteNonQuery();
-
-                            // Cộng
                             new SQLiteCommand($"UPDATE TONKHO SET SOLUONGTON = SOLUONGTON + {sl} WHERE MALO='{ml}'", conn, trans).ExecuteNonQuery();
                         }
                     }
@@ -237,13 +241,11 @@ namespace PharmaDistributionApp.Views
             }
         }
 
-        // Hàm cập nhật kho sau khi duyệt
         private void UpdateStockAfterApproval(SQLiteConnection conn, SQLiteTransaction trans, bool isExport, string invoiceID)
         {
             string tblCT = isExport ? "CTHDXUAT" : "CTHDNHAP";
             string colID = isExport ? "SOHDXUAT" : "SOHDNHAP";
 
-            // Lấy chi tiết hàng hóa
             string sql = $"SELECT MASP, MALO, SOLUONG FROM {tblCT} WHERE {colID} = @id";
 
             using (var cmd = new SQLiteCommand(sql, conn, trans))
@@ -259,18 +261,12 @@ namespace PharmaDistributionApp.Views
 
                         if (!isExport)
                         {
-                            // === NHẬP KHO (CỘNG) ===
-
-                            // a. Tạo dòng tồn kho = 0 nếu chưa có (để tránh lỗi UPDATE không tìm thấy dòng)
-                            // Giả sử mã kho mặc định là KHO_THUONG (hoặc bạn có thể lấy từ bảng PHIEUNHAP nếu có)
-                            // Ở đây tôi để tạm KHO_THUONG, bạn có thể sửa logic chọn kho sau
                             string sqlIns = "INSERT OR IGNORE INTO TONKHO (MAKHO, MASP, MALO, SOLUONGTON) VALUES ('KHO_THUONG', @msp, @ml, 0)";
                             var cmdIns = new SQLiteCommand(sqlIns, conn, trans);
                             cmdIns.Parameters.AddWithValue("@msp", msp);
                             cmdIns.Parameters.AddWithValue("@ml", ml);
                             cmdIns.ExecuteNonQuery();
 
-                            // b. Cộng số lượng
                             string sqlUp = "UPDATE TONKHO SET SOLUONGTON = SOLUONGTON + @sl WHERE MALO=@ml AND MASP=@msp";
                             var cmdUp = new SQLiteCommand(sqlUp, conn, trans);
                             cmdUp.Parameters.AddWithValue("@sl", sl);
@@ -280,7 +276,6 @@ namespace PharmaDistributionApp.Views
                         }
                         else
                         {
-                            // === XUẤT KHO (TRỪ) ===
 
                             string sqlUp = "UPDATE TONKHO SET SOLUONGTON = SOLUONGTON - @sl WHERE MALO=@ml AND MASP=@msp";
                             var cmdUp = new SQLiteCommand(sqlUp, conn, trans);
@@ -294,9 +289,6 @@ namespace PharmaDistributionApp.Views
             }
         }
 
-        // ===================================================================
-        // PHẦN 3: XUẤT PDF (GIỮ NGUYÊN)
-        // ===================================================================
         private void btnExportPDF_Click(object sender, RoutedEventArgs e)
         {
             try
@@ -310,7 +302,6 @@ namespace PharmaDistributionApp.Views
                     PdfWriter.GetInstance(doc, new FileStream(dlg.FileName, FileMode.Create));
                     doc.Open();
 
-                    // --- SỬA LỖI Ở ĐÂY: Dùng System.IO.Path ---
                     string fontPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "arial.ttf");
                     if (!File.Exists(fontPath)) fontPath = System.IO.Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Fonts), "tahoma.ttf");
 
@@ -323,7 +314,6 @@ namespace PharmaDistributionApp.Views
                     doc.Add(new Paragraph($"HÓA ĐƠN {_invoice.LoaiHD.ToUpper()}", fTitle) { Alignment = Element.ALIGN_CENTER });
                     doc.Add(new Paragraph(" ", fNorm));
 
-                    // Info Table
                     PdfPTable tInfo = new PdfPTable(2); tInfo.WidthPercentage = 100;
                     PdfPCell c1 = new PdfPCell(); c1.Border = Rectangle.NO_BORDER;
                     c1.AddElement(new Paragraph($"Đối tác: {txtTenDoiTac.Text}", fHeader));
@@ -337,7 +327,6 @@ namespace PharmaDistributionApp.Views
                     tInfo.AddCell(c2);
                     doc.Add(tInfo); doc.Add(new Paragraph(" ", fNorm));
 
-                    // Detail Table
                     PdfPTable tDet = new PdfPTable(6);
                     tDet.WidthPercentage = 100;
                     tDet.SetWidths(new float[] { 10f, 15f, 35f, 10f, 15f, 15f });
@@ -385,17 +374,12 @@ namespace PharmaDistributionApp.Views
             c.HorizontalAlignment = align; c.Padding = 5;
             t.AddCell(c);
         }
-
-        // ===================================================================
-        // PHẦN 4: UI EVENTS
-        // ===================================================================
         private void Window_KeyDown(object sender, KeyEventArgs e) { if (e.Key == Key.Escape) Close(); }
         private void Window_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) this.DragMove(); }
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (e.ButtonState == MouseButtonState.Pressed) DragMove(); }
         private void btnClose_Click(object sender, RoutedEventArgs e) { Close(); }
     }
 
-    // Class hỗ trợ hiển thị
     public class ChiTietHoaDonItem
     {
         public int STT { get; set; }

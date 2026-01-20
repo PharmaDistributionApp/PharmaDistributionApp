@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Media;
 using System.Data.SQLite;
 using System.Linq;
+using Microsoft.Data.Sqlite;
 
 namespace PharmaDistributionApp.Views.EmployeeView
 {
@@ -144,27 +145,22 @@ namespace PharmaDistributionApp.Views.EmployeeView
             string sql = "INSERT INTO NHANVIEN (MANV, TENNV, CCCD, GIOITINH, CHUCVU, EMAIL, SDT, DIACHI, NGAYSINH, TRANGTHAI, AVATAR) " +
                          "VALUES (@Manv, @Tennv, @Cccd, @GioiTinh, @Chucvu, @Email, @Sdt, @Diachi, @Ngaysinh, @TrangThai, @Avatar)";
 
-            var parameters = new Dictionary<string, object>
+            var parameters = new SqliteParameter[]
             {
-                { "@Manv", CurrentEmployee.Manv },
-                { "@Tennv", CurrentEmployee.Tennv },
-                { "@Cccd", CurrentEmployee.Cccd ?? "" },
-                { "@GioiTinh", CurrentEmployee.GioiTinh ?? "" },
-                { "@Chucvu", CurrentEmployee.Chucvu ?? "" },
-                { "@Email", CurrentEmployee.Email ?? "" },
-                { "@Sdt", CurrentEmployee.Sdt ?? "" },
-                { "@Diachi", CurrentEmployee.Diachi ?? "" },
-                { "@Ngaysinh", CurrentEmployee.Ngaysinh ?? (object)DBNull.Value },
-                { "@TrangThai", CurrentEmployee.TrangThai },
-                { "@Avatar", CurrentEmployee.AvatarBlob ?? (object)DBNull.Value }
+                new SqliteParameter("@Manv", CurrentEmployee.Manv),
+                new SqliteParameter("@Tennv", CurrentEmployee.Tennv),
+                new SqliteParameter("@Cccd", CurrentEmployee.Cccd ?? ""),
+                new SqliteParameter("@GioiTinh", CurrentEmployee.GioiTinh ?? ""),
+                new SqliteParameter("@Chucvu", CurrentEmployee.Chucvu ?? ""),
+                new SqliteParameter("@Email", CurrentEmployee.Email ?? ""),
+                new SqliteParameter("@Sdt", CurrentEmployee.Sdt ?? ""),
+                new SqliteParameter("@Diachi", CurrentEmployee.Diachi ?? ""),
+                new SqliteParameter("@Ngaysinh", CurrentEmployee.Ngaysinh ?? (object)DBNull.Value),
+                new SqliteParameter("@TrangThai", CurrentEmployee.TrangThai),
+                new SqliteParameter("@Avatar", CurrentEmployee.AvatarBlob ?? (object)DBNull.Value)
             };
 
-            // SỬA Ở ĐÂY: Chuyển Dictionary thành mảng SQLiteParameter[]
-            var sqliteParams = parameters
-                .Select(p => new SQLiteParameter(p.Key, p.Value))
-                .ToArray();
-
-            Database.ExecuteNonQuery(sql, sqliteParams);
+            Database.ExecuteNonQuery(sql, parameters);
         }
 
         private void UpdateEmployeeInDatabase()
@@ -182,27 +178,22 @@ namespace PharmaDistributionApp.Views.EmployeeView
                          "AVATAR = @Avatar " +
                          "WHERE MANV = @Manv";
 
-            var parameters = new Dictionary<string, object>
+            var parameters = new SqliteParameter[]
             {
-                { "@Manv", CurrentEmployee.Manv },
-                { "@Tennv", CurrentEmployee.Tennv },
-                { "@Cccd", CurrentEmployee.Cccd ?? "" },
-                { "@GioiTinh", CurrentEmployee.GioiTinh ?? "" },
-                { "@Chucvu", CurrentEmployee.Chucvu ?? "" },
-                { "@Email", CurrentEmployee.Email ?? "" },
-                { "@Sdt", CurrentEmployee.Sdt ?? "" },
-                { "@Diachi", CurrentEmployee.Diachi ?? "" },
-                { "@Ngaysinh", CurrentEmployee.Ngaysinh ?? (object)DBNull.Value },
-                { "@TrangThai", CurrentEmployee.TrangThai },
-                { "@Avatar", CurrentEmployee.AvatarBlob ?? (object)DBNull.Value }
+                new SqliteParameter("@Manv", CurrentEmployee.Manv),
+                new SqliteParameter("@Tennv", CurrentEmployee.Tennv),
+                new SqliteParameter("@Cccd", CurrentEmployee.Cccd ?? ""),
+                new SqliteParameter("@GioiTinh", CurrentEmployee.GioiTinh ?? ""),
+                new SqliteParameter("@Chucvu", CurrentEmployee.Chucvu ?? ""),
+                new SqliteParameter("@Email", CurrentEmployee.Email ?? ""),
+                new SqliteParameter("@Sdt", CurrentEmployee.Sdt ?? ""),
+                new SqliteParameter("@Diachi", CurrentEmployee.Diachi ?? ""),
+                new SqliteParameter("@Ngaysinh", CurrentEmployee.Ngaysinh ?? (object)DBNull.Value),
+                new SqliteParameter("@TrangThai", CurrentEmployee.TrangThai),
+                new SqliteParameter("@Avatar", CurrentEmployee.AvatarBlob ?? (object)DBNull.Value)
             };
 
-            // SỬA Ở ĐÂY: Chuyển Dictionary thành mảng SQLiteParameter[]
-            var sqliteParams = parameters
-                .Select(p => new SQLiteParameter(p.Key, p.Value))
-                .ToArray();
-
-            Database.ExecuteNonQuery(sql, sqliteParams);
+            Database.ExecuteNonQuery(sql, parameters);
         }
     }
 }

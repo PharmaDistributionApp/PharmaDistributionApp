@@ -7,7 +7,8 @@ using System.Windows.Input;
 using System.Windows.Media;
 using PharmaDistributionApp.Models;
 using PharmaDistributionApp.Views;
-using PharmaDistributionApp.Services; // <--- DÒNG QUAN TRỌNG ĐỂ HẾT LỖI
+using PharmaDistributionApp.Services;
+using Microsoft.Data.Sqlite;
 
 namespace PharmaDistributionApp.Views.LoginView
 {
@@ -51,8 +52,11 @@ namespace PharmaDistributionApp.Views.LoginView
                     LEFT JOIN NHANVIEN N ON T.MANV = N.MANV 
                     WHERE (T.MANV = @user OR N.EMAIL = @user)";
 
-                SQLiteParameter[] p = { new SQLiteParameter("@user", input) };
-                DataTable dt = Database.GetTable(sql, p);
+                var parameters = new SqliteParameter[]
+                 {
+                    new SqliteParameter("@user", input)
+                 };
+                DataTable dt = Database.GetTable(sql, parameters);
 
                 if (dt.Rows.Count == 0) { SetErrorState(txtUsername, "Tài khoản không tồn tại"); return; }
 

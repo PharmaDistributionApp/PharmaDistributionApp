@@ -216,7 +216,7 @@
                     <DataGridTextColumn Header="Mã SP" Binding="{Binding Masp}" Width="80" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Tên sản phẩm" Binding="{Binding Tensp}" Width="*" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Mã Lô" Binding="{Binding Malo}" Width="90" FontWeight="Bold" IsReadOnly="True"/>
-                    <DataGridTextColumn Header="Hạn Dùng" Binding="{Binding Hsd, StringFormat=dd/MM/yyyy}" Width="100" IsReadOnly="True"/>
+                    <DataGridTextColumn Header="Hạn Dùng" Binding="{Binding Hsd}" Width="100" IsReadOnly="True"/>
                     <DataGridTextColumn Header="Số lượng" Binding="{Binding Soluong}" Width="100" FontWeight="Bold" Foreground="#4C70BA" IsReadOnly="True"/>
                     <DataGridTemplateColumn Header="Kho" Width="180">
                         <DataGridTemplateColumn.CellTemplate>

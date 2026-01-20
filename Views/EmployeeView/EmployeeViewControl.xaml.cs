@@ -11,6 +11,7 @@ using System.Windows.Media;
 using System.Windows.Data;   
 using ClosedXML.Excel; 
 using Microsoft.Win32;
+using Microsoft.Data.Sqlite;
 namespace PharmaDistributionApp.Views.EmployeeView
 {
     public partial class EmployeeViewControl : UserControl, INotifyPropertyChanged
@@ -334,16 +335,16 @@ namespace PharmaDistributionApp.Views.EmployeeView
                     try
                     {
                         string sql = "DELETE FROM NHANVIEN WHERE MANV = @Manv";
-                        var parameters = new System.Collections.Generic.Dictionary<string, object>
+
+                        // SỬA: Tạo mảng SqliteParameter (chữ 'l' thường)
+                        var parameters = new SqliteParameter[]
                         {
-                            { "@Manv", selectedEmp.Manv }
+                            new SqliteParameter("@Manv", selectedEmp.Manv)
                         };
 
-                        var sqliteParams = System.Linq.Enumerable.ToArray(
-                            System.Linq.Enumerable.Select(parameters, p => new System.Data.SQLite.SQLiteParameter(p.Key, p.Value))
-                        );
+                        // Gọi hàm chuẩn trong Database.cs
+                        Database.ExecuteNonQuery(sql, parameters);
 
-                        Database.ExecuteNonQuery(sql, sqliteParams);
                         LoadEmployeeData();
                     }
                     catch (Exception ex)

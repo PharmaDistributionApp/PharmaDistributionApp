@@ -93,20 +93,57 @@ namespace PharmaDistributionApp.Views.ProductView
                         if (!string.IsNullOrEmpty(keyword))
                             query = query.Where(x => x.sp.Masp.ToLower().Contains(keyword) || x.sp.Tensp.ToLower().Contains(keyword));
 
-                        resultList = query.ToList().Select(x => new KhoHangDisplayItem
+                        // Lấy ngày hiện tại để so sánh
+                        var homNay = DateOnly.FromDateTime(DateTime.Now);
+
+                        resultList = query.ToList().Select(x =>
                         {
-                            Masp = x.sp.Masp,
-                            Tensp = x.sp.Tensp,
-                            Dvt = x.sp.Dvt,
-                            TenKho = x.k.Tenkho,
-                            Makho = x.tk.Makho,
-                            HSD = x.subLh != null ? x.subLh.Hsd.ToString() : "---",
-                            SoLuongTon = (int)x.tk.Soluongton,
-                            Malo = x.tk.Malo,
-                            TenTrangThai = x.tk.Soluongton == 0 ? "Hết hàng" : (x.tk.Soluongton <= 10 ? "Sắp hết" : "Còn hàng"),
-                            MauNenTrangThai = x.tk.Soluongton == 0 ? "#FFEBEE" : (x.tk.Soluongton <= 10 ? "#FFF3E0" : "#E8F5E9"),
-                            MauChuTrangThai = x.tk.Soluongton == 0 ? "#C62828" : (x.tk.Soluongton <= 10 ? "#EF6C00" : "#2E7D32"),
-                            LoaiRow = "TONKHO"
+                            // 1. Tính toán logic trạng thái
+                            string status, bg, fg;
+                            bool isHetHan = x.subLh != null && x.subLh.Hsd.HasValue && x.subLh.Hsd.Value < homNay;
+
+                            if (x.tk.Soluongton == 0)
+                            {
+                                status = "Hết hàng";
+                                bg = "#FFEBEE"; // Đỏ nhạt
+                                fg = "#C62828"; // Đỏ đậm
+                            }
+                            else if (isHetHan)
+                            {
+                                status = "Hết hạn SD";
+                                bg = "#37474F"; // Màu xám đen (hoặc đen) để cảnh báo nguy hiểm
+                                fg = "#FF5252"; // Chữ đỏ sáng
+                            }
+                            else if (x.tk.Soluongton <= 10)
+                            {
+                                status = "Sắp hết";
+                                bg = "#FFF3E0"; // Cam nhạt
+                                fg = "#EF6C00"; // Cam đậm
+                            }
+                            else
+                            {
+                                status = "Còn hàng";
+                                bg = "#E8F5E9"; // Xanh nhạt
+                                fg = "#2E7D32"; // Xanh đậm
+                            }
+
+                            return new KhoHangDisplayItem
+                            {
+                                Masp = x.sp.Masp,
+                                Tensp = x.sp.Tensp,
+                                Dvt = x.sp.Dvt,
+                                TenKho = x.k.Tenkho,
+                                Makho = x.tk.Makho,
+                                HSD = x.subLh != null && x.subLh.Hsd.HasValue ? x.subLh.Hsd.Value.ToString("dd/MM/yyyy") : "---",
+                                SoLuongTon = (int)x.tk.Soluongton,
+                                Malo = x.tk.Malo,
+
+                                // Gán các biến đã tính toán ở trên
+                                TenTrangThai = status,
+                                MauNenTrangThai = bg,
+                                MauChuTrangThai = fg,
+                                LoaiRow = "TONKHO"
+                            };
                         }).ToList();
                     }
                     else if (_currentMode == ViewMode.PhieuNhap)
@@ -114,6 +151,7 @@ namespace PharmaDistributionApp.Views.ProductView
                         var query = from pn in context.Phieunhaps
                                     join k in context.Khos on pn.Makho equals k.Makho into kGroup
                                     from subK in kGroup.DefaultIfEmpty()
+                                    where pn.Trangthai != "Yêu cầu từ HD" && pn.Trangthai != "Cập nhật từ HD"
                                     select new { pn, subK };
 
                         if (!string.IsNullOrEmpty(keyword))
@@ -150,6 +188,7 @@ namespace PharmaDistributionApp.Views.ProductView
                         var query = from px in context.Phieuxuats
                                     join k in context.Khos on px.Makho equals k.Makho into kGroup
                                     from subK in kGroup.DefaultIfEmpty()
+                                    where px.Trangthai != "Yêu cầu từ HD" && px.Trangthai != "Cập nhật từ HD"
                                     select new { px, subK };
 
                         if (!string.IsNullOrEmpty(keyword))
@@ -224,8 +263,6 @@ namespace PharmaDistributionApp.Views.ProductView
                 {
                     var notiList = new List<ThongBaoItem>();
 
-                    // --- [MỚI] PHẦN XỬ LÝ YÊU CẦU TỪ HÓA ĐƠN ---
-                    // 1. Tìm yêu cầu Nhập kho (Trạng thái chứa 'Yêu cầu từ HD')
                     var listReqNhap = context.Phieunhaps.ToList()
                         .Where(p => !string.IsNullOrEmpty(p.Trangthai) &&
                                    (p.Trangthai.Contains("Yêu cầu từ HD") || p.Trangthai.Contains("Cập nhật từ HD")))
@@ -235,20 +272,19 @@ namespace PharmaDistributionApp.Views.ProductView
                     {
                         notiList.Add(new ThongBaoItem
                         {
-                            LoaiThongBao = "REQ_NHAP_KHO",
+                            LoaiThongBao = "YEUCAU_NHAP_KHO",
                             MaRef = p.Mapn,
                             TieuDe = "Yêu cầu nhập kho",
                             NoiDung = $"Hóa đơn: {p.Sohdnhap}",
-                            ChiTiet = "Cần tạo phiếu chi tiết",
+                            ChiTiet = "",
                             ThoiGian = DateTime.Now.ToString("HH:mm dd/MM"),
-                            SortDate = DateTime.Now.AddDays(1), // Ưu tiên hiển thị đầu
+                            SortDate = DateTime.Now.AddDays(1), 
                             IconKind = "TruckDelivery",
                             Color = "#FFFFFF",
-                            BgColor = "#2962FF" // Xanh đậm
+                            BgColor = "#2962FF" 
                         });
                     }
 
-                    // 2. Tìm yêu cầu Xuất kho
                     var listReqXuat = context.Phieuxuats.ToList()
                         .Where(p => !string.IsNullOrEmpty(p.Trangthai) &&
                                    (p.Trangthai.Contains("Yêu cầu từ HD") || p.Trangthai.Contains("Cập nhật từ HD")))
@@ -258,21 +294,19 @@ namespace PharmaDistributionApp.Views.ProductView
                     {
                         notiList.Add(new ThongBaoItem
                         {
-                            LoaiThongBao = "REQ_XUAT_KHO",
+                            LoaiThongBao = "YEUCAU_XUAT_KHO",
                             MaRef = p.Mapx,
                             TieuDe = "Yêu cầu xuất kho",
                             NoiDung = $"Hóa đơn: {p.Sohdxuat}",
-                            ChiTiet = "Cần xuất hàng ngay",
+                            ChiTiet = "",
                             ThoiGian = DateTime.Now.ToString("HH:mm dd/MM"),
                             SortDate = DateTime.Now.AddDays(1),
                             IconKind = "Dolly",
                             Color = "#FFFFFF",
-                            BgColor = "#FF6D00" // Cam đậm
+                            BgColor = "#FF6D00" 
                         });
                     }
-                    // --- [KẾT THÚC PHẦN MỚI] ---
 
-                    // --- [LOGIC CŨ - GIỮ NGUYÊN] ---
                     var listNhap = context.Phieunhaps.ToList()
                         .Where(p => !string.IsNullOrEmpty(p.Trangthai) && p.Trangthai.ToLower().Contains("chờ duyệt"))
                         .ToList();
@@ -566,12 +600,74 @@ namespace PharmaDistributionApp.Views.ProductView
             }
         }
 
+        private void XulyTaoPhieuTuDong(ThongBaoItem item)
+        {
+            try
+            {
+                using (var context = new QuanlyphanphoiduocphamContext())
+                {
+                    string maHoaDonToFill = "";
+                    bool isXuatMode = false;
+
+                    if (item.LoaiThongBao == "REQ_NHAP_KHO")
+                    {
+                        // Tìm phiếu nhập để lấy SOHDNHAP
+                        var phieu = context.Phieunhaps.FirstOrDefault(p => p.Mapn == item.MaRef);
+                        if (phieu != null) maHoaDonToFill = phieu.Sohdnhap;
+                    }
+                    else if (item.LoaiThongBao == "REQ_XUAT_KHO")
+                    {
+                        // Tìm phiếu xuất để lấy SOHDXUAT
+                        var phieu = context.Phieuxuats.FirstOrDefault(p => p.Mapx == item.MaRef);
+                        if (phieu != null)
+                        {
+                            maHoaDonToFill = phieu.Sohdxuat;
+                            isXuatMode = true;
+                        }
+                    }
+
+                    if (!string.IsNullOrEmpty(maHoaDonToFill))
+                    {
+                        // Mở cửa sổ tạo phiếu và truyền mã hóa đơn vào
+                        var window = new TaoPhieuWindow(isXuatMode, maHoaDonToFill);
+                        window.Owner = Window.GetWindow(this); // Căn giữa theo cửa sổ chính
+                        window.ShowDialog();
+
+                        // Sau khi đóng cửa sổ tạo phiếu, làm mới lại dữ liệu kho
+                        LoadData();
+                        LoadCanhBaoCount();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi mở cửa sổ tạo phiếu: " + ex.Message);
+            }
+        }
+
         private void lbThongBao_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var item = lbThongBao.SelectedItem as ThongBaoItem;
             if (item == null || string.IsNullOrEmpty(item.LoaiThongBao)) return;
             btnBell.IsChecked = false;
             string loai = item.LoaiThongBao.ToUpper();
+
+            if (loai == "YEUCAU_NHAP_KHO" || loai == "YEUCAU_XUAT_KHO")
+            {
+                bool isXuat = (loai == "YEUCAU_XUAT_KHO");
+                string maHD = item.NoiDung.Replace("Hóa đơn: ", "").Trim();
+
+                var window = new TaoPhieuWindow(isXuat, maHD);
+                window.Owner = Window.GetWindow(this);
+
+                if (window.ShowDialog() == true)
+                {
+                    LoadData();
+                    LoadCanhBaoCount();
+                }
+                return;
+            }
+
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
                 if (loai == "PHIEU_NHAP")
@@ -629,7 +725,22 @@ namespace PharmaDistributionApp.Views.ProductView
             string loai = (item.LoaiThongBao ?? "").ToUpper();
             Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
-                if (loai == "PHIEU_NHAP")
+                if (loai == "YEUCAU_NHAP_KHO" || loai == "YEUCAU_XUAT_KHO")
+                {
+                    bool isXuat = (loai == "YEUCAU_XUAT_KHO");
+
+                    string maHD = item.NoiDung.Replace("Hóa đơn: ", "").Trim();
+
+                    var window = new TaoPhieuWindow(isXuat, maHD);
+                    window.Owner = Window.GetWindow(this);
+
+                    if (window.ShowDialog() == true)
+                    {
+                        LoadData();
+                        LoadCanhBaoCount();
+                    }
+                }
+                else if (loai == "PHIEU_NHAP")
                 {
                     RadPhieuNhap.IsChecked = true;
                     _currentMode = ViewMode.PhieuNhap;

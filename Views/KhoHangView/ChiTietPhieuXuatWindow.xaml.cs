@@ -121,80 +121,85 @@ namespace PharmaDistributionApp.Views.ProductView
                     var px = context.Phieuxuats.FirstOrDefault(p => p.Mapx == _mapx);
                     if (px != null)
                     {
-                        // Kiểm tra trạng thái hiện tại (tránh duyệt lại phiếu đã duyệt)
                         if (px.Trangthai == "Đã duyệt" || px.Trangthai == "Đã hủy")
                         {
                             MessageBox.Show("Phiếu này đã được xử lý rồi!", "Cảnh báo");
                             return;
                         }
 
-                        // Lấy danh sách chi tiết
+                        // Lấy danh sách chi tiết (Sản phẩm cần xuất)
                         var listChiTiet = context.Cthdxuats.Where(ct => ct.Sohdxuat == px.Sohdxuat).ToList();
 
-                        // [FIX 1] Kiểm tra xem có chi tiết không. Nếu rỗng thì không trừ kho được.
                         if (listChiTiet.Count == 0 && trangThaiMoi == "Đã duyệt")
                         {
-                            MessageBox.Show("Lỗi: Không tìm thấy chi tiết sản phẩm của hóa đơn này!\nVui lòng kiểm tra lại dữ liệu Hóa đơn.", "Lỗi dữ liệu");
+                            MessageBox.Show("Lỗi: Không tìm thấy chi tiết sản phẩm!", "Lỗi dữ liệu");
                             return;
                         }
 
-                        // --- LOGIC CẬP NHẬT TỒN KHO ---
+                        // --- TRƯỜNG HỢP 1: DUYỆT (TRỪ KHO) ---
                         if (trangThaiMoi == "Đã duyệt")
                         {
-                            // BƯỚC 1: KIỂM TRA ĐỦ HÀNG KHÔNG? (Check All First)
+                            // Bước A: Kiểm tra đủ hàng không?
                             foreach (var item in listChiTiet)
                             {
                                 var tonKho = context.Tonkhos.FirstOrDefault(t =>
-                                    t.Masp == item.Masp &&
-                                    t.Malo == item.Malo && // Phải khớp Lô
-                                    t.Makho == px.Makho);  // Phải khớp Kho
+                                    t.Masp == item.Masp && t.Malo == item.Malo && t.Makho == px.Makho);
 
                                 if (tonKho == null || tonKho.Soluongton < item.Soluong)
                                 {
-                                    MessageBox.Show($"Lỗi: Không đủ hàng để xuất!\n" +
-                                                    $"- SP: {item.Masp} (Lô: {item.Malo})\n" +
-                                                    $"- Kho: {px.Makho}\n" +
-                                                    $"- Tồn: {tonKho?.Soluongton ?? 0} | Cần: {item.Soluong}",
-                                                    "Không thể duyệt", MessageBoxButton.OK, MessageBoxImage.Error);
-                                    return; // Dừng ngay lập tức
+                                    MessageBox.Show($"Lỗi: Không đủ hàng!\nSP: {item.Masp} - Lô: {item.Malo}\nTồn: {tonKho?.Soluongton ?? 0} < Cần: {item.Soluong}", "Lỗi");
+                                    return; // Dừng ngay
                                 }
                             }
 
-                            // BƯỚC 2: TRỪ KHO (Execute)
+                            // Bước B: Trừ kho thật
                             foreach (var item in listChiTiet)
                             {
-                                // Tìm lại đúng object đó để update
                                 var tonKho = context.Tonkhos.FirstOrDefault(t =>
-                                    t.Masp == item.Masp &&
-                                    t.Malo == item.Malo &&
-                                    t.Makho == px.Makho);
+                                    t.Masp == item.Masp && t.Malo == item.Malo && t.Makho == px.Makho);
 
                                 if (tonKho != null)
                                 {
                                     tonKho.Soluongton -= item.Soluong;
 
-                                    // [FIX 2] Ép buộc EF Core đánh dấu là đã sửa đổi (Modified)
-                                    context.Entry(tonKho).State = EntityState.Modified;
+                                    // [QUAN TRỌNG] Nếu hết hàng (sl = 0) -> Xóa dòng tồn kho này luôn cho sạch
+                                    // Nếu bạn muốn giữ dòng tồn = 0 thì comment đoạn if này lại.
+                                    if (tonKho.Soluongton == 0)
+                                    {
+                                        context.Tonkhos.Remove(tonKho);
+                                    }
+                                    else
+                                    {
+                                        context.Entry(tonKho).State = EntityState.Modified;
+                                    }
                                 }
                             }
                         }
 
+                        // --- TRƯỜNG HỢP 2: HỦY ---
+                        else if (trangThaiMoi == "Đã hủy")
+                        {
+                            // Nếu phiếu xuất chỉ là nháp (chưa trừ kho) thì Hủy đơn giản là đổi trạng thái.
+                            // Không cần làm gì thêm ở đây.
+                        }
+
                         // Cập nhật trạng thái phiếu
                         px.Trangthai = trangThaiMoi;
-                        context.Entry(px).State = EntityState.Modified; // Đảm bảo trạng thái được lưu
+                        context.Entry(px).State = EntityState.Modified;
 
                         context.SaveChanges();
 
-                        MessageBox.Show($"Đã {trangThaiMoi} phiếu và cập nhật kho thành công!", "Thông báo");
-
-                        // Load lại giao diện chi tiết để thấy trạng thái mới
+                        MessageBox.Show($"Đã {trangThaiMoi} phiếu thành công!", "Thông báo");
                         LoadChiTiet();
                     }
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show("Lỗi cập nhật: " + ex.Message);
+                // Hiển thị lỗi chi tiết (Inner Exception) để dễ debug nếu dính khóa ngoại
+                string msg = ex.Message;
+                if (ex.InnerException != null) msg += "\nChi tiết: " + ex.InnerException.Message;
+                MessageBox.Show("Lỗi cập nhật: " + msg);
             }
         }
         private void BtnDong_Click(object sender, RoutedEventArgs e)

@@ -2,7 +2,8 @@
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
-using System.Data.SQLite;
+using Microsoft.Data.Sqlite;
+using PharmaDistributionApp.Services;
 
 namespace PharmaDistributionApp.Views.LoginView
 {
@@ -112,10 +113,10 @@ namespace PharmaDistributionApp.Views.LoginView
                                SET MatKhau = @pass
                                WHERE MANV = (SELECT MANV FROM NHANVIEN WHERE EMAIL = @email)";
 
-                SQLiteParameter[] p =
+                SqliteParameter[] p =
                 {
-                    new SQLiteParameter("@pass", newPass),
-                    new SQLiteParameter("@email", _userEmail)
+                    new SqliteParameter("@pass", newPass),
+                    new SqliteParameter("@email", _userEmail)
                 };
 
                 int rows = PharmaDistributionApp.Services.Database.ExecuteNonQuery(sql, p);
