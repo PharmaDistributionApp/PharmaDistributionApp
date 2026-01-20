@@ -52,8 +52,8 @@
                         <materialDesign:PackIcon Kind="DomainPlus" Foreground="White" Width="24" Height="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
                         <TextBlock x:Name="lblTitle" Text="THÊM NHÀ CUNG CẤP" Foreground="White" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <Button HorizontalAlignment="Right" VerticalAlignment="Center" Background="Transparent" BorderBrush="Transparent" Click="BtnThoat_Click" Margin="0,0,10,0">
-                        <materialDesign:PackIcon Kind="Close" Foreground="White" Opacity="0.7"/>
+                    <Button HorizontalAlignment="Right" VerticalAlignment="Center" Click="BtnThoat_Click" Style="{StaticResource MaterialDesignIconForegroundButton}" Foreground="White" Margin="0,0,10,0">
+                        <materialDesign:PackIcon Kind="Close"/>
                     </Button>
                 </Grid>
             </Border>
@@ -72,11 +72,11 @@
 
                 <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,20">
                     <TextBlock Text="Mã nhà cung cấp" Style="{StaticResource LabelStyle}"/>
-                    <TextBox x:Name="txtMaNCC" IsReadOnly="True" Background="#F5F5F5" FontWeight="Bold" Foreground="#1A237E" BorderBrush="#DDD" materialDesign:HintAssist.Hint="Tự động tạo..."/>
+                    <TextBox x:Name="txtMaNCC" IsReadOnly="True" Background="#F5F5F5" FontWeight="Bold" Foreground="#4C70BA" BorderBrush="#DDD" materialDesign:HintAssist.Hint="Tự động tạo..."/>
                 </StackPanel>
 
                 <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,20">
-                    <TextBlock Text="Tên nhà cung cấp (Bắt buộc)" Style="{StaticResource LabelStyle}" Foreground="#D32F2F"/>
+                    <TextBlock Text="Tên nhà cung cấp (Bắt buộc)" Style="{StaticResource LabelStyle}" Foreground="#ff666666"/>
                     <TextBox x:Name="txtTenNCC" materialDesign:HintAssist.Hint="Nhập tên đầy đủ..."/>
                     <TextBlock x:Name="errTenNCC" Style="{StaticResource ErrorTextStyle}"/>
                 </StackPanel>

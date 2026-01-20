@@ -7,7 +7,7 @@
              mc:Ignorable="d"
              d:DesignHeight="700" d:DesignWidth="1100"
              Background="#F3F5F9" FontFamily="{DynamicResource MaterialDesignFont}"
-             MouseDown="UserControl_MouseDown" Focusable="True">
+             MouseDown="Root_MouseDown" Focusable="True">
     <UserControl.Resources>
         <Style TargetType="DataGridColumnHeader">
             <Setter Property="Background" Value="#4C70BA"/>

@@ -307,7 +307,31 @@ namespace PharmaDistributionApp.Views.NCCView
         }
         private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            Keyboard.ClearFocus(); // Lệnh này giúp bỏ focus khỏi ô tìm kiếm
+            // Kiểm tra xem vị trí click chuột có trúng DataGridRow không
+            var hitResult = VisualTreeHelper.HitTest(dgvNhaCungCap, e.GetPosition(dgvNhaCungCap));
+
+            // Nếu click ra ngoài bảng hoặc vào vùng trắng của bảng (không trúng dòng nào)
+            if (hitResult == null || !IsClickOnRow(e.OriginalSource as DependencyObject))
+            {
+                dgvNhaCungCap.SelectedItem = null; // Hủy chọn dòng
+                Keyboard.ClearFocus(); // Bỏ focus khỏi ô tìm kiếm
+            }
+        }
+
+        // Hàm phụ trợ kiểm tra
+        private bool IsClickOnRow(DependencyObject target)
+        {
+            while (target != null)
+            {
+                // Nếu click trúng dòng -> Return true (Không hủy chọn)
+                if (target is DataGridRow) return true;
+
+                // Nếu click trúng DataGrid nhưng chưa gặp Row -> Return false (Hủy chọn)
+                if (target is DataGrid) return false;
+
+                target = VisualTreeHelper.GetParent(target);
+            }
+            return false;
         }
 
     }

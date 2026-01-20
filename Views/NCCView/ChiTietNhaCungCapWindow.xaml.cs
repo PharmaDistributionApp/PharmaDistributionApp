@@ -4,7 +4,9 @@ using System;
 using System.Data;
 using System.Data.SQLite;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace PharmaDistributionApp.Views.NCCView
 {
@@ -40,28 +42,6 @@ namespace PharmaDistributionApp.Views.NCCView
                 LoadProductList(ncc.Mancc);
             }
         }
-
-        private void LoadData(DataRowView row)
-        {
-            try
-            {
-                // 1. Hiển thị thông tin cơ bản của Nhà cung cấp từ dòng dữ liệu truyền vào
-                string maNCC = row["MANCC"].ToString();
-                lblMaNCC.Text = maNCC;
-                lblTenNCC.Text = row["TENNCC"].ToString();
-                lblSdt.Text = row["SDT"].ToString();
-                lblEmail.Text = row["EMAIL"].ToString();
-                lblDiaChi.Text = row["DIACHI"].ToString();
-
-                // 2. Truy vấn danh sách sản phẩm thuộc nhà cung cấp này
-                LoadProductList(maNCC);
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi hiển thị dữ liệu: " + ex.Message, "Thông báo", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
         private void LoadProductList(string maNCC)
         {
             try
@@ -103,6 +83,35 @@ namespace PharmaDistributionApp.Views.NCCView
             {
                 this.DragMove();
             }
+        }
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Kiểm tra xem chuột có click vào trong DataGrid (dgSanPham) hay không
+            var hitResult = VisualTreeHelper.HitTest(dgSanPham, e.GetPosition(dgSanPham));
+
+            // Nếu click ra ngoài bảng hoàn toàn (hitResult == null)
+            // HOẶC click vào vùng trống trong bảng (không trúng dòng dữ liệu)
+            if (hitResult == null || !IsClickOnRow(e.OriginalSource as DependencyObject))
+            {
+                dgSanPham.SelectedItem = null; // Bỏ chọn dòng
+                Keyboard.ClearFocus(); // Bỏ focus bàn phím
+            }
+        }
+
+        // Hàm phụ trợ: Kiểm tra xem đối tượng được click có phải là một phần của DataGridRow không
+        private bool IsClickOnRow(DependencyObject target)
+        {
+            while (target != null)
+            {
+                // Nếu duyệt lên gặp DataGridRow -> Đang click trúng dòng -> Return true (Giữ selection)
+                if (target is DataGridRow) return true;
+
+                // Nếu duyệt lên gặp DataGrid mà chưa thấy Row -> Click vào vùng trắng -> Return false (Bỏ selection)
+                if (target is DataGrid) return false;
+
+                target = VisualTreeHelper.GetParent(target);
+            }
+            return false;
         }
     }
 }

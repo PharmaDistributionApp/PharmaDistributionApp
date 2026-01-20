@@ -1,6 +1,10 @@
-﻿using System.Windows;
-using PharmaDistributionApp.Models;
-using System.Globalization;
+﻿using PharmaDistributionApp.Models;
+using System;
+using System.Linq;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Input;
+using System.Windows.Media;
 
 namespace PharmaDistributionApp.Views.KhachHangView
 {
@@ -9,24 +13,86 @@ namespace PharmaDistributionApp.Views.KhachHangView
         public ChiTietKhachHang(Khachhang kh)
         {
             InitializeComponent();
+            SetupEvents();
             LoadData(kh);
+        }
+
+        private void SetupEvents()
+        {
+            // SỬA: Xử lý phím ESC để đóng
+            this.KeyDown += (s, e) => {
+                if (e.Key == Key.Escape) this.Close();
+            };
         }
 
         private void LoadData(Khachhang kh)
         {
-            if (kh != null)
-            {
-                lblMaKH.Text = kh.Makh;
-                lblTenKH.Text = kh.Tenkh;
-                lblSdt.Text = kh.Sdt ?? "Chưa cập nhật";
-                lblEmail.Text = kh.Email ?? "Chưa cập nhật";
-                lblDiaChi.Text = kh.Diachi ?? "Chưa cập nhật";
-                lblLoaiKH.Text = kh.Loaikh ?? "Khách lẻ";
+            if (kh == null) return;
 
-                // Định dạng tiền tệ cho Doanh số
-                decimal doanhSo = kh.Doanhso ?? 0;
-                lblDoanhSo.Text = doanhSo.ToString("N0", CultureInfo.GetCultureInfo("vi-VN")) + " VNĐ";
+            lblMaKH.Text = kh.Makh;
+            lblTenKH.Text = kh.Tenkh?.ToUpper();
+            lblSdt.Text = !string.IsNullOrEmpty(kh.Sdt) ? kh.Sdt : "---";
+            lblEmail.Text = !string.IsNullOrEmpty(kh.Email) ? kh.Email : "---";
+            lblDiaChi.Text = !string.IsNullOrEmpty(kh.Diachi) ? kh.Diachi : "---";
+            lblLoaiKH.Text = !string.IsNullOrEmpty(kh.Loaikh) ? kh.Loaikh : "Thường";
+
+            try
+            {
+                using (var context = new QuanlyphanphoiduocphamContext())
+                {
+                    var listHoadon = context.Hoadonxuats
+                        .Where(hd => hd.Makh == kh.Makh)
+                        .OrderByDescending(hd => hd.Ngaylap)
+                        .ToList();
+
+                    dgHoadon.ItemsSource = listHoadon;
+
+                    double totalRevenue = listHoadon.Sum(hd => hd.Tongtien ?? 0);
+                    lblTongDoanhSo.Text = $"{totalRevenue:N0} VND";
+                }
             }
+            catch (Exception)
+            {
+                dgHoadon.ItemsSource = null;
+                lblTongDoanhSo.Text = "0 VND";
+            }
+        }
+
+        // SỬA: Click ra ngoài bảng để hủy chọn dòng
+        private void Window_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Kiểm tra xem chuột có click vào trong DataGrid hay không
+            // Sử dụng VisualTreeHelper để kiểm tra chính xác phần tử được click
+            var hitResult = VisualTreeHelper.HitTest(dgHoadon, e.GetPosition(dgHoadon));
+
+            // Nếu click ra ngoài bảng hoàn toàn (hitResult == null)
+            // HOẶC click vào vùng trống trong bảng (không trúng dòng dữ liệu)
+            if (hitResult == null || !IsClickOnRow(e.OriginalSource as DependencyObject))
+            {
+                dgHoadon.SelectedItem = null; // Bỏ chọn dòng
+                Keyboard.ClearFocus(); // Bỏ focus bàn phím
+            }
+        }
+        private bool IsClickOnRow(DependencyObject target)
+        {
+            while (target != null)
+            {
+                // Nếu duyệt lên gặp DataGridRow -> Đang click trúng dòng -> Return true
+                if (target is DataGridRow) return true;
+
+                // Nếu duyệt lên gặp DataGrid mà chưa thấy Row -> Click vào vùng trắng -> Return false
+                if (target is DataGrid) return false;
+
+                target = VisualTreeHelper.GetParent(target);
+            }
+            return false;
+        }
+
+
+        private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
         }
 
         private void BtnDong_Click(object sender, RoutedEventArgs e)

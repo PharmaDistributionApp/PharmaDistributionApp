@@ -1,16 +1,17 @@
-﻿using PharmaDistributionApp.Models;
+﻿using ClosedXML.Excel;
+using Microsoft.Win32;
+using OfficeOpenXml;
+using OfficeOpenXml.Style;
+using PharmaDistributionApp.Models;
 using PharmaDistributionApp.Views.KhachHangView; // Namespace chứa cửa sổ ChiTietKhachHang
 using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
-using Microsoft.Win32;
-using System.IO;
-using ClosedXML.Excel;
-using System.Collections.Generic;
+using System.Windows.Media;
 
 namespace PharmaDistributionApp.Views
 {
@@ -107,36 +108,57 @@ namespace PharmaDistributionApp.Views
         }
         private void BtnXoa_Click(object sender, RoutedEventArgs e)
         {
-            if (dgvKhachHang.SelectedItem is Khachhang selected)
+            var menuItem = sender as MenuItem;
+            var kh = menuItem.DataContext as Khachhang; // Lấy khách hàng từ dòng chọn
+
+            if (kh == null) return;
+
+            try
             {
-                var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa khách hàng: {selected.Tenkh}?",
-                    "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-
-                if (result == MessageBoxResult.Yes)
+                using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    try
-                    {
-                        using (var context = new QuanlyphanphoiduocphamContext())
-                        {
-                            // Kiểm tra ràng buộc hóa đơn
-                            bool hasInvoice = context.Hoadonxuats.Any(h => h.Makh == selected.Makh);
-                            if (hasInvoice)
-                            {
-                                MessageBox.Show("Không thể xóa khách hàng này vì đã có dữ liệu hóa đơn liên quan!", "Cảnh báo");
-                                return;
-                            }
+                    // 1. KIỂM TRA RÀNG BUỘC: KHÁCH HÀNG ĐÃ CÓ HÓA ĐƠN CHƯA?
+                    // Hóa đơn xuất (Hoadonxuats) là lịch sử mua hàng của khách
+                    bool hasInvoice = context.Hoadonxuats.Any(hd => hd.Makh == kh.Makh);
 
-                            var kh = context.Khachhangs.Find(selected.Makh);
-                            if (kh != null)
-                            {
-                                context.Khachhangs.Remove(kh);
-                                context.SaveChanges();
-                                LoadData(); // Tải lại danh sách
-                            }
+                    if (hasInvoice)
+                    {
+                        MessageBox.Show(
+                            $"Không thể xóa khách hàng '{kh.Tenkh}'.\n\n" +
+                            "Lý do: Khách hàng này đã có lịch sử giao dịch (Hóa đơn xuất).\n" +
+                            "Việc xóa sẽ làm mất dữ liệu lịch sử bán hàng.\n\n" +
+                            "Gợi ý: Bạn có thể sửa thông tin thay vì xóa.",
+                            "Không thể xóa",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Stop);
+                        return; // Dừng ngay, không xóa
+                    }
+
+                    // 2. Nếu chưa có hóa đơn, hỏi xác nhận xóa
+                    var result = MessageBox.Show(
+                        $"Bạn có chắc chắn muốn xóa khách hàng: {kh.Tenkh}?\n" +
+                        "Hành động này không thể hoàn tác.",
+                        "Xác nhận xóa",
+                        MessageBoxButton.YesNo,
+                        MessageBoxImage.Question);
+
+                    if (result == MessageBoxResult.Yes)
+                    {
+                        var dbKH = context.Khachhangs.Find(kh.Makh);
+                        if (dbKH != null)
+                        {
+                            context.Khachhangs.Remove(dbKH);
+                            context.SaveChanges();
+
+                            MessageBox.Show("Đã xóa khách hàng thành công.", "Thông báo");
+                            LoadData(); // Load lại bảng
                         }
                     }
-                    catch (Exception ex) { MessageBox.Show("Lỗi xóa: " + ex.Message); }
                 }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi khi xóa: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
         private void BtnXuatExcel_Click(object sender, RoutedEventArgs e)
@@ -235,6 +257,43 @@ namespace PharmaDistributionApp.Views
                     MessageBox.Show($"Có lỗi khi xuất file khách hàng: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
                 }
             }
+        }
+        private void Root_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            // Kiểm tra xem chuột có đang nằm trên DataGrid hay không
+            // Nếu chuột click vào vùng trống (trong hoặc ngoài bảng) -> Hủy chọn dòng
+
+            // Cách đơn giản nhất:
+            // Nếu điểm click không phải là một phần tử con của DataGridRow, ta hủy chọn.
+            // Tuy nhiên, để đơn giản hóa cho yêu cầu "click vào vị trí bất kỳ (trống)":
+
+            // HitTest để xem click vào đâu
+            var hitResult = VisualTreeHelper.HitTest(dgvKhachHang, e.GetPosition(dgvKhachHang));
+
+            // Nếu click ra ngoài bảng hoàn toàn (hitResult == null)
+            // HOẶC click vào bảng nhưng không trúng dòng dữ liệu nào (click vào vùng trắng dưới các dòng)
+            if (hitResult == null || !IsClickOnRow(e.OriginalSource as DependencyObject))
+            {
+                dgvKhachHang.SelectedItem = null; // Bỏ chọn dòng
+                Keyboard.ClearFocus(); // Bỏ focus khỏi ô tìm kiếm hoặc các control khác
+            }
+        }
+
+        // Hàm phụ trợ để kiểm tra xem có click trúng dòng dữ liệu không
+        private bool IsClickOnRow(DependencyObject target)
+        {
+            // Duyệt cây giao diện từ điểm click đi lên
+            while (target != null)
+            {
+                // Nếu gặp DataGridRow -> Đang click vào dòng -> Không hủy chọn
+                if (target is DataGridRow) return true;
+
+                // Nếu gặp DataGrid -> Đã duyệt hết bên trong bảng mà chưa gặp Row -> Click vào vùng trắng
+                if (target is DataGrid) return false;
+
+                target = VisualTreeHelper.GetParent(target);
+            }
+            return false;
         }
     }
 }

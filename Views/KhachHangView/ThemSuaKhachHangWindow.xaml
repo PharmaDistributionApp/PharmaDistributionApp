@@ -2,52 +2,130 @@
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:materialDesign="http://materialdesigninxaml.net/winfx/xaml/themes"
-        Title="Thông tin khách hàng" Height="500" Width="450"
+        Title="Cập nhật Khách hàng" Height="580" Width="700"
         WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
-        Background="White" FontFamily="Segoe UI">
+        Background="Transparent" AllowsTransparency="True" WindowStyle="None"
+        FontFamily="Segoe UI">
 
-    <Grid Margin="25">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
+    <Window.Resources>
+        <Style TargetType="TextBlock" x:Key="LabelStyle">
+            <Setter Property="Foreground" Value="#666"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="FontWeight" Value="Medium"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+        </Style>
 
-        <TextBlock x:Name="txtTitle" Text="THÊM KHÁCH HÀNG MỚI" 
-                   HorizontalAlignment="Center" Foreground="#4F7CC9" 
-                   FontSize="20" FontWeight="Bold" Margin="0,0,0,20"/>
+        <Style TargetType="TextBox" BasedOn="{StaticResource MaterialDesignTextBox}">
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Padding" Value="0,5"/>
+            <Setter Property="materialDesign:HintAssist.IsFloating" Value="False"/>
+            <Setter Property="materialDesign:TextFieldAssist.UnderlineBrush" Value="#4C70BA"/>
+            <Setter Property="CaretBrush" Value="#4C70BA"/>
+            <Setter Property="SelectionBrush" Value="#4C70BA"/>
+        </Style>
 
-        <StackPanel Grid.Row="1">
-            <TextBox x:Name="txtMaKH" materialDesign:HintAssist.Hint="Mã khách hàng" 
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,15"/>
+        <Style TargetType="TextBlock" x:Key="ErrorTextStyle">
+            <Setter Property="Foreground" Value="#D32F2F"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Resources>
 
-            <TextBox x:Name="txtTenKH" materialDesign:HintAssist.Hint="Tên khách hàng" 
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,15"/>
+    <Border Background="White" CornerRadius="15" BorderThickness="1" BorderBrush="#EEEEEE">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="20" ShadowDepth="3" Opacity="0.2" Color="Black"/>
+        </Border.Effect>
 
-            <TextBox x:Name="txtSdt" materialDesign:HintAssist.Hint="Số điện thoại" 
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,15"/>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
 
-            <TextBox x:Name="txtEmail" materialDesign:HintAssist.Hint="Email" 
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,15"/>
+            <Border Grid.Row="0" Background="#4C70BA" CornerRadius="14,14,0,0" Height="55" MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                <Grid>
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                        <materialDesign:PackIcon Kind="AccountPlus" Foreground="White" Width="24" Height="24" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="lblTitle" Text="THÊM KHÁCH HÀNG" Foreground="White" FontSize="16" FontWeight="Bold" VerticalAlignment="Center"/>
+                    </StackPanel>
+                    <Button HorizontalAlignment="Right" VerticalAlignment="Center" Click="BtnThoat_Click" Style="{StaticResource MaterialDesignIconForegroundButton}" Foreground="White" Margin="0,0,10,0">
+                        <materialDesign:PackIcon Kind="Close"/>
+                    </Button>
+                </Grid>
+            </Border>
 
-            <ComboBox x:Name="cbLoaiKH" materialDesign:HintAssist.Hint="Loại khách hàng" 
-                      Style="{StaticResource MaterialDesignFloatingHintComboBox}" Margin="0,0,0,15">
-                <ComboBoxItem Content="Khách lẻ"/>
-                <ComboBoxItem Content="Nhà thuốc"/>
-                <ComboBoxItem Content="Đại lý"/>
-            </ComboBox>
+            <Grid Grid.Row="1" Margin="40,30">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="30"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-            <TextBox x:Name="txtDiaChi" materialDesign:HintAssist.Hint="Địa chỉ" 
-                     Style="{StaticResource MaterialDesignFloatingHintTextBox}" 
-                     TextWrapping="Wrap" AcceptsReturn="True" Height="60"/>
-        </StackPanel>
+                <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,0,20">
+                    <TextBlock Text="Mã khách hàng" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="txtMaKH" IsReadOnly="True" Background="#F5F5F5" FontWeight="Bold" Foreground="#4C70BA" BorderBrush="#DDD" materialDesign:HintAssist.Hint="Tự động tạo..."/>
+                </StackPanel>
 
-        <StackPanel Grid.Row="2" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
-            <Button Content="Hủy" Click="BtnHuy_Click" IsCancel="True"
-                    Width="100" Margin="0,0,10,0" Style="{StaticResource MaterialDesignOutlinedButton}"/>
+                <StackPanel Grid.Row="0" Grid.Column="2" Margin="0,0,0,20">
+                    <TextBlock Text="Tên khách hàng (Bắt buộc)" Style="{StaticResource LabelStyle}" Foreground="#ff666666"/>
+                    <TextBox x:Name="txtTenKH" materialDesign:HintAssist.Hint="Nhập tên đầy đủ..."/>
+                    <TextBlock x:Name="errTenKH" Style="{StaticResource ErrorTextStyle}"/>
+                </StackPanel>
 
-            <Button Content="Lưu" Click="BtnLuu_Click" IsDefault="True"
-                    Width="100" Background="#4F7CC9" BorderBrush="#4F7CC9"/>
-        </StackPanel>
-    </Grid>
+                <StackPanel Grid.Row="1" Grid.Column="0" Margin="0,0,0,20">
+                    <TextBlock Text="Số điện thoại (Bắt buộc)" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="txtSdt" materialDesign:HintAssist.Hint="Nhập số điện thoại"/>
+                    <TextBlock x:Name="errSdt" Style="{StaticResource ErrorTextStyle}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,0,0,20">
+                    <TextBlock Text="Email liên hệ" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="txtEmail" materialDesign:HintAssist.Hint="example@domain.com"/>
+                    <TextBlock x:Name="errEmail" Style="{StaticResource ErrorTextStyle}"/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="0" Margin="0,0,0,20">
+                    <TextBlock Text="Loại khách hàng" Style="{StaticResource LabelStyle}"/>
+                    <ComboBox x:Name="cbbLoaiKH" Style="{StaticResource MaterialDesignComboBox}" FontSize="14" materialDesign:HintAssist.Hint="Chọn loại..." Foreground="Black">
+                        <ComboBoxItem Content="Thường" IsSelected="True"/>
+                        <ComboBoxItem Content="Thân thiết"/>
+                        <ComboBoxItem Content="VIP"/>
+                        <ComboBoxItem Content="Chuỗi nhà thuốc"/>
+                    </ComboBox>
+                </StackPanel>
+
+                <StackPanel Grid.Row="2" Grid.Column="2" Margin="0,0,0,20">
+                    <TextBlock Text="Doanh số tích lũy" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="txtDoanhSo" IsReadOnly="True" Background="#F5F5F5" Text="0" Foreground="#4c70ba" FontWeight="Bold" materialDesign:HintAssist.Hint="Tự động tính..."/>
+                </StackPanel>
+
+                <StackPanel Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3">
+                    <TextBlock Text="Địa chỉ (Bắt buộc)" Style="{StaticResource LabelStyle}"/>
+                    <TextBox x:Name="txtDiaChi" TextWrapping="Wrap" materialDesign:HintAssist.Hint="Nhập địa chỉ chi tiết..." />
+                    <TextBlock x:Name="errDiaChi" Style="{StaticResource ErrorTextStyle}"/>
+                </StackPanel>
+            </Grid>
+
+            <Border Grid.Row="2" Background="#FAFAFA" CornerRadius="0,0,14,14" Padding="20,15">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button Content="HỦY BỎ" IsCancel="True" Click="BtnThoat_Click" Width="100" Height="40" Background="White" Foreground="#666" BorderBrush="#DDD" BorderThickness="1" Margin="0,0,15,0" materialDesign:ButtonAssist.CornerRadius="20"/>
+                    <Button Content="LƯU DỮ LIỆU" Click="BtnLuu_Click" Width="140" Height="40" Background="#4C70BA" Foreground="White" BorderThickness="0" FontWeight="Bold" materialDesign:ButtonAssist.CornerRadius="20">
+                        <Button.Effect>
+                            <DropShadowEffect BlurRadius="10" ShadowDepth="2" Opacity="0.3" Color="#1A237E"/>
+                        </Button.Effect>
+                    </Button>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
 </Window>
