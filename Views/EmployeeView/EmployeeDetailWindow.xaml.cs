@@ -25,6 +25,13 @@ namespace PharmaDistributionApp.Views.EmployeeView
             InitializeComponent();
             this.DataContext = employee;    
         }
+        private void Header_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+            {
+                this.DragMove();
+            }
+        }
 
         private void Button_Close_Click(object sender, RoutedEventArgs e)
         {

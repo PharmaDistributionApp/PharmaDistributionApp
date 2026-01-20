@@ -173,7 +173,7 @@
                         <TextBlock Text="🔍" VerticalAlignment="Center" Margin="15,0,0,0" Foreground="Gray" FontSize="16"/>
                         <TextBox x:Name="txtTimKiem" 
                                  materialDesign:TextFieldAssist.UnderlineBrush="#4C70BA"
-         
+                                 GotFocus="txtTimKiem_GotFocus"
                                  CaretBrush="#4C70BA"
                                  SelectionBrush="#4C70BA"
                                  SelectionOpacity="0.3"
@@ -262,14 +262,14 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="VerticalAlignment" Value="Center"/>
-                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="HorizontalAlignment" Value="Left"/>
                                 <Setter Property="TextTrimming" Value="CharacterEllipsis"/>
                                 <Setter Property="ToolTip" Value="{Binding TenLoai}"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Giá bán" Binding="{Binding Giaban, StringFormat={}{0:N0} đ}" Width="180">
+                    <DataGridTextColumn Header="Giá bán" Binding="{Binding Giaban, StringFormat={}{0:N0} VNĐ}" Width="180">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Right"/>
@@ -277,12 +277,12 @@
                                 <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="Foreground" Value="Black"/>
                                 <Setter Property="Padding" Value="0,0,15,0"/>
-                                <Setter Property="ToolTip" Value="{Binding Giaban, StringFormat={}{0:N0} đ}"/>
+                                <Setter Property="ToolTip" Value="{Binding Giaban, StringFormat={}{0:N0} VNĐ}"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
 
-                    <DataGridTextColumn Header="Nhà cung cấp" Binding="{Binding Nhacungcap}" Width="200">
+                    <DataGridTextColumn Header="Nhà cung cấp" Binding="{Binding Tenncc}" Width="200">
                     </DataGridTextColumn>
 
                     <DataGridTemplateColumn Header="Thao tác" Width="90">

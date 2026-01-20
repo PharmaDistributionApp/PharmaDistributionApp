@@ -28,7 +28,49 @@
             <ColumnDefinition Width="6*"/>
         </Grid.ColumnDefinitions>
 
-        <Border Grid.Column="0" Background="#90B0D5" CornerRadius="20,0,0,20"/>
+        <Border Grid.Column="0" 
+        x:Name="LeftColumnBorder"
+        CornerRadius="20,0,0,20" 
+        Background="Transparent">
+
+            <Border.OpacityMask>
+                <VisualBrush Stretch="Fill">
+                    <VisualBrush.Visual>
+                        <Border Background="Black" 
+                        CornerRadius="20,0,0,20"
+                        Width="{Binding ActualWidth, ElementName=LeftColumnBorder}"
+                        Height="{Binding ActualHeight, ElementName=LeftColumnBorder}"/>
+                    </VisualBrush.Visual>
+                </VisualBrush>
+            </Border.OpacityMask>
+
+            <Grid>
+                <Border CornerRadius="20,0,0,20"
+                HorizontalAlignment="Stretch"
+                VerticalAlignment="Stretch">
+                    <Border.Background>
+                        <ImageBrush ImageSource="/Images/background.jpg" Stretch="UniformToFill"/>
+                    </Border.Background>
+                    <Border.Effect>
+                        <BlurEffect Radius="10" KernelType="Gaussian"/>
+                    </Border.Effect>
+                </Border>
+
+                <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center">
+                    <Image Source="/Images/logo.png" 
+                   Width="350" Height="250" 
+                   Stretch="Uniform"
+                   RenderOptions.BitmapScalingMode="HighQuality">
+                        <Image.Effect>
+                            <DropShadowEffect BlurRadius="20" Direction="270" Opacity="0.15" ShadowDepth="3"/>
+                        </Image.Effect>
+                        <Image.RenderTransform>
+                            <TranslateTransform X="-20" Y="0"/>
+                        </Image.RenderTransform>
+                    </Image>
+                </StackPanel>
+            </Grid>
+        </Border>
 
         <Border Grid.Column="1" Background="White" 
                 CornerRadius="30,20,20,30" Margin="-30,0,0,0">

@@ -8,7 +8,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PharmaDistributionApp.Models; // Đảm bảo namespace này đúng với dự án của bạn
+using PharmaDistributionApp.Models;
 
 namespace PharmaDistributionApp.Views.ProductView
 {
@@ -25,25 +25,27 @@ namespace PharmaDistributionApp.Views.ProductView
             LoadData();
         }
 
-        // --- 1. TẢI DỮ LIỆU (SẮP XẾP THEO MÃ SP) ---
+        private void ClearGridSelection()
+        {
+            if (dgvSanPham != null)
+            {
+                dgvSanPham.UnselectAll();
+                dgvSanPham.SelectedItem = null;
+            }
+        }
         private void LoadData()
         {
             try
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
-                {
-                    // Truy vấn trực tiếp và sắp xếp luôn từ Database
+                { 
                     var data = (from sp in context.Sanphams
-                                    // Join bảng Loại thuốc để lấy Tên loại
                                 join l in context.Loaisps on sp.Maloai equals l.Maloai into tableLoai
                                 from l in tableLoai.DefaultIfEmpty()
-
-                                    // Join bảng Tồn kho để tính tổng tồn (Nếu bạn muốn xem nhanh số lượng)
-                                    // Nếu muốn bỏ hẳn cột số lượng, bạn có thể xóa 2 dòng dưới này
+                                join ncc in context.Nhacungcaps on sp.Nhacungcap equals ncc.Mancc into tableNCC
+                                from ncc in tableNCC.DefaultIfEmpty()
                                 join tk in context.Tonkhos on sp.Masp equals tk.Masp into tableKho
                                 let tongTon = tableKho.Sum(x => (int?)x.Soluongton) ?? 0
-
-                                // Sắp xếp theo Mã sản phẩm
                                 orderby sp.Masp ascending
 
                                 select new
@@ -53,15 +55,13 @@ namespace PharmaDistributionApp.Views.ProductView
                                     sp.Dvt,
                                     sp.Giaban,
                                     sp.Nhacungcap,
-                                    sp.Nuocsx,   // Thêm nước sản xuất (nếu cần hiển thị)
+                                    sp.Nuocsx, 
 
                                     TenLoai = (l != null) ? l.Tenloai : "Khác",
-
-                                    // Tổng tồn kho (Có thể xóa nếu không cần hiện ở bảng này)
+                                    Tenncc = (ncc != null) ? ncc.Tenncc : "Chưa xác định",
                                     SoLuongTon = tongTon
                                 }).ToList();
 
-                    // Gán dữ liệu vào lưới
                     dgvSanPham.ItemsSource = data;
                 }
             }
@@ -70,13 +70,19 @@ namespace PharmaDistributionApp.Views.ProductView
                 MessageBox.Show("Lỗi tải dữ liệu sản phẩm: " + ex.Message);
             }
         }
-
-        // --- 2. TÌM KIẾM ---
+        private void txtTimKiem_GotFocus(object sender, RoutedEventArgs e)
+        {
+            ClearGridSelection();
+            if (dgvSanPham != null)
+            {
+                dgvSanPham.UnselectAll();
+                dgvSanPham.SelectedItem = null;
+            }
+        }
         private void txtTimKiem_TextChanged(object sender, TextChangedEventArgs e)
         {
+            ClearGridSelection();
             if (dgvSanPham == null) return;
-
-            // Lấy từ khóa, nếu ô tìm kiếm đang hiện Hint (null hoặc rỗng) thì coi như keyword rỗng
             string keyword = txtTimKiem.Text.ToLower().Trim();
 
             try
@@ -86,13 +92,15 @@ namespace PharmaDistributionApp.Views.ProductView
                     var baseQuery = from sp in context.Sanphams
                                     join l in context.Loaisps on sp.Maloai equals l.Maloai into tableJoined
                                     from l in tableJoined.DefaultIfEmpty()
+                                    join ncc in context.Nhacungcaps on sp.Nhacungcap equals ncc.Mancc into tableNCC
+                                    from ncc in tableNCC.DefaultIfEmpty()
                                     select new
                                     {
                                         sp.Masp,
                                         sp.Tensp,
                                         sp.Dvt,
                                         sp.Giaban,
-                                        sp.Nhacungcap,
+                                        Tenncc = (ncc != null) ? ncc.Tenncc : "Chưa xác định",
                                         TenLoai = (l != null) ? l.Tenloai : "Khác",
                                     };
 
@@ -102,9 +110,8 @@ namespace PharmaDistributionApp.Views.ProductView
                             x.Masp.ToLower().Contains(keyword) ||
                             x.Tensp.ToLower().Contains(keyword) ||
                             x.TenLoai.ToLower().Contains(keyword) ||
-                            (x.Nhacungcap != null && x.Nhacungcap.ToLower().Contains(keyword))
+                           x.Tenncc.ToLower().Contains(keyword)
                         )
-                        // Kết quả tìm kiếm cũng nên sắp xếp theo Mã
                         .OrderBy(x => x.Masp)
                         .ToList();
 
@@ -112,9 +119,8 @@ namespace PharmaDistributionApp.Views.ProductView
                     }
                     else
                     {
-                        // Nếu xóa hết chữ tìm kiếm -> Load lại danh sách gốc theo thứ tự Mã
                         dgvSanPham.ItemsSource = baseQuery.OrderBy(x => x.Masp).ToList();
-                        LoadData(); // Gọi lại LoadData để lấy đầy đủ màu sắc trạng thái
+                        LoadData(); 
                     }
                 }
             }
@@ -124,13 +130,10 @@ namespace PharmaDistributionApp.Views.ProductView
             }
         }
 
-        // --- CÁC NÚT CHỨC NĂNG ---
-
         private void BtnThemMoi_Click(object sender, RoutedEventArgs e)
         {
+            ClearGridSelection();
             var window = new ThemSanPhamWindow();
-
-            // Khi thêm xong, reload lại bảng
             window.OnProductAdded += () =>
             {
                 LoadData();
@@ -141,7 +144,7 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private void BtnXuatExcel_Click(object sender, RoutedEventArgs e)
         {
-            // Cấu hình License cho EPPlus 8
+            ClearGridSelection();
             ExcelPackage.License.SetNonCommercialPersonal("PharmaApp Student");
 
             if (dgvSanPham.ItemsSource == null)
@@ -164,8 +167,6 @@ namespace PharmaDistributionApp.Views.ProductView
                     using (var package = new ExcelPackage())
                     {
                         var worksheet = package.Workbook.Worksheets.Add("Sản Phẩm");
-
-                        // Header
                         string[] headers = { "Mã SP", "Tên Sản Phẩm", "Đơn vị", "Loại", "Giá Bán", "Trạng Thái", "Tồn Kho", "Nhà Cung Cấp" };
                         for (int i = 0; i < headers.Length; i++)
                         {
@@ -178,8 +179,6 @@ namespace PharmaDistributionApp.Views.ProductView
                             cell.Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
                             cell.Style.Border.BorderAround(ExcelBorderStyle.Thin);
                         }
-
-                        // Data
                         int row = 2;
                         foreach (dynamic item in listData)
                         {
@@ -235,7 +234,6 @@ namespace PharmaDistributionApp.Views.ProductView
         {
             try
             {
-                // 1. Lấy các thành phần UI từ Menu
                 var menuItem = sender as MenuItem;
                 if (menuItem == null) return;
 
@@ -245,19 +243,15 @@ namespace PharmaDistributionApp.Views.ProductView
                 var btn = contextMenu.PlacementTarget as Button;
                 if (btn == null) return;
 
-                // 2. Lấy dữ liệu dòng hiện tại (Dùng object thay vì ép kiểu cứng)
                 object rowData = btn.DataContext;
 
                 if (rowData != null)
                 {
                     string maSPCanSua = "";
-
-                    // 3. Sử dụng 'dynamic' để lấy thuộc tính Masp
-                    // Cách này hoạt động với cả Class Sanpham, DTO, hoặc Anonymous Type (select new { ... })
                     try
                     {
                         dynamic data = rowData;
-                        maSPCanSua = data.Masp; // Đảm bảo trong câu lệnh Select của bạn có thuộc tính tên là "Masp"
+                        maSPCanSua = data.Masp;
                     }
                     catch
                     {
@@ -265,13 +259,9 @@ namespace PharmaDistributionApp.Views.ProductView
                         return;
                     }
 
-                    // 4. Mở cửa sổ sửa
                     if (!string.IsNullOrEmpty(maSPCanSua))
                     {
-                        // Đảm bảo đã using namespace chứa ThemSanPhamWindow
                         var win = new PharmaDistributionApp.Views.ProductView.ThemSanPhamWindow(maSPCanSua);
-
-                        // Đăng ký sự kiện: Khi sửa xong thì load lại lưới
                         win.OnProductAdded += () => LoadData();
 
                         win.ShowDialog();
@@ -295,7 +285,6 @@ namespace PharmaDistributionApp.Views.ProductView
             {
                 try
                 {
-                    // Dùng Reflection lấy dữ liệu từ Anonymous Type
                     string masp = (string)item.GetType().GetProperty("Masp").GetValue(item, null);
                     string tensp = (string)item.GetType().GetProperty("Tensp").GetValue(item, null);
 
@@ -309,7 +298,7 @@ namespace PharmaDistributionApp.Views.ProductView
                             {   
                                 context.Sanphams.Remove(dbSp);
                                 context.SaveChanges();
-                                LoadData(); // Tải lại để cập nhật danh sách
+                                LoadData(); 
                                 MessageBox.Show("Đã xóa thành công!");
                             }
                         }
@@ -346,14 +335,10 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private void UserControl_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            // Kiểm tra: Nếu con chuột KHÔNG nằm trên DataGrid thì mới bỏ chọn
-            // (Nếu chuột đang ở trên DataGrid nghĩa là người dùng đang muốn chọn dòng, ta không được can thiệp)
             if (!dgvSanPham.IsMouseOver)
             {
-                dgvSanPham.SelectedItem = null; // Bỏ chọn dòng hiện tại
-
-                // Tùy chọn: Làm mất focus của ô tìm kiếm nếu muốn
-                // Keyboard.ClearFocus(); 
+                dgvSanPham.SelectedItem = null; 
+                Keyboard.ClearFocus(); 
             }
         }
     }

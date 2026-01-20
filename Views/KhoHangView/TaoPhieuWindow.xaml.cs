@@ -13,7 +13,7 @@ using PharmaDistributionApp.Services;
 
 namespace PharmaDistributionApp.Views.ProductView
 {
-    public partial class NhapHangWindow : Window
+    public partial class TaoPhieuWindow : Window
     {
         private enum Mode { Nhap, Xuat }
         private Mode _currentMode = Mode.Nhap;
@@ -33,7 +33,7 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private List<ChiTietView> _listChiTiet = new List<ChiTietView>();
 
-        public NhapHangWindow(bool isXuat = false)
+        public TaoPhieuWindow(bool isXuat = false)
         {
             InitializeComponent();
             dpNgayLap.SelectedDate = DateTime.Now;
