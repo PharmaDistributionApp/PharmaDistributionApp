@@ -250,6 +250,7 @@
 
                                     <ListBox x:Name="lbThongBao" Grid.Row="1" BorderThickness="0" 
                                      MouseDoubleClick="lbThongBao_MouseDoubleClick" 
+                                     PreviewMouseDoubleClick="lbThongBao_MouseDoubleClick"
                                      Background="Transparent" MaxHeight="450" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
                                         <ListBox.ItemContainerStyle>
                                             <Style TargetType="ListBoxItem">
@@ -277,7 +278,9 @@
 
                                         <ListBox.ItemTemplate>
                                             <DataTemplate>
-                                                <Grid>
+                                                <Grid Background="Transparent" 
+                                                  PreviewMouseLeftButtonDown="NotificationItem_Click"
+                                                  Cursor="Hand">
                                                     <Grid.ColumnDefinitions>
                                                         <ColumnDefinition Width="Auto"/>
                                                         <ColumnDefinition Width="*"/>
