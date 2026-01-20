@@ -11,6 +11,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Input;
 using PharmaDistributionApp.Views.KhoHangView;
+using PharmaDistributionApp.Services;
 
 namespace PharmaDistributionApp.Views.ProductView
 {

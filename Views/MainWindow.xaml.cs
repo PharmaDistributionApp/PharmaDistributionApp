@@ -2,7 +2,8 @@
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media;
-using PharmaDistributionApp.Services;
+using PharmaDistributionApp.Services; // Để dùng UserSession
+using PharmaDistributionApp.Models;   // Để dùng Employee
 using PharmaDistributionApp.Views.DashBoardView;
 using PharmaDistributionApp.Views.EmployeeView;
 using PharmaDistributionApp.Views.LoginView;
@@ -14,22 +15,26 @@ namespace PharmaDistributionApp.Views
 {
     public partial class MainWindow : Window
     {
-        // Biến lưu thông tin người dùng hiện tại
+        // Biến lưu thông tin người dùng cục bộ (Chỉ để binding nếu cần)
         public Employee CurrentUser { get; set; }
 
-        // SỬA LỖI: Thuộc tính này lấy trực tiếp từ CurrentUser để các tab khác (AccountControl) không bị lỗi
-        public string CurrentMaNV => CurrentUser?.Manv;
-
-        // Constructor nhận tham số Employee từ màn hình Đăng nhập
-        public MainWindow(Employee user)
+        public MainWindow()
         {
             InitializeComponent();
 
-            // Lưu user vào biến toàn cục và đồng bộ vào Session để các tab con dùng chung
-            this.CurrentUser = user;
-            UserSession.CurrentUser = user;
+            // [SỬA LỖI 1]: Lấy dữ liệu trực tiếp từ Session thay vì tham số
+            // Điều này đảm bảo dù khởi tạo ở đâu cũng có dữ liệu đúng
+            if (UserSession.IsLoggedIn && UserSession.CurrentUser != null)
+            {
+                this.CurrentUser = UserSession.CurrentUser;
+            }
+            else
+            {
+                // Nếu chưa đăng nhập (Debug mode), gán dữ liệu mẫu hoặc rỗng
+                this.CurrentUser = new Employee { Tennv = "Admin (Debug)", Chucvu = "Quản lý" };
+            }
 
-            // Hiển thị thông tin lên Header góc trái
+            // Hiển thị thông tin lên Header
             LoadUserData();
 
             // Mặc định chọn Menu Tổng quan
@@ -37,30 +42,33 @@ namespace PharmaDistributionApp.Views
             MainContent.Content = new DashBoardViewControl();
         }
 
-        public MainWindow() : this(null) { }
-
-        private void LoadUserData()
+        // Hàm nạp dữ liệu lên Header
+        public void LoadUserData()
         {
-            if (CurrentUser == null) return;
+            // Luôn lấy từ Session mới nhất (phòng trường hợp vừa đổi Avatar)
+            var user = UserSession.CurrentUser ?? this.CurrentUser;
 
-            // 1. Gán Tên và Chức vụ thực tế
-            txbUserName.Text = !string.IsNullOrEmpty(CurrentUser.Tennv) ? CurrentUser.Tennv : "Người dùng";
-            txbUserRole.Text = !string.IsNullOrEmpty(CurrentUser.Chucvu) ? CurrentUser.Chucvu : "Nhân viên";
+            if (user == null) return;
 
-            // 2. Xử lý Avatar bằng thuộc tính AvatarSource có sẵn
-            if (CurrentUser.AvatarSource != null)
+            // 1. Gán Tên và Chức vụ
+            txbUserName.Text = !string.IsNullOrEmpty(user.Tennv) ? user.Tennv : "Người dùng";
+            txbUserRole.Text = !string.IsNullOrEmpty(user.Chucvu) ? user.Chucvu : "Nhân viên";
+
+            // 2. Xử lý Avatar (Dùng property AvatarSource đã có trong Model)
+            if (user.AvatarSource != null)
             {
-                imgAvatarBrush.ImageSource = CurrentUser.AvatarSource;
-                iconAvatar.Visibility = Visibility.Collapsed; // Ẩn icon mặc định
+                imgAvatarBrush.ImageSource = user.AvatarSource;
+                if (iconAvatar != null) iconAvatar.Visibility = Visibility.Collapsed;
             }
             else
             {
                 imgAvatarBrush.ImageSource = null;
-                iconAvatar.Visibility = Visibility.Visible; // Hiện icon mặc định
+                if (iconAvatar != null) iconAvatar.Visibility = Visibility.Visible;
             }
         }
 
-        // --- Logic chuyển đổi Menu (Giữ nguyên các tính năng cũ) ---
+        // --- CÁC HÀM XỬ LÝ MENU (GIỮ NGUYÊN) ---
+
         private void Menu_Click(object sender, MouseButtonEventArgs e)
         {
             var clickedBtn = sender as Border;
@@ -84,6 +92,7 @@ namespace PharmaDistributionApp.Views
 
         private void SetActiveMenu(Border activeBtn)
         {
+            // Reset tất cả nút về trong suốt
             ResetButtonStyle(btnTongQuan);
             ResetButtonStyle(btnKho);
             ResetButtonStyle(btnNhanSu);
@@ -93,6 +102,7 @@ namespace PharmaDistributionApp.Views
             ResetButtonStyle(btnSanPham);
             ResetButtonStyle(btnAccount);
 
+            // Active nút được chọn
             activeBtn.Background = Brushes.White;
 
             if (activeBtn.Child is StackPanel sp)
@@ -121,6 +131,9 @@ namespace PharmaDistributionApp.Views
 
         private void btnLogOut_Click(object sender, RoutedEventArgs e)
         {
+            // [QUAN TRỌNG]: Xóa session khi đăng xuất
+            UserSession.Clear();
+
             new LoginWindow().Show();
             this.Close();
         }

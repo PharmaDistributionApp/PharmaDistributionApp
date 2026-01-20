@@ -7,8 +7,9 @@ using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using Microsoft.Win32;
-using MaterialDesignThemes.Wpf; // Cần thiết để chỉnh Icon
+using MaterialDesignThemes.Wpf;
 using PharmaDistributionApp.Models;
+using PharmaDistributionApp.Services; // QUAN TRỌNG: Để dùng UserSession
 
 namespace PharmaDistributionApp.Views
 {
@@ -17,6 +18,8 @@ namespace PharmaDistributionApp.Views
         private bool _isEditing = false;
         private byte[] _avatarBytes = null;
         private string _currentManv = "";
+
+        // Màu sắc giao diện
         private readonly Brush _grayBackground = (Brush)new BrushConverter().ConvertFrom("#F5F6F8");
         private readonly Brush _whiteBackground = Brushes.White;
         private readonly Brush _transparentBackground = Brushes.Transparent;
@@ -27,89 +30,233 @@ namespace PharmaDistributionApp.Views
         public AccountControl()
         {
             InitializeComponent();
-            // Get the current MainWindow instance and access CurrentMaNV
-            var mainWindow = Application.Current.MainWindow as MainWindow;
-            _currentManv = mainWindow?.CurrentUser?.Manv;
-            if (string.IsNullOrEmpty(_currentManv)) _currentManv = "NV001";
-            LoadUserData();
+            // Đăng ký sự kiện Loaded để luôn tải lại dữ liệu mới nhất
+            this.Loaded += AccountControl_Loaded;
         }
 
-        // ==========================================
-        // PHẦN XỬ LÝ ĐỔI MẬT KHẨU + CON MẮT (MỚI)
-        // ==========================================
-
-        private void ToggleEye_Click(object sender, RoutedEventArgs e)
+        private void AccountControl_Loaded(object sender, RoutedEventArgs e)
         {
-            var btn = sender as Button;
-            if (btn == null) return;
-
-            string tag = btn.Tag.ToString(); // "Old", "New", hoặc "Confirm"
-
-            // Tìm các control tương ứng dựa trên Tag
-            PasswordBox pb = FindName($"pb{tag}Pass") as PasswordBox;
-            TextBox txt = FindName($"txt{tag}Pass") as TextBox;
-            PackIcon? icon = FindName($"iconEye{tag}") as PackIcon;
-
-            if (pb != null && txt != null && icon != null)
+            // Lấy ID từ UserSession
+            if (UserSession.IsLoggedIn && UserSession.CurrentUser != null)
             {
-                if (pb.Visibility == Visibility.Visible)
-                {
-                    // Đang ẩn -> Chuyển sang hiện
-                    txt.Text = pb.Password; // Copy pass sang text
-                    pb.Visibility = Visibility.Collapsed;
-                    txt.Visibility = Visibility.Visible;
-                    icon.Kind = PackIconKind.Eye; // Đổi icon mở mắt
-                }
-                else
-                {
-                    // Đang hiện -> Chuyển sang ẩn
-                    pb.Password = txt.Text; // Copy text về lại pass
-                    txt.Visibility = Visibility.Collapsed;
-                    pb.Visibility = Visibility.Visible;
-                    icon.Kind = PackIconKind.EyeOff; // Đổi icon nhắm mắt
-                }
+                _currentManv = UserSession.CurrentUser.Manv;
+                LoadUserData();
+            }
+            else
+            {
+                // Nếu đang debug mà chưa login thì gán tạm để không lỗi
+                _currentManv = "NV001";
+                // MessageBox.Show("Chưa đăng nhập!"); // Bỏ comment nếu muốn hiện thông báo
             }
         }
 
-        // Helper lấy giá trị mật khẩu (Dù đang ở chế độ ẩn hay hiện)
-        private string GetPasswordValue(string tag)
+        // --- CÁC HÀM BỊ THIẾU GÂY LỖI CS1061 ---
+
+        // Hàm chuyển sang màn hình đổi mật khẩu
+        private void btnSwitchToPassword_Click(object sender, RoutedEventArgs e)
         {
-            PasswordBox pb = FindName($"pb{tag}Pass") as PasswordBox;
-            TextBox txt = FindName($"txt{tag}Pass") as TextBox;
+            // Reset các ô nhập liệu
+            pbOldPass.Password = ""; txtOldPass.Text = "";
+            pbNewPass.Password = ""; txtNewPass.Text = "";
+            pbConfirmPass.Password = ""; txtConfirmPass.Text = "";
 
-            // Nếu TextBox đang hiện thì lấy giá trị từ TextBox, ngược lại lấy từ PasswordBox
-            if (txt != null && txt.Visibility == Visibility.Visible)
-                return txt.Text;
+            ResetToHiddenMode("Old");
+            ResetToHiddenMode("New");
+            ResetToHiddenMode("Confirm");
 
-            return pb != null ? pb.Password : "";
+            ResetPasswordErrorStyles();
+
+            // Ẩn MainView, hiện PasswordView
+            if (MainView != null) MainView.Visibility = Visibility.Collapsed;
+            if (PasswordView != null) PasswordView.Visibility = Visibility.Visible;
         }
 
-        // Helper tô viền đỏ (Xử lý cho cả 2 ô)
-        private void SetPasswordError(string tag)
+        // Hàm hủy đổi mật khẩu, quay về màn hình chính
+        private void btnCancelPassword_Click(object sender, RoutedEventArgs e)
         {
-            PasswordBox pb = FindName($"pb{tag}Pass") as PasswordBox;
-            TextBox txt = FindName($"txt{tag}Pass") as TextBox;
+            if (PasswordView != null) PasswordView.Visibility = Visibility.Collapsed;
+            if (MainView != null) MainView.Visibility = Visibility.Visible;
+        }
 
-            if (pb != null) pb.BorderBrush = _errorBorder;
-            if (txt != null) txt.BorderBrush = _errorBorder;
+        // ----------------------------------------
+
+        private void LoadUserData()
+        {
+            if (string.IsNullOrEmpty(_currentManv)) return;
+
+            try
+            {
+                using (var context = new QuanlyphanphoiduocphamContext())
+                {
+                    var nv = context.Nhanviens.FirstOrDefault(x => x.Manv == _currentManv);
+                    if (nv != null)
+                    {
+                        lblDisplayName.Text = nv.Tennv;
+                        lblRole.Text = nv.Chucvu;
+
+                        string fullName = nv.Tennv?.Trim() ?? "";
+                        int lastSpace = fullName.LastIndexOf(' ');
+                        if (lastSpace > 0)
+                        {
+                            txtHo.Text = fullName.Substring(0, lastSpace);
+                            txtTen.Text = fullName.Substring(lastSpace + 1);
+                        }
+                        else
+                        {
+                            txtHo.Text = fullName;
+                            txtTen.Text = "";
+                        }
+
+                        txtEmail.Text = nv.Email;
+                        txtPhone.Text = nv.Sdt;
+                        txtAddress.Text = nv.Diachi;
+
+                        if (nv.Ngaysinh != null)
+                        {
+                            dpDob.SelectedDate = nv.Ngaysinh;
+                            txtDobDisplay.Text = nv.Ngaysinh.Value.ToString("dd/MM/yyyy");
+                        }
+                        else
+                        {
+                            txtDobDisplay.Text = "";
+                        }
+
+                        if (nv.Avatar != null && nv.Avatar.Length > 0)
+                        {
+                            imgAvatar.ImageSource = LoadImage(nv.Avatar);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
+            }
+        }
+
+        // --- CÁC HÀM HỖ TRỢ KHÁC (GIỮ NGUYÊN) ---
+
+        private static BitmapImage LoadImage(byte[] imageData)
+        {
+            if (imageData == null || imageData.Length == 0) return null;
+            var image = new BitmapImage();
+            using (var mem = new MemoryStream(imageData))
+            {
+                mem.Position = 0;
+                image.BeginInit();
+                image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
+                image.CacheOption = BitmapCacheOption.OnLoad;
+                image.StreamSource = mem;
+                image.EndInit();
+            }
+            image.Freeze();
+            return image;
+        }
+
+        private void btnChangeAvatar_Click(object sender, RoutedEventArgs e)
+        {
+            OpenFileDialog op = new OpenFileDialog();
+            op.Filter = "Image files (*.jpg, *.jpeg, *.png, *.bmp)|*.jpg;*.jpeg;*.png;*.bmp";
+            if (op.ShowDialog() == true)
+            {
+                try
+                {
+                    _avatarBytes = File.ReadAllBytes(op.FileName);
+                    imgAvatar.ImageSource = LoadImage(_avatarBytes);
+                }
+                catch { MessageBox.Show("Ảnh lỗi!"); }
+            }
+        }
+
+        private void btnEdit_Click(object sender, RoutedEventArgs e)
+        {
+            _isEditing = !_isEditing;
+            if (_isEditing)
+            {
+                ResetMainErrorStyles();
+                secPassword.Visibility = Visibility.Collapsed;
+                btnSave.Visibility = Visibility.Visible;
+                btnChangeAvatar.Visibility = Visibility.Visible;
+
+                SetFieldStyle(txtHo, false, false, true);
+                SetFieldStyle(txtTen, false, false, true);
+                SetFieldStyle(txtEmail, true, false, false);
+                SetFieldStyle(txtPhone, true, false, false);
+                SetFieldStyle(txtAddress, true, false, false);
+
+                txtDobDisplay.Visibility = Visibility.Collapsed;
+                dpDob.Visibility = Visibility.Visible;
+            }
+            else
+            {
+                ResetMainErrorStyles();
+                secPassword.Visibility = Visibility.Visible;
+                btnSave.Visibility = Visibility.Collapsed;
+                btnChangeAvatar.Visibility = Visibility.Collapsed;
+
+                SetFieldStyle(txtHo, false, true, false);
+                SetFieldStyle(txtTen, false, true, false);
+                SetFieldStyle(txtEmail, false, true, false);
+                SetFieldStyle(txtPhone, false, true, false);
+                SetFieldStyle(txtAddress, false, true, false);
+
+                txtDobDisplay.Visibility = Visibility.Visible;
+                dpDob.Visibility = Visibility.Collapsed;
+                if (dpDob.SelectedDate.HasValue) txtDobDisplay.Text = dpDob.SelectedDate.Value.ToString("dd/MM/yyyy");
+            }
+        }
+
+        private void btnSave_Click(object sender, RoutedEventArgs e)
+        {
+            ResetMainErrorStyles();
+            bool isValid = true;
+
+            if (string.IsNullOrWhiteSpace(txtEmail.Text) || !txtEmail.Text.Contains("@")) { txtEmail.BorderBrush = _errorBorder; isValid = false; }
+            if (string.IsNullOrWhiteSpace(txtPhone.Text) || !Regex.IsMatch(txtPhone.Text, @"^0\d{9}$")) { txtPhone.BorderBrush = _errorBorder; isValid = false; }
+            if (string.IsNullOrWhiteSpace(txtAddress.Text)) { txtAddress.BorderBrush = _errorBorder; isValid = false; }
+            if (dpDob.SelectedDate == null || dpDob.SelectedDate > DateTime.Now) { bdDob.BorderThickness = new Thickness(1); bdDob.BorderBrush = _errorBorder; isValid = false; }
+
+            if (!isValid) { txbMainError.Text = "Thông tin không hợp lệ"; txbMainError.Visibility = Visibility.Visible; return; }
+
+            try
+            {
+                using (var context = new QuanlyphanphoiduocphamContext())
+                {
+                    var nv = context.Nhanviens.FirstOrDefault(x => x.Manv == _currentManv);
+                    if (nv != null)
+                    {
+                        nv.Email = txtEmail.Text;
+                        nv.Sdt = txtPhone.Text;
+                        nv.Diachi = txtAddress.Text;
+                        nv.Ngaysinh = dpDob.SelectedDate.Value;
+                        if (_avatarBytes != null) nv.Avatar = _avatarBytes;
+
+                        context.SaveChanges();
+                        MessageBox.Show("Cập nhật thành công!");
+
+                        // Cập nhật lại Session để các nơi khác thấy ảnh mới
+                        if (UserSession.CurrentUser != null) UserSession.CurrentUser.AvatarBlob = nv.Avatar;
+
+                        btnEdit_Click(null, null);
+                    }
+                }
+            }
+            catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
         }
 
         private void btnSavePassword_Click(object sender, RoutedEventArgs e)
         {
             ResetPasswordErrorStyles();
-
-            // Lấy dữ liệu thông qua hàm Helper (để đảm bảo lấy đúng cái người dùng đang nhập)
             string oldPass = GetPasswordValue("Old");
             string newPass = GetPasswordValue("New");
             string confirmPass = GetPasswordValue("Confirm");
 
             bool hasEmpty = false;
-
             if (string.IsNullOrEmpty(oldPass)) { SetPasswordError("Old"); hasEmpty = true; }
             if (string.IsNullOrEmpty(newPass)) { SetPasswordError("New"); hasEmpty = true; }
             if (string.IsNullOrEmpty(confirmPass)) { SetPasswordError("Confirm"); hasEmpty = true; }
 
-            if (hasEmpty) { ShowPasswordError("Vui lòng nhập đầy đủ thông tin!"); return; }
+            if (hasEmpty) { ShowPasswordError("Vui lòng nhập đủ thông tin!"); return; }
 
             try
             {
@@ -118,164 +265,39 @@ namespace PharmaDistributionApp.Views
                     var tk = context.Taikhoans.FirstOrDefault(x => x.Manv == _currentManv);
                     if (tk == null) return;
 
-                    if (tk.Matkhau != oldPass)
-                    {
-                        SetPasswordError("Old");
-                        ShowPasswordError("Mật khẩu hiện tại không đúng!"); return;
-                    }
-                    if (newPass != confirmPass)
-                    {
-                        SetPasswordError("Confirm");
-                        ShowPasswordError("Mật khẩu xác nhận không khớp!"); return;
-                    }
+                    if (tk.Matkhau != oldPass) { SetPasswordError("Old"); ShowPasswordError("Mật khẩu cũ sai!"); return; }
+                    if (newPass != confirmPass) { SetPasswordError("Confirm"); ShowPasswordError("Mật khẩu xác nhận không khớp!"); return; }
 
                     tk.Matkhau = newPass;
                     context.SaveChanges();
-                    MessageBox.Show("Đổi mật khẩu thành công!", "Thông báo");
+                    MessageBox.Show("Đổi mật khẩu thành công!");
                     btnCancelPassword_Click(null, null);
                 }
             }
             catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
         }
 
-        private void ResetPasswordErrorStyles()
+        // --- CÁC HÀM HELPER UI ---
+        private void ToggleEye_Click(object sender, RoutedEventArgs e)
         {
-            // Reset màu viền cho cả PasswordBox và TextBox
-            pbOldPass.BorderBrush = _passwordBorder; txtOldPass.BorderBrush = _passwordBorder;
-            pbNewPass.BorderBrush = _passwordBorder; txtNewPass.BorderBrush = _passwordBorder;
-            pbConfirmPass.BorderBrush = _passwordBorder; txtConfirmPass.BorderBrush = _passwordBorder;
-
-            txbError.Visibility = Visibility.Collapsed;
-        }
-
-        private void btnSwitchToPassword_Click(object sender, RoutedEventArgs e)
-        {
-            // Reset dữ liệu và trạng thái hiển thị
-            pbOldPass.Password = ""; txtOldPass.Text = "";
-            pbNewPass.Password = ""; txtNewPass.Text = "";
-            pbConfirmPass.Password = ""; txtConfirmPass.Text = "";
-
-            // Đưa tất cả về chế độ ẩn (PasswordBox hiện, TextBox ẩn, Icon EyeOff)
-            ResetToHiddenMode("Old");
-            ResetToHiddenMode("New");
-            ResetToHiddenMode("Confirm");
-
-            ResetPasswordErrorStyles();
-            MainView.Visibility = Visibility.Collapsed;
-            PasswordView.Visibility = Visibility.Visible;
-        }
-
-        private void ResetToHiddenMode(string tag)
-        {
+            var btn = sender as Button; if (btn == null) return;
+            string tag = btn.Tag.ToString();
             PasswordBox pb = FindName($"pb{tag}Pass") as PasswordBox;
             TextBox txt = FindName($"txt{tag}Pass") as TextBox;
             PackIcon? icon = FindName($"iconEye{tag}") as PackIcon;
 
-            if (pb != null) pb.Visibility = Visibility.Visible;
-            if (txt != null) txt.Visibility = Visibility.Collapsed;
-            if (icon != null) icon.Kind = PackIconKind.EyeOff;
+            if (pb != null && txt != null && icon != null)
+            {
+                if (pb.Visibility == Visibility.Visible) { txt.Text = pb.Password; pb.Visibility = Visibility.Collapsed; txt.Visibility = Visibility.Visible; icon.Kind = PackIconKind.Eye; }
+                else { pb.Password = txt.Text; txt.Visibility = Visibility.Collapsed; pb.Visibility = Visibility.Visible; icon.Kind = PackIconKind.EyeOff; }
+            }
         }
-
-        private void btnCancelPassword_Click(object sender, RoutedEventArgs e)
-        {
-            PasswordView.Visibility = Visibility.Collapsed;
-            MainView.Visibility = Visibility.Visible;
-        }
-
+        private string GetPasswordValue(string tag) { PasswordBox pb = FindName($"pb{tag}Pass") as PasswordBox; TextBox txt = FindName($"txt{tag}Pass") as TextBox; if (txt != null && txt.Visibility == Visibility.Visible) return txt.Text; return pb != null ? pb.Password : ""; }
+        private void SetPasswordError(string tag) { PasswordBox pb = FindName($"pb{tag}Pass") as PasswordBox; TextBox txt = FindName($"txt{tag}Pass") as TextBox; if (pb != null) pb.BorderBrush = _errorBorder; if (txt != null) txt.BorderBrush = _errorBorder; }
         private void ShowPasswordError(string msg) { txbError.Text = msg; txbError.Visibility = Visibility.Visible; }
-
-        // ... (Các hàm btnChangeAvatar_Click, LoadImage giữ nguyên) ...
-        private void btnChangeAvatar_Click(object sender, RoutedEventArgs e)
-        {
-            OpenFileDialog op = new OpenFileDialog();
-            op.Filter = "Image files (*.jpg, *.jpeg, *.png, *.bmp)|*.jpg;*.jpeg;*.png;*.bmp";
-            if (op.ShowDialog() == true)
-            {
-                try { imgAvatar.ImageSource = new BitmapImage(new Uri(op.FileName)); _avatarBytes = File.ReadAllBytes(op.FileName); }
-                catch { MessageBox.Show("Ảnh lỗi!"); }
-            }
-        }
-        private static BitmapImage LoadImage(byte[] imageData)
-        {
-            if (imageData == null || imageData.Length == 0) return null;
-            var image = new BitmapImage(); using (var mem = new MemoryStream(imageData))
-            {
-                mem.Position = 0; image.BeginInit(); image.CreateOptions = BitmapCreateOptions.PreservePixelFormat;
-                image.CacheOption = BitmapCacheOption.OnLoad; image.UriSource = null; image.StreamSource = mem; image.EndInit();
-            }
-            image.Freeze(); return image;
-        }
-
-        private void LoadUserData()
-        {
-            using (var context = new QuanlyphanphoiduocphamContext())
-            {
-                var nv = context.Nhanviens.FirstOrDefault(x => x.Manv == _currentManv);
-                if (nv != null)
-                {
-                    lblDisplayName.Text = nv.Tennv; lblRole.Text = nv.Chucvu;
-                    string fullName = nv.Tennv.Trim(); int spaceIndex = fullName.LastIndexOf(' ');
-                    if (spaceIndex > 0) { txtHo.Text = fullName.Substring(0, spaceIndex); txtTen.Text = fullName.Substring(spaceIndex + 1); }
-                    else { txtHo.Text = fullName; txtTen.Text = ""; }
-                    txtEmail.Text = nv.Email; txtPhone.Text = nv.Sdt; txtAddress.Text = nv.Diachi;
-                    if (nv.Ngaysinh != null) { DateTime dob = nv.Ngaysinh.Value         ; dpDob.SelectedDate = dob; txtDobDisplay.Text = dob.ToString("dd/MM/yyyy"); }
-                    else { txtDobDisplay.Text = ""; }
-                    if (nv.Avatar != null && nv.Avatar.Length > 0) imgAvatar.ImageSource = LoadImage(nv.Avatar);
-                }
-            }
-        }
-        private void btnSave_Click(object sender, RoutedEventArgs e)
-        {
-            ResetMainErrorStyles(); bool isValid = true;
-            if (string.IsNullOrWhiteSpace(txtEmail.Text) || !txtEmail.Text.Contains("@") || !txtEmail.Text.Contains(".")) { txtEmail.BorderBrush = _errorBorder; isValid = false; }
-            if (string.IsNullOrWhiteSpace(txtPhone.Text) || !Regex.IsMatch(txtPhone.Text, @"^0\d{9}$")) { txtPhone.BorderBrush = _errorBorder; isValid = false; }
-            if (string.IsNullOrWhiteSpace(txtAddress.Text)) { txtAddress.BorderBrush = _errorBorder; isValid = false; }
-            if (dpDob.SelectedDate == null || dpDob.SelectedDate > DateTime.Now) { bdDob.BorderThickness = new Thickness(1); bdDob.BorderBrush = _errorBorder; isValid = false; }
-            if (!isValid) { txbMainError.Text = "Thông tin không hợp lệ"; txbMainError.Visibility = Visibility.Visible; return; }
-            try
-            {
-                using (var context = new QuanlyphanphoiduocphamContext())
-                {
-                    var nv = context.Nhanviens.FirstOrDefault(x => x.Manv == _currentManv);
-                    if (nv != null)
-                    {
-                        nv.Email = txtEmail.Text; nv.Sdt = txtPhone.Text; nv.Diachi = txtAddress.Text;
-                        nv.Ngaysinh = dpDob.SelectedDate.Value; txtDobDisplay.Text = dpDob.SelectedDate.Value.ToString("dd/MM/yyyy");
-                        if (_avatarBytes != null) nv.Avatar = _avatarBytes;
-                        context.SaveChanges(); btnEdit_Click(null, null);
-                        if (_avatarBytes != null) imgAvatar.ImageSource = LoadImage(_avatarBytes);
-                    }
-                }
-            }
-            catch (Exception ex) { MessageBox.Show("Lỗi hệ thống: " + ex.Message); }
-        }
+        private void ResetToHiddenMode(string tag) { PasswordBox pb = FindName($"pb{tag}Pass") as PasswordBox; TextBox txt = FindName($"txt{tag}Pass") as TextBox; PackIcon? icon = FindName($"iconEye{tag}") as PackIcon; if (pb != null) pb.Visibility = Visibility.Visible; if (txt != null) txt.Visibility = Visibility.Collapsed; if (icon != null) icon.Kind = PackIconKind.EyeOff; }
+        private void ResetPasswordErrorStyles() { pbOldPass.BorderBrush = _passwordBorder; txtOldPass.BorderBrush = _passwordBorder; pbNewPass.BorderBrush = _passwordBorder; txtNewPass.BorderBrush = _passwordBorder; pbConfirmPass.BorderBrush = _passwordBorder; txtConfirmPass.BorderBrush = _passwordBorder; txbError.Visibility = Visibility.Collapsed; }
         private void ResetMainErrorStyles() { txbMainError.Visibility = Visibility.Collapsed; txtEmail.BorderBrush = _defaultBorder; txtPhone.BorderBrush = _defaultBorder; txtAddress.BorderBrush = _defaultBorder; bdDob.BorderThickness = new Thickness(0); }
-        private void btnEdit_Click(object sender, RoutedEventArgs e)
-        {
-            _isEditing = !_isEditing;
-            if (_isEditing)
-            {
-                ResetMainErrorStyles(); secPassword.Visibility = Visibility.Collapsed; btnSave.Visibility = Visibility.Visible; btnChangeAvatar.Visibility = Visibility.Visible;
-                SetFieldStyle(txtHo, false, false, true); SetFieldStyle(txtTen, false, false, true); SetFieldStyle(txtEmail, true, false, false); SetFieldStyle(txtPhone, true, false, false); SetFieldStyle(txtAddress, true, false, false);
-                txtDobDisplay.Visibility = Visibility.Collapsed; dpDob.Visibility = Visibility.Visible;
-            }
-            else
-            {
-                ResetMainErrorStyles(); secPassword.Visibility = Visibility.Visible; btnSave.Visibility = Visibility.Collapsed; btnChangeAvatar.Visibility = Visibility.Collapsed;
-                SetFieldStyle(txtHo, false, true, false); SetFieldStyle(txtTen, false, true, false); SetFieldStyle(txtEmail, false, true, false); SetFieldStyle(txtPhone, false, true, false); SetFieldStyle(txtAddress, false, true, false);
-                txtDobDisplay.Visibility = Visibility.Visible; dpDob.Visibility = Visibility.Collapsed;
-                if (dpDob.SelectedDate.HasValue) txtDobDisplay.Text = dpDob.SelectedDate.Value.ToString("dd/MM/yyyy");
-            }
-        }
-        private void SetFieldStyle(TextBox txt, bool isEditable, bool isViewMode = false, bool useGrayBackground = false)
-        {
-            txt.IsReadOnly = !isEditable;
-            if (isViewMode) { txt.Background = _transparentBackground; txt.BorderThickness = new Thickness(0); }
-            else
-            {
-                if (useGrayBackground) { txt.Background = _grayBackground; txt.BorderThickness = new Thickness(0); txt.Focusable = false; }
-                else { txt.Background = _whiteBackground; txt.BorderBrush = _defaultBorder; txt.BorderThickness = new Thickness(1); txt.Focusable = true; }
-            }
-        }
+        private void SetFieldStyle(TextBox txt, bool isEditable, bool isViewMode = false, bool useGrayBackground = false) { txt.IsReadOnly = !isEditable; if (isViewMode) { txt.Background = _transparentBackground; txt.BorderThickness = new Thickness(0); } else { if (useGrayBackground) { txt.Background = _grayBackground; txt.BorderThickness = new Thickness(0); txt.Focusable = false; } else { txt.Background = _whiteBackground; txt.BorderBrush = _defaultBorder; txt.BorderThickness = new Thickness(1); txt.Focusable = true; } } }
     }
 }

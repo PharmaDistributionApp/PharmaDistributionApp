@@ -1,19 +1,20 @@
 ﻿using PharmaDistributionApp.Models;
-using PharmaDistributionApp.Services;
 
-namespace PharmaDistributionApp
+namespace PharmaDistributionApp.Services
 {
-    // Class này dùng để lưu trữ thông tin người đang đăng nhập hiện tại
     public static class UserSession
     {
-        // Biến static để lưu thông tin nhân viên
+        // Biến này lưu thông tin người đang đăng nhập
         public static Employee CurrentUser { get; set; }
-        public static bool IsLoggedIn { get; set; }
 
-        // Hàm đăng xuất
-        public static void Logout()
+        // Biến kiểm tra trạng thái đăng nhập
+        public static bool IsLoggedIn { get; set; } = false;
+
+        // Hàm xóa dữ liệu khi đăng xuất
+        public static void Clear()
         {
             CurrentUser = null;
+            IsLoggedIn = false;
         }
     }
 }

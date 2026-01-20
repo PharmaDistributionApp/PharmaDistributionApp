@@ -9,6 +9,7 @@ using System.Windows.Media;
 using Microsoft.EntityFrameworkCore;
 using PharmaDistributionApp.Models;
 using MaterialDesignThemes.Wpf;
+using PharmaDistributionApp.Services;
 
 namespace PharmaDistributionApp.Views.ProductView
 {

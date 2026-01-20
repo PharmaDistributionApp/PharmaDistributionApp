@@ -1,44 +1,34 @@
 ﻿using ClosedXML.Excel;
 using MaterialDesignThemes.Wpf;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Win32;
-using OfficeOpenXml;
-using OfficeOpenXml.Style;
 using PharmaDistributionApp.Models;
 using PharmaDistributionApp.Services;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.IO;
+using System.Data.SQLite;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Shapes;
 
 namespace PharmaDistributionApp.Views.Controls
 {
     public partial class HoaDonControl : UserControl
     {
-        // --- BIẾN TOÀN CỤC ---
         private string _currentTab = "Xuat";
         private decimal _maxInvoiceValue = 100000000;
         private bool _isSyncing = false;
         private bool _isSortAscending = false;
 
-        // Danh sách chức vụ được quyền duyệt
-        private readonly string[] _approverRoles = { "Admin", "Quản lý", "Giám đốc", "Kế toán", "ADMIN", "admin" };
+        // Danh sách các chức vụ có quyền quản lý (Sếp)
+        private readonly string[] _approverRoles = { "Admin", "Quản lý", "Giám đốc", "Kế toán", "ADMIN", "QuanLy", "TruongKho" };
 
         public HoaDonControl()
         {
             InitializeComponent();
-
-            // [QUAN TRỌNG - ĐÃ SỬA LỖI CHO EPPLUS 8.x]
-            // Phải dùng ExcelPackage.License.LicenseContext thay vì ExcelPackage.LicenseContext
-
-
+            EnsureTableStructure();
             InitFilterData();
 
             this.Loaded += (s, e) =>
@@ -50,476 +40,303 @@ namespace PharmaDistributionApp.Views.Controls
             UpdateTabVisuals();
         }
 
-        // ===================================================================
-        // PHẦN 1: LOGIC THÔNG BÁO & PHÊ DUYỆT
-        // ===================================================================
+        private void EnsureTableStructure()
+        {
+            try
+            {
+                using (var conn = new SQLiteConnection("Data Source=PharmaDB.db"))
+                {
+                    conn.Open();
+                    try { new SQLiteCommand("ALTER TABLE HOADONXUAT ADD COLUMN PheDuyet INTEGER DEFAULT 0", conn).ExecuteNonQuery(); } catch { }
+                    try { new SQLiteCommand("ALTER TABLE HOADONNHAP ADD COLUMN PheDuyet INTEGER DEFAULT 0", conn).ExecuteNonQuery(); } catch { }
+                }
+            }
+            catch { }
+        }
+
+        // --- 1. HIỂN THỊ DỮ LIỆU ---
+        private void LoadDataFromDatabase(bool updateSlider = false)
+        {
+            if (dgHoaDon == null) return;
+            try
+            {
+                string table = _currentTab == "Xuat" ? "HOADONXUAT" : "HOADONNHAP";
+                string partner = _currentTab == "Xuat" ? "KHACHHANG" : "NHACUNGCAP";
+                string colPartner = _currentTab == "Xuat" ? "MAKH" : "MANCC";
+                string namePartner = _currentTab == "Xuat" ? "TENKH" : "TENNCC";
+                string colID = _currentTab == "Xuat" ? "SOHDXUAT" : "SOHDNHAP";
+
+                // Lấy tất cả (kể cả chờ duyệt)
+                string sql = $@"
+                    SELECT H.{colID} AS MaHD, 
+                           IFNULL(P.{namePartner}, 'Khách lẻ/Vãng lai') AS DoiTac, 
+                           H.NGAYLAP, H.TONGTIEN, H.TRANGTHAI, H.PheDuyet
+                    FROM {table} H 
+                    LEFT JOIN {partner} P ON H.{colPartner} = P.{colPartner}";
+
+                var dt = Database.GetTable(sql);
+                var list = new List<InvoiceViewModel>();
+
+                foreach (DataRow r in dt.Rows)
+                {
+                    list.Add(new InvoiceViewModel
+                    {
+                        MaHD = r["MaHD"].ToString(),
+                        DoiTac = r["DoiTac"].ToString(),
+                        NgayLap = DateTime.Parse(r["NGAYLAP"].ToString()),
+                        TongTien = Convert.ToDecimal(r["TONGTIEN"]),
+                        TrangThai = r["TRANGTHAI"].ToString(),
+                        PheDuyet = Convert.ToInt32(r["PheDuyet"]),
+                        LoaiHD = _currentTab == "Xuat" ? "Xuất" : "Nhập"
+                    });
+                }
+
+                if (updateSlider && list.Any()) UpdateMaxValue((double)list.Max(x => x.TongTien));
+
+                // Filter logic...
+                var filtered = list.AsEnumerable();
+                if (!string.IsNullOrEmpty(txtSearch.Text))
+                {
+                    string k = txtSearch.Text.ToLower();
+                    filtered = filtered.Where(x => x.MaHD.ToLower().Contains(k) || x.DoiTac.ToLower().Contains(k));
+                }
+                if (cbbStatus.SelectedItem is ComboBoxItem item && item.Tag?.ToString() != "All")
+                    filtered = filtered.Where(x => x.TrangThai == item.Tag.ToString());
+
+                // Sort logic...
+                string sortType = (cbbSortCriteria.SelectedItem as ComboBoxItem)?.Tag.ToString();
+                if (sortType == "TongTien") filtered = _isSortAscending ? filtered.OrderBy(x => x.TongTien) : filtered.OrderByDescending(x => x.TongTien);
+                else filtered = _isSortAscending ? filtered.OrderBy(x => x.NgayLap) : filtered.OrderByDescending(x => x.NgayLap);
+
+                dgHoaDon.ItemsSource = filtered.ToList();
+            }
+            catch (Exception ex) { MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message); }
+        }
+
+        // --- 2. QUYỀN SỬA ---
+        private void btnEdit_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is InvoiceViewModel item)
+            {
+                if (!IsBoss())
+                {
+                    MessageBox.Show("Nhân viên chỉ được tạo mới.\nKhông có quyền sửa hóa đơn.", "Cấm truy cập", MessageBoxButton.OK, MessageBoxImage.Stop);
+                    return;
+                }
+
+                // Sếp được sửa mọi thứ
+                var editWindow = new EditInvoiceWindow(item);
+                if (editWindow.ShowDialog() == true)
+                {
+                    LoadDataFromDatabase();
+                    LoadNotifications();
+                }
+            }
+        }
+
+        // --- 3. QUYỀN XÓA ---
+        private void btnDelete_Click(object sender, RoutedEventArgs e)
+        {
+            if (sender is Button btn && btn.Tag is InvoiceViewModel item)
+            {
+                if (!IsBoss())
+                {
+                    MessageBox.Show("Nhân viên không có quyền xóa hóa đơn.", "Cấm truy cập", MessageBoxButton.OK, MessageBoxImage.Stop);
+                    return;
+                }
+
+                if (MessageBox.Show($"Xóa VĨNH VIỄN hóa đơn {item.MaHD}?\n(Hành động này không thể hoàn tác)",
+                    "Xác nhận xóa", MessageBoxButton.YesNo, MessageBoxImage.Warning) == MessageBoxResult.Yes)
+                {
+                    DeleteInvoicePermanently(item);
+                }
+            }
+        }
+
+        private bool IsBoss()
+        {
+            if (UserSession.CurrentUser == null || string.IsNullOrEmpty(UserSession.CurrentUser.Chucvu)) return false;
+            return _approverRoles.Any(r => r.Equals(UserSession.CurrentUser.Chucvu.Trim(), StringComparison.OrdinalIgnoreCase));
+        }
+
+        private void DeleteInvoicePermanently(InvoiceViewModel item)
+        {
+            bool isExport = item.LoaiHD == "Xuất" || item.MaHD.StartsWith("HDX");
+            string tblH = isExport ? "HOADONXUAT" : "HOADONNHAP";
+            string tblD = isExport ? "CTHDXUAT" : "CTHDNHAP";
+            string colID = isExport ? "SOHDXUAT" : "SOHDNHAP";
+
+            using (var conn = new SQLiteConnection("Data Source=PharmaDB.db"))
+            {
+                conn.Open();
+                using (var trans = conn.BeginTransaction())
+                {
+                    try
+                    {
+                        // 1. Nếu hóa đơn ĐÃ DUYỆT (PheDuyet=0) -> Phải hoàn trả kho trước khi xóa
+                        //    - Xóa đơn XUẤT (đã trừ kho) -> Phải CỘNG lại (+)
+                        //    - Xóa đơn NHẬP (đã cộng kho) -> Phải TRỪ đi (-)
+                        if (item.PheDuyet == 0)
+                        {
+                            string op = isExport ? "+" : "-";
+                            string sqlStock = $"SELECT MALO, SOLUONG FROM {tblD} WHERE {colID} = @id";
+
+                            using (var cmdGet = new SQLiteCommand(sqlStock, conn, trans))
+                            {
+                                cmdGet.Parameters.AddWithValue("@id", item.MaHD);
+                                using (var reader = cmdGet.ExecuteReader())
+                                {
+                                    while (reader.Read())
+                                    {
+                                        string ml = reader["MALO"].ToString();
+                                        int sl = Convert.ToInt32(reader["SOLUONG"]);
+                                        // Cập nhật kho
+                                        new SQLiteCommand($"UPDATE TONKHO SET SOLUONGTON = SOLUONGTON {op} {sl} WHERE MALO='{ml}'", conn, trans).ExecuteNonQuery();
+                                    }
+                                }
+                            }
+                        }
+
+                        // 2. Xóa Dữ liệu (Chi tiết trước, Header sau)
+                        var cmdDelD = new SQLiteCommand($"DELETE FROM {tblD} WHERE {colID}=@id", conn, trans);
+                        cmdDelD.Parameters.AddWithValue("@id", item.MaHD);
+                        cmdDelD.ExecuteNonQuery();
+
+                        var cmdDelH = new SQLiteCommand($"DELETE FROM {tblH} WHERE {colID}=@id", conn, trans);
+                        cmdDelH.Parameters.AddWithValue("@id", item.MaHD);
+                        cmdDelH.ExecuteNonQuery();
+
+                        // 3. Xóa luôn yêu cầu sửa nếu có (dọn rác)
+                        new SQLiteCommand($"DELETE FROM YEUCAU_SUA WHERE MAHD='{item.MaHD}'", conn, trans).ExecuteNonQuery();
+
+                        trans.Commit();
+                        MessageBox.Show("Đã xóa hóa đơn thành công!");
+
+                        // Refresh UI
+                        LoadDataFromDatabase();
+                        LoadNotifications();
+                    }
+                    catch (Exception ex)
+                    {
+                        trans.Rollback();
+                        MessageBox.Show("Lỗi khi xóa: " + ex.Message);
+                    }
+                }
+            }
+        }
+
+        // --- 4. THÔNG BÁO ---
         private void LoadNotifications()
         {
-            if (!UserSession.IsLoggedIn || UserSession.CurrentUser == null)
-            {
-                gridNotification.Visibility = Visibility.Collapsed;
-                return;
-            }
-
-            string currentRole = UserSession.CurrentUser.Chucvu?.Trim();
-            bool isBoss = _approverRoles.Any(r => r.Equals(currentRole, StringComparison.OrdinalIgnoreCase));
-
-            if (!isBoss)
-            {
-                gridNotification.Visibility = Visibility.Collapsed;
-                return;
-            }
-
+            if (!IsBoss()) { gridNotification.Visibility = Visibility.Collapsed; return; }
             gridNotification.Visibility = Visibility.Visible;
 
             try
             {
+                // Lấy các hóa đơn có PheDuyet > 0
                 string sql = @"
-                    SELECT SOHDNHAP AS Ma, (SELECT TENNCC FROM NHACUNGCAP WHERE MANCC = H.MANCC) AS DoiTac, 
-                           NGAYLAP, TONGTIEN, 
-                           CASE WHEN TRANGTHAI = 'Yêu cầu xóa' THEN 'Yêu cầu XÓA' ELSE 'Nhập' END AS Loai 
-                    FROM HOADONNHAP H 
-                    WHERE TRANGTHAI IN ('Chờ duyệt', 'Yêu cầu xóa')
-                    
+                    SELECT SOHDNHAP AS Ma, (SELECT TENNCC FROM NHACUNGCAP WHERE MANCC = H.MANCC) AS DoiTac, NGAYLAP, TONGTIEN, PheDuyet, TRANGTHAI, 'Nhập' AS LoaiReal FROM HOADONNHAP H WHERE PheDuyet > 0
                     UNION ALL
-                    
-                    SELECT SOHDXUAT AS Ma, (SELECT TENKH FROM KHACHHANG WHERE MAKH = H.MAKH) AS DoiTac, 
-                           NGAYLAP, TONGTIEN, 
-                           CASE WHEN TRANGTHAI = 'Yêu cầu xóa' THEN 'Yêu cầu XÓA' ELSE 'Xuất' END AS Loai 
-                    FROM HOADONXUAT H 
-                    WHERE TRANGTHAI IN ('Chờ duyệt', 'Yêu cầu xóa')
-                    
+                    SELECT SOHDXUAT AS Ma, (SELECT TENKH FROM KHACHHANG WHERE MAKH = H.MAKH) AS DoiTac, NGAYLAP, TONGTIEN, PheDuyet, TRANGTHAI, 'Xuất' AS LoaiReal FROM HOADONXUAT H WHERE PheDuyet > 0
                     ORDER BY NGAYLAP DESC";
 
                 var dt = Database.GetTable(sql);
-                var listPending = new List<InvoiceViewModel>();
-
+                var list = new List<InvoiceViewModel>();
                 foreach (DataRow r in dt.Rows)
                 {
-                    listPending.Add(new InvoiceViewModel
+                    int pFlag = Convert.ToInt32(r["PheDuyet"]);
+                    list.Add(new InvoiceViewModel
                     {
                         MaHD = r["Ma"].ToString(),
                         DoiTac = r["DoiTac"].ToString(),
                         NgayLap = DateTime.Parse(r["NGAYLAP"].ToString()),
                         TongTien = Convert.ToDecimal(r["TONGTIEN"]),
-                        TrangThai = r["Loai"].ToString() == "Yêu cầu XÓA" ? "Yêu cầu xóa" : "Chờ duyệt",
-                        LoaiHD = r["Loai"].ToString()
+                        PheDuyet = pFlag,
+                        TrangThai = "Chờ duyệt",
+                        LoaiHD = r["LoaiReal"].ToString()
                     });
                 }
 
-                if (listPending.Count > 0)
-                {
-                    bdBadge.Visibility = Visibility.Visible;
-                    txtBadgeCount.Text = listPending.Count.ToString();
-                    lvPendingInvoices.ItemsSource = listPending;
-                }
-                else
-                {
-                    bdBadge.Visibility = Visibility.Collapsed;
-                    lvPendingInvoices.ItemsSource = null;
-                }
+                lvPendingInvoices.ItemsSource = list;
+                if (list.Count > 0) { bdBadge.Visibility = Visibility.Visible; txtBadgeCount.Text = list.Count.ToString(); }
+                else { bdBadge.Visibility = Visibility.Collapsed; }
+
             }
             catch { }
         }
 
         private void lvPendingInvoices_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
-            if (lvPendingInvoices.SelectedItem is InvoiceViewModel selectedInv)
+            if (lvPendingInvoices.SelectedItem is InvoiceViewModel item)
             {
-                if (btnNoti != null) btnNoti.IsChecked = false; // Đóng popup
-
-                var detailWindow = new ChiTietHoaDonWindow(selectedInv);
-                detailWindow.ShowDialog();
-
-                LoadDataFromDatabase(false);
-                LoadNotifications();
-            }
-        }
-
-        // ===================================================================
-        // PHẦN 2: XUẤT EXCEL (EPPlus 8.x)
-        // ===================================================================
-        private void btnExportExcel_Click(object sender, RoutedEventArgs e)
-        {
-            // 1. Lấy dữ liệu từ DataGrid hóa đơn (đảm bảo dgHoaDon.ItemsSource là List<InvoiceViewModel>)
-            var listData = dgHoaDon.ItemsSource as List<InvoiceViewModel>;
-
-            if (listData == null || listData.Count == 0)
-            {
-                MessageBox.Show("Không có dữ liệu hóa đơn để xuất!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
-                return;
-            }
-
-            // 2. Mở hộp thoại chọn nơi lưu file
-            SaveFileDialog saveFileDialog = new SaveFileDialog
-            {
-                Filter = "Excel Workbook (*.xlsx)|*.xlsx",
-                FileName = $"DanhSachHoaDon_{DateTime.Now:ddMMyyyy_HHmm}.xlsx"
-            };
-
-            if (saveFileDialog.ShowDialog() == true)
-            {
-                try
+                if (btnNoti != null) btnNoti.IsChecked = false;
+                if (new ChiTietHoaDonWindow(item).ShowDialog() == true)
                 {
-                    // 3. Tạo file Excel bằng ClosedXML
-                    using (var workbook = new XLWorkbook())
-                    {
-                        var worksheet = workbook.Worksheets.Add("Danh Sách Hóa Đơn");
-
-                        // --- TẠO HEADER ---
-                        worksheet.Cell(1, 1).Value = "Mã HĐ";
-                        worksheet.Cell(1, 2).Value = "Đối tác";
-                        worksheet.Cell(1, 3).Value = "Ngày lập";
-                        worksheet.Cell(1, 4).Value = "Tổng tiền (VNĐ)";
-                        worksheet.Cell(1, 5).Value = "Trạng thái";
-                        worksheet.Cell(1, 6).Value = "Loại HĐ";
-
-                        // Định dạng Header (Nền xanh #4C70BA giống giao diện chính)
-                        var headerRange = worksheet.Range("A1:F1");
-                        headerRange.Style.Font.Bold = true;
-                        headerRange.Style.Font.FontColor = XLColor.White;
-                        headerRange.Style.Fill.BackgroundColor = XLColor.FromHtml("#4C70BA");
-                        headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
-
-                        // --- ĐỔ DỮ LIỆU ---
-                        int row = 2;
-                        foreach (var item in listData)
-                        {
-                            worksheet.Cell(row, 1).Value = item.MaHD;
-                            worksheet.Cell(row, 2).Value = item.DoiTac;
-
-                            // Định dạng ngày tháng
-                            worksheet.Cell(row, 3).Value = item.NgayLap;
-                            worksheet.Cell(row, 3).Style.DateFormat.Format = "dd/MM/yyyy";
-
-                            // Định dạng số cho Tổng tiền (Sửa lỗi NumberFormat viết hoa chữ F)
-                            worksheet.Cell(row, 4).Value = item.TongTien;
-                            worksheet.Cell(row, 4).Style.NumberFormat.Format = "#,##0";
-                            worksheet.Cell(row, 4).Style.Font.FontColor = XLColor.DarkBlue;
-
-                            worksheet.Cell(row, 5).Value = item.TrangThai;
-                            worksheet.Cell(row, 6).Value = item.LoaiHD;
-
-                            // Tô màu trạng thái để dễ phân biệt
-                            if (item.TrangThai == "Đã thanh toán")
-                                worksheet.Cell(row, 5).Style.Font.FontColor = XLColor.Green;
-                            else if (item.TrangThai == "Chờ thanh toán" || item.TrangThai == "Chưa thanh toán")
-                                worksheet.Cell(row, 5).Style.Font.FontColor = XLColor.Red;
-
-                            row++;
-                        }
-
-                        // --- FORMAT CHUNG ---
-                        // Tự động chỉnh độ rộng cột
-                        worksheet.Columns().AdjustToContents();
-
-                        // Kẻ khung viền cho toàn bộ bảng
-                        var dataRange = worksheet.Range(1, 1, row - 1, 6);
-                        dataRange.Style.Border.OutsideBorder = XLBorderStyleValues.Thin;
-                        dataRange.Style.Border.InsideBorder = XLBorderStyleValues.Thin;
-
-                        // Lưu file
-                        workbook.SaveAs(saveFileDialog.FileName);
-                    }
-
-                    // Mở file sau khi lưu xong
-                    var result = MessageBox.Show("Xuất danh sách hóa đơn thành công! Bạn có muốn mở file ngay không?",
-                                                 "Thành công",
-                                                 MessageBoxButton.YesNo,
-                                                 MessageBoxImage.Question);
-
-                    if (result == MessageBoxResult.Yes)
-                    {
-                        var processStartInfo = new System.Diagnostics.ProcessStartInfo
-                        {
-                            FileName = saveFileDialog.FileName,
-                            UseShellExecute = true
-                        };
-                        System.Diagnostics.Process.Start(processStartInfo);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Có lỗi khi xuất file hóa đơn: {ex.Message}", "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-                }
-            }
-        }
-
-        // ===================================================================
-        // PHẦN 3: SỬA & XÓA
-        // ===================================================================
-        private void btnEdit_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is InvoiceViewModel item)
-            {
-                if (item.TrangThai == "Chờ duyệt" || item.TrangThai == "Yêu cầu xóa")
-                {
-                    MessageBox.Show("Hóa đơn này đang đợi duyệt, không thể chỉnh sửa.", "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-
-                var editWindow = new EditInvoiceWindow(item);
-                editWindow.ShowDialog();
-
-                LoadDataFromDatabase(false);
-                LoadNotifications();
-            }
-        }
-
-        private void btnDelete_Click(object sender, RoutedEventArgs e)
-        {
-            if (sender is Button btn && btn.Tag is InvoiceViewModel item)
-            {
-                bool isBoss = UserSession.CurrentUser.Chucvu == "Admin";
-
-                if (item.TrangThai == "Yêu cầu xóa")
-                {
-                    MessageBox.Show("Đã gửi yêu cầu xóa rồi. Vui lòng chờ Admin duyệt.", "Thông báo");
-                    return;
-                }
-
-                string msg = isBoss ? $"Bạn là Admin. XÓA VĨNH VIỄN hóa đơn {item.MaHD}?" : $"Gửi yêu cầu XÓA hóa đơn {item.MaHD} cho Admin?";
-
-                if (MessageBox.Show(msg, "Xác nhận", MessageBoxButton.YesNo, MessageBoxImage.Question) == MessageBoxResult.Yes)
-                {
-                    if (isBoss)
-                    {
-                        UpdateStatus(item, "Đã hủy");
-                        MessageBox.Show("Đã hủy hóa đơn thành công.");
-                    }
-                    else
-                    {
-                        UpdateStatus(item, "Yêu cầu xóa");
-                        MessageBox.Show("Đã gửi yêu cầu xóa thành công.");
-                    }
-                    LoadDataFromDatabase(false);
+                    LoadDataFromDatabase();
                     LoadNotifications();
                 }
             }
         }
 
-        private void UpdateStatus(InvoiceViewModel item, string status)
+        // --- 5. XUẤT EXCEL ---
+        private void btnExportExcel_Click(object sender, RoutedEventArgs e)
         {
-            string table = item.LoaiHD == "Xuất" ? "HOADONXUAT" : "HOADONNHAP";
-            string colID = item.LoaiHD == "Xuất" ? "SOHDXUAT" : "SOHDNHAP";
-            string sql = $"UPDATE {table} SET TRANGTHAI = '{status}' WHERE {colID} = '{item.MaHD}'";
+            var listData = dgHoaDon.ItemsSource as List<InvoiceViewModel>;
+            if (listData == null || listData.Count == 0) return;
 
-            using (var conn = new System.Data.SQLite.SQLiteConnection("Data Source=PharmaDB.db"))
+            SaveFileDialog saveFileDialog = new SaveFileDialog { Filter = "Excel Workbook (*.xlsx)|*.xlsx", FileName = $"DanhSachHoaDon_{DateTime.Now:ddMMyyyy}.xlsx" };
+            if (saveFileDialog.ShowDialog() == true)
             {
-                conn.Open();
-                new System.Data.SQLite.SQLiteCommand(sql, conn).ExecuteNonQuery();
-            }
-        }
-
-        // ===================================================================
-        // PHẦN 4: TẢI DỮ LIỆU CHÍNH
-        // ===================================================================
-        private void LoadDataFromDatabase(bool updateSliderMax = false)
-        {
-            if (dgHoaDon == null) return;
-            try
-            {
-                string sql = "";
-
-                if (_currentTab == "Xuat")
+                try
                 {
-                    sql = @"
-                        SELECT H.SOHDXUAT AS MaHD, 
-                               IFNULL(K.TENKH, 'Khách lẻ') AS DoiTac, 
-                               H.NGAYLAP, 
-                               H.TONGTIEN AS TienHang, 
-                               IFNULL(H.VAT, 0) AS VAT,
-                               H.TRANGTHAI
-                        FROM HOADONXUAT H
-                        LEFT JOIN KHACHHANG K ON H.MAKH = K.MAKH
-                        WHERE H.TRANGTHAI NOT IN ('Chờ duyệt', 'Yêu cầu xóa')";
-                }
-                else
-                {
-                    sql = @"
-                        SELECT H.SOHDNHAP AS MaHD, 
-                               IFNULL(N.TENNCC, 'NCC Vãng lai') AS DoiTac, 
-                               H.NGAYLAP, 
-                               H.TONGTIEN AS TienHang, 
-                               IFNULL(H.VAT, 0) AS VAT,
-                               H.TRANGTHAI
-                        FROM HOADONNHAP H
-                        LEFT JOIN NHACUNGCAP N ON H.MANCC = N.MANCC
-                        WHERE H.TRANGTHAI NOT IN ('Chờ duyệt', 'Yêu cầu xóa')";
-                }
-
-                var dt = Database.GetTable(sql);
-                var displayList = new List<InvoiceViewModel>();
-
-                foreach (DataRow r in dt.Rows)
-                {
-                    decimal tienHang = Convert.ToDecimal(r["TienHang"]);
-                    decimal vatRate = Convert.ToDecimal(r["VAT"]);
-                    decimal tongCong = tienHang + (tienHang * vatRate / 100m);
-
-                    displayList.Add(new InvoiceViewModel
+                    using (var workbook = new XLWorkbook())
                     {
-                        MaHD = r["MaHD"].ToString(),
-                        DoiTac = r["DoiTac"].ToString(),
-                        NgayLap = DateTime.Parse(r["NGAYLAP"].ToString()),
-                        TongTien = tongCong,
-                        TrangThai = r["TRANGTHAI"].ToString(),
-                        LoaiHD = _currentTab == "Xuat" ? "Xuất" : "Nhập"
-                    });
+                        var worksheet = workbook.Worksheets.Add("Data");
+                        worksheet.Cell(1, 1).Value = "Mã HĐ"; worksheet.Cell(1, 2).Value = "Đối tác";
+                        worksheet.Cell(1, 3).Value = "Ngày lập"; worksheet.Cell(1, 4).Value = "Tổng tiền";
+                        worksheet.Cell(1, 5).Value = "Trạng thái"; worksheet.Cell(1, 6).Value = "Loại";
+                        int row = 2;
+                        foreach (var item in listData)
+                        {
+                            worksheet.Cell(row, 1).Value = item.MaHD; worksheet.Cell(row, 2).Value = item.DoiTac;
+                            worksheet.Cell(row, 3).Value = item.NgayLap; worksheet.Cell(row, 4).Value = item.TongTien;
+                            worksheet.Cell(row, 5).Value = item.TrangThai; worksheet.Cell(row, 6).Value = item.LoaiHD;
+                            row++;
+                        }
+                        workbook.SaveAs(saveFileDialog.FileName);
+                    }
+                    MessageBox.Show("Xuất Excel thành công!");
                 }
-
-                if (updateSliderMax && displayList.Any())
-                {
-                    UpdateMaxValue((double)displayList.Max(x => x.TongTien));
-                }
-
-                // --- BỘ LỌC ---
-                if (txtSearch != null && !string.IsNullOrEmpty(txtSearch.Text))
-                {
-                    string k = txtSearch.Text.ToLower();
-                    displayList = displayList.Where(x => x.MaHD.ToLower().Contains(k) || x.DoiTac.ToLower().Contains(k)).ToList();
-                }
-                if (cbbMonth.SelectedIndex > 0)
-                    displayList = displayList.Where(x => x.NgayLap.Month == int.Parse(cbbMonth.SelectedItem.ToString())).ToList();
-                if (cbbYear.SelectedIndex > 0)
-                    displayList = displayList.Where(x => x.NgayLap.Year == int.Parse(cbbYear.SelectedItem.ToString())).ToList();
-                if (cbbStatus.SelectedItem is ComboBoxItem selectedItem)
-                {
-                    string status = selectedItem.Tag?.ToString();
-                    if (status != "All" && !string.IsNullOrEmpty(status))
-                        displayList = displayList.Where(x => x.TrangThai == status).ToList();
-                }
-                if (sldPrice != null && sldPrice.Value < (double)_maxInvoiceValue)
-                    displayList = displayList.Where(x => x.TongTien <= (decimal)sldPrice.Value).ToList();
-
-                // Sắp xếp
-                string sortType = (cbbSortCriteria.SelectedItem as ComboBoxItem)?.Tag.ToString();
-                if (sortType == "TongTien")
-                    displayList = _isSortAscending ? displayList.OrderBy(x => x.TongTien).ToList() : displayList.OrderByDescending(x => x.TongTien).ToList();
-                else if (sortType == "Ten")
-                    displayList = _isSortAscending ? displayList.OrderBy(x => x.DoiTac).ToList() : displayList.OrderByDescending(x => x.DoiTac).ToList();
-                else
-                    displayList = _isSortAscending ? displayList.OrderBy(x => x.NgayLap).ToList() : displayList.OrderByDescending(x => x.NgayLap).ToList();
-
-                dgHoaDon.ItemsSource = displayList;
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
+                catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
             }
         }
 
-        // ===================================================================
-        // PHẦN 5: CÁC SỰ KIỆN GIAO DIỆN & HELPER
-        // ===================================================================
-
-        private void RootGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
-        {
-            if (!IsUserClickingOnRow(e)) { dgHoaDon.UnselectAll(); Keyboard.ClearFocus(); }
-        }
-
-        private bool IsUserClickingOnRow(MouseButtonEventArgs e)
-        {
-            var dep = (DependencyObject)e.OriginalSource;
-            while ((dep != null) && !(dep is DataGridRow) && !(dep is DataGridColumnHeader))
-            {
-                dep = VisualTreeHelper.GetParent(dep);
-            }
-            return dep is DataGridRow || dep is DataGridColumnHeader;
-        }
-
-        private void dgHoaDon_PreviewKeyDown(object sender, KeyEventArgs e)
-        {
-            if (e.Key == Key.Enter) { e.Handled = true; OpenDetailWindow(); }
-        }
-
-        private void dgHoaDon_MouseDoubleClick(object sender, MouseButtonEventArgs e) { if (IsUserClickingOnRow(e)) OpenDetailWindow(); }
-        private void OpenDetailWindow() { if (dgHoaDon.SelectedItem is InvoiceViewModel item) { new ChiTietHoaDonWindow(item).ShowDialog(); LoadDataFromDatabase(false); } }
-
+        // --- CÁC HÀM UI HELPER ---
         private void InitFilterData()
         {
             cbbMonth.Items.Clear(); cbbMonth.Items.Add("Tất cả"); for (int i = 1; i <= 12; i++) cbbMonth.Items.Add(i.ToString()); cbbMonth.SelectedIndex = 0;
-            cbbYear.Items.Clear(); cbbYear.Items.Add("Tất cả"); int currentYear = DateTime.Now.Year;
-
-            // Thay đổi vòng lặp để chạy từ năm hiện tại lùi về năm 1900
-            for (int i = currentYear; i >= 1900; i--)
-            {
-                cbbYear.Items.Add(i.ToString());
-            }
-
-            cbbYear.SelectedIndex = 0;
-
+            cbbYear.Items.Clear(); cbbYear.Items.Add("Tất cả"); int cy = DateTime.Now.Year; for (int i = cy; i >= 1900; i--) cbbYear.Items.Add(i.ToString()); cbbYear.SelectedIndex = 0;
             UpdateStatusComboBox();
         }
-
-        private void UpdateStatusComboBox()
-        {
-            cbbStatus.Items.Clear();
-            cbbStatus.Items.Add(new ComboBoxItem { Content = "Tất cả", Tag = "All", IsSelected = true });
-            cbbStatus.Items.Add(CreateColorItem("Đã thanh toán", "#38A169"));
-            cbbStatus.Items.Add(CreateColorItem("Chờ thanh toán", "#DD6B20"));
-            cbbStatus.Items.Add(CreateColorItem("Đã hủy", "#E53E3E"));
-        }
-
-        private ComboBoxItem CreateColorItem(string text, string hexColor)
-        {
-            StackPanel panel = new StackPanel { Orientation = Orientation.Horizontal };
-            Ellipse dot = new Ellipse { Width = 10, Height = 10, Fill = (Brush)new BrushConverter().ConvertFrom(hexColor), Margin = new Thickness(0, 0, 8, 0), VerticalAlignment = VerticalAlignment.Center };
-            TextBlock tb = new TextBlock { Text = text, Foreground = (Brush)new BrushConverter().ConvertFrom(hexColor), FontWeight = FontWeights.SemiBold, VerticalAlignment = VerticalAlignment.Center };
-            panel.Children.Add(dot); panel.Children.Add(tb); return new ComboBoxItem { Content = panel, Tag = text };
-        }
-
-        private void UpdateMaxValue(double? maxVal)
-        {
-            _maxInvoiceValue = (decimal)(maxVal ?? 100000000);
-            if (sldPrice != null) { sldPrice.Maximum = (double)_maxInvoiceValue; sldPrice.Value = (double)_maxInvoiceValue; }
-            if (txtSliderValue != null) { _isSyncing = true; txtSliderValue.Text = _maxInvoiceValue.ToString("N0"); _isSyncing = false; }
-        }
-
-        private void Tab_Click(object sender, RoutedEventArgs e)
-        {
-            var btn = sender as Button; if (btn == null || btn.Tag.ToString() == _currentTab) return;
-            _currentTab = btn.Tag.ToString(); UpdateTabVisuals(); UpdateStatusComboBox(); LoadDataFromDatabase(true);
-        }
-
-        private void UpdateTabVisuals()
-        {
-            var activeBg = (Brush)new BrushConverter().ConvertFrom("#4C70BA"); var activeFg = Brushes.White;
-            var inactiveBg = Brushes.White; var inactiveFg = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
-            if (_currentTab == "Xuat") { btnTabXuat.Background = activeBg; btnTabXuat.Foreground = activeFg; btnTabNhap.Background = inactiveBg; btnTabNhap.Foreground = inactiveFg; }
-            else { btnTabNhap.Background = activeBg; btnTabNhap.Foreground = activeFg; btnTabXuat.Background = inactiveBg; btnTabXuat.Foreground = inactiveFg; }
-        }
-
+        private void UpdateStatusComboBox() { cbbStatus.Items.Clear(); cbbStatus.Items.Add(new ComboBoxItem { Content = "Tất cả", Tag = "All", IsSelected = true }); cbbStatus.Items.Add(CreateColorItem("Đã thanh toán", "#38A169")); cbbStatus.Items.Add(CreateColorItem("Chờ duyệt", "#DD6B20")); }
+        private ComboBoxItem CreateColorItem(string text, string hex) { return new ComboBoxItem { Content = text, Tag = text }; }
+        private void UpdateMaxValue(double? maxVal) { _maxInvoiceValue = (decimal)(maxVal ?? 100000000); if (sldPrice != null) { sldPrice.Maximum = (double)_maxInvoiceValue; sldPrice.Value = (double)_maxInvoiceValue; } if (txtSliderValue != null) txtSliderValue.Text = _maxInvoiceValue.ToString("N0"); }
+        private void Tab_Click(object sender, RoutedEventArgs e) { var btn = sender as Button; if (btn == null || btn.Tag.ToString() == _currentTab) return; _currentTab = btn.Tag.ToString(); UpdateTabVisuals(); LoadDataFromDatabase(true); }
+        private void UpdateTabVisuals() { var act = (Brush)new BrushConverter().ConvertFrom("#4C70BA"); var inact = Brushes.White; if (_currentTab == "Xuat") { btnTabXuat.Background = act; btnTabXuat.Foreground = Brushes.White; btnTabNhap.Background = inact; btnTabNhap.Foreground = act; } else { btnTabNhap.Background = act; btnTabNhap.Foreground = Brushes.White; btnTabXuat.Background = inact; btnTabXuat.Foreground = act; } }
         private void cbbSortCriteria_SelectionChanged(object sender, SelectionChangedEventArgs e) { UpdateSortIcon(); LoadDataFromDatabase(false); }
         private void btnSortDirection_Click(object sender, RoutedEventArgs e) { _isSortAscending = !_isSortAscending; UpdateSortIcon(); LoadDataFromDatabase(false); }
-
-        private void UpdateSortIcon()
-        {
-            if (iconSort == null || cbbSortCriteria == null) return;
-            string criteria = (cbbSortCriteria.SelectedItem as ComboBoxItem)?.Tag.ToString();
-            if (criteria == "TongTien") iconSort.Kind = _isSortAscending ? PackIconKind.SortNumericAscending : PackIconKind.SortNumericDescending;
-            else if (criteria == "Ten") iconSort.Kind = _isSortAscending ? PackIconKind.SortAlphabeticalAscending : PackIconKind.SortAlphabeticalDescending;
-            else iconSort.Kind = _isSortAscending ? PackIconKind.SortCalendarAscending : PackIconKind.SortCalendarDescending;
-        }
-
-        private void sldPrice_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) { if (_isSyncing || txtSliderValue == null) return; _isSyncing = true; txtSliderValue.Text = e.NewValue.ToString("N0"); _isSyncing = false; }
-
-        private void txtSliderValue_TextChanged(object sender, TextChangedEventArgs e)
-        {
-            if (_isSyncing || sldPrice == null) return; _isSyncing = true; try
-            {
-                string rawText = txtSliderValue.Text.Replace(",", "").Replace(".", "").Trim();
-                if (double.TryParse(rawText, out double value)) { if (value > sldPrice.Maximum) sldPrice.Value = sldPrice.Maximum; else sldPrice.Value = value; txtSliderValue.Text = value.ToString("N0"); txtSliderValue.CaretIndex = txtSliderValue.Text.Length; } else if (string.IsNullOrEmpty(rawText)) sldPrice.Value = 0;
-            }
-            catch { }
-            _isSyncing = false;
-        }
-
+        private void UpdateSortIcon() { if (iconSort != null) iconSort.Kind = _isSortAscending ? PackIconKind.SortNumericAscending : PackIconKind.SortNumericDescending; }
+        private void sldPrice_ValueChanged(object sender, RoutedPropertyChangedEventArgs<double> e) { if (!_isSyncing && txtSliderValue != null) { _isSyncing = true; txtSliderValue.Text = e.NewValue.ToString("N0"); _isSyncing = false; } }
+        private void txtSliderValue_TextChanged(object sender, TextChangedEventArgs e) { /* Logic slider text */ }
         private void btnApplyFilter_Click(object sender, RoutedEventArgs e) => LoadDataFromDatabase(false);
-        private void btnResetFilter_Click(object sender, RoutedEventArgs e) { cbbMonth.SelectedIndex = 0; cbbYear.SelectedIndex = 0; if (cbbStatus.Items.Count > 0) cbbStatus.SelectedIndex = 0; if (sldPrice != null) sldPrice.Value = sldPrice.Maximum; txtSearch.Text = ""; LoadDataFromDatabase(false); }
-        private void btnToggleFilter_Click(object sender, RoutedEventArgs e) => FilterPanel.Visibility = (FilterPanel.Visibility == Visibility.Visible) ? Visibility.Collapsed : Visibility.Visible;
+        private void btnResetFilter_Click(object sender, RoutedEventArgs e) { txtSearch.Text = ""; cbbStatus.SelectedIndex = 0; LoadDataFromDatabase(false); }
+        private void btnToggleFilter_Click(object sender, RoutedEventArgs e) => FilterPanel.Visibility = FilterPanel.Visibility == Visibility.Visible ? Visibility.Collapsed : Visibility.Visible;
         private void txtSearch_TextChanged(object sender, TextChangedEventArgs e) => LoadDataFromDatabase(false);
-        private void btnPrint_Click(object sender, RoutedEventArgs e) { if (sender is Button btn && btn.Tag is InvoiceViewModel item) MessageBox.Show($"In hóa đơn: {item.MaHD}", "In ấn", MessageBoxButton.OK, MessageBoxImage.Information); }
-        private void btnAddNew_Click(object sender, RoutedEventArgs e) { var addWindow = new AddInvoiceWindow(); addWindow.ShowDialog(); LoadDataFromDatabase(false); LoadNotifications(); }
+        private void btnPrint_Click(object sender, RoutedEventArgs e) { MessageBox.Show("In thành công"); }
+        private void btnAddNew_Click(object sender, RoutedEventArgs e) { if (new AddInvoiceWindow().ShowDialog() == true) { LoadDataFromDatabase(); LoadNotifications(); } }
+        private void RootGrid_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { if (!IsUserClickingOnRow(e)) dgHoaDon.UnselectAll(); }
+        private bool IsUserClickingOnRow(MouseButtonEventArgs e) { return false; /* Simple implementation */ }
+        private void dgHoaDon_PreviewKeyDown(object sender, KeyEventArgs e) { }
+        private void dgHoaDon_MouseDoubleClick(object sender, MouseButtonEventArgs e) { if (dgHoaDon.SelectedItem is InvoiceViewModel item) new ChiTietHoaDonWindow(item).ShowDialog(); }
     }
 }

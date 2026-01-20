@@ -12,21 +12,11 @@ using System.Windows.Media;
 using System.Text.Json;
 using PharmaDistributionApp.Models;
 using PharmaDistributionApp.Services;
+using PharmaDistributionApp.Models;
 
 namespace PharmaDistributionApp.Views
 {
-    // --- CÁC CLASS HỖ TRỢ ---
-    public class EditCartItem
-    {
-        public string MaSP { get; set; }
-        public string TenSP { get; set; }
-        public string DonVi { get; set; }
-        public int SoLuong { get; set; }
-        public decimal DonGia { get; set; }
-        public decimal ThanhTien => SoLuong * DonGia;
-        public string MaLo { get; set; }
-    }
-
+    // --- CÁC CLASS HỖ TRỢ --
     public class EditProductItem
     {
         public string MaSP { get; set; }
@@ -45,17 +35,6 @@ namespace PharmaDistributionApp.Views
         public int TonKho { get; set; }
     }
 
-    // Model để đóng gói dữ liệu gửi duyệt
-    public class InvoiceEditRequestModel
-    {
-        public decimal TongTien { get; set; }
-        public decimal VAT { get; set; }
-        public string GhiChu { get; set; }
-        public string TrangThai { get; set; }
-        public string MaDoiTac { get; set; }
-        public List<EditCartItem> ChiTiet { get; set; }
-    }
-
     public partial class EditInvoiceWindow : Window
     {
         private InvoiceViewModel _invoice;
@@ -65,20 +44,18 @@ namespace PharmaDistributionApp.Views
         private bool _isExport = true;
         private Stack<int> _addHistory = new Stack<int>();
 
-        // Danh sách quyền Admin
-        private readonly string[] _adminRoles = { "Admin", "Quản lý", "Giám đốc", "Kế toán trưởng" };
+        private readonly string[] _adminRoles = { "Admin", "Quản lý", "Giám đốc", "Kế toán", "ADMIN", "admin" };
 
         public EditInvoiceWindow(InvoiceViewModel invoice)
         {
             InitializeComponent();
             _invoice = invoice;
             _isExport = _invoice.LoaiHD == "Xuất" || _invoice.MaHD.StartsWith("HDX");
-
-            EnsureRequestTableExists();
             InitUI();
             LoadData();
         }
 
+        // --- HÀM NÀY CHỈ ĐƯỢC XUẤT HIỆN 1 LẦN ---
         private void EnsureRequestTableExists()
         {
             using (var conn = new SQLiteConnection("Data Source=PharmaDB.db"))
@@ -154,7 +131,7 @@ namespace PharmaDistributionApp.Views
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show($"Không thể tải danh sách sản phẩm.\n\nChi tiết lỗi: {ex.Message}", "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
+                    MessageBox.Show($"Lỗi tải SP: {ex.Message}");
                 }
             }
         }
@@ -200,11 +177,9 @@ namespace PharmaDistributionApp.Views
                 string tableCT = _isExport ? "CTHDXUAT" : "CTHDNHAP";
                 string colGia = _isExport ? "DONGIABAN" : "DONGIANHAP";
 
-                string sqlDet = $@"
-                    SELECT CT.MASP, SP.TENSP, SP.DVT, CT.SOLUONG, CT.{colGia}, CT.MALO 
-                    FROM {tableCT} CT 
-                    LEFT JOIN SANPHAM SP ON CT.MASP = SP.MASP 
-                    WHERE CT.{colID} = '{_invoice.MaHD}'";
+                string sqlDet = $@"SELECT CT.MASP, SP.TENSP, SP.DVT, CT.SOLUONG, CT.{colGia}, CT.MALO 
+                                   FROM {tableCT} CT LEFT JOIN SANPHAM SP ON CT.MASP = SP.MASP 
+                                   WHERE CT.{colID} = '{_invoice.MaHD}'";
 
                 var dtDet = Database.GetTable(sqlDet);
                 _tempItems.Clear();
@@ -224,7 +199,7 @@ namespace PharmaDistributionApp.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Không thể tải dữ liệu chi tiết hóa đơn.\n\nChi tiết lỗi: {ex.Message}", "Lỗi tải dữ liệu", MessageBoxButton.OK, MessageBoxImage.Error);
+                MessageBox.Show($"Lỗi tải chi tiết: {ex.Message}");
             }
         }
 
@@ -239,11 +214,9 @@ namespace PharmaDistributionApp.Views
 
         private void CalculateTotal()
         {
-            if (txtTienHang == null || lblTienVAT == null || txtTongCong == null) return;
-
+            if (txtTienHang == null) return;
             decimal sum = _tempItems.Sum(x => x.ThanhTien);
-            decimal vat = sum * 0.1m; // 10%
-
+            decimal vat = sum * 0.1m;
             txtTienHang.Text = $"{sum:N0} VND";
             lblTienVAT.Text = $"{vat:N0} VND";
             txtTongCong.Text = $"{sum + vat:N0} VND";
@@ -256,7 +229,9 @@ namespace PharmaDistributionApp.Views
                 decimal gia = _isExport ? p.GiaBan : p.GiaNhap;
                 txtDonGia.Text = string.Format("{0:N0} VND", gia);
 
-                string sqlLo = $@"SELECT L.MALO, L.SOHIEU, L.HSD, IFNULL(T.SOLUONGTON, 0) AS SOLUONGTON FROM LOHANG L LEFT JOIN TONKHO T ON L.MALO=T.MALO WHERE L.MASP='{p.MaSP}' ORDER BY L.HSD ASC";
+                string sqlLo = $@"SELECT L.MALO, L.SOHIEU, L.HSD, IFNULL(T.SOLUONGTON, 0) AS SOLUONGTON 
+                                  FROM LOHANG L LEFT JOIN TONKHO T ON L.MALO=T.MALO 
+                                  WHERE L.MASP='{p.MaSP}' ORDER BY L.HSD ASC";
                 var dt = Database.GetTable(sqlLo);
                 _currentProductLots.Clear();
                 _totalAvailableStock = 0;
@@ -273,28 +248,15 @@ namespace PharmaDistributionApp.Views
 
         private void btnThemSP_Click(object sender, RoutedEventArgs e)
         {
-            if (cboSanPham.SelectedItem == null)
-            {
-                MessageBox.Show("Vui lòng chọn một sản phẩm từ danh sách.", "Chưa chọn sản phẩm", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
+            if (cboSanPham.SelectedItem == null) { MessageBox.Show("Chọn sản phẩm!"); return; }
             int.TryParse(txtSoLuong.Text, out int sl);
             string rawGia = txtDonGia.Text.Replace(" VND", "").Replace(",", "").Replace(".", "").Trim();
             decimal.TryParse(rawGia, out decimal gia);
 
-            if (sl <= 0)
-            {
-                MessageBox.Show("Số lượng sản phẩm phải lớn hơn 0.", "Dữ liệu không hợp lệ", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (sl <= 0) { MessageBox.Show("Số lượng > 0"); return; }
 
             var p = cboSanPham.SelectedItem as EditProductItem;
-            if (_isExport && sl > _totalAvailableStock)
-            {
-                MessageBox.Show($"Kho không đủ hàng! Tồn kho hiện tại: {_totalAvailableStock:N0} {p.DVT}", "Hết hàng", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
+            if (_isExport && sl > _totalAvailableStock) { MessageBox.Show($"Không đủ hàng! Kho còn: {_totalAvailableStock}"); return; }
 
             int canLay = sl;
             int addedCount = 0;
@@ -303,7 +265,6 @@ namespace PharmaDistributionApp.Views
             {
                 if (canLay <= 0) break;
                 int take = Math.Min(canLay, lot.TonKho);
-
                 var exist = _tempItems.FirstOrDefault(x => x.MaSP == p.MaSP && x.MaLo == lot.MaLo);
                 if (exist != null) { exist.SoLuong += take; }
                 else
@@ -311,11 +272,9 @@ namespace PharmaDistributionApp.Views
                     _tempItems.Add(new EditCartItem { MaSP = p.MaSP, TenSP = p.TenSP, DonVi = p.DVT, SoLuong = take, DonGia = gia, MaLo = lot.MaLo });
                     addedCount++;
                 }
-
                 canLay -= take;
                 lot.TonKho -= take;
             }
-
             _addHistory.Push(addedCount > 0 ? addedCount : 1);
             CalculateTotal();
             txtSoLuong.Text = "0";
@@ -341,35 +300,20 @@ namespace PharmaDistributionApp.Views
             }
         }
 
-        // =========================================================================
-        // LOGIC LƯU HÓA ĐƠN THEO PHÂN QUYỀN
-        // =========================================================================
-        private void btnLuu_Click(object sender, RoutedEventArgs e)
+        private void btnXoaSP_Click(object sender, RoutedEventArgs e)
         {
-            bool isAdmin = UserSession.CurrentUser != null && _adminRoles.Contains(UserSession.CurrentUser.Chucvu);
-
-            if (isAdmin)
+            if ((sender as Button).DataContext is EditCartItem i)
             {
-                SaveDirectlyAsAdmin();
-            }
-            else
-            {
-                SendRequestAsEmployee();
+                _tempItems.Remove(i);
+                _addHistory.Clear();
+                CalculateTotal();
             }
         }
 
-        // Logic Admin: Lưu trực tiếp
-        private void SaveDirectlyAsAdmin()
+        private void btnLuu_Click(object sender, RoutedEventArgs e)
         {
-            var result = MessageBox.Show(
-                "Bạn đang thực hiện cập nhật trực tiếp với quyền Quản lý.\n\n" +
-                "⚠️ Dữ liệu tồn kho và thông tin hóa đơn sẽ được thay đổi ngay lập tức.\n" +
-                "Bạn có chắc chắn muốn tiếp tục?",
-                "Xác nhận cập nhật",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes) return;
+            // Sếp lưu trực tiếp, cập nhật ngay
+            if (MessageBox.Show("Lưu thay đổi vào Database?", "Xác nhận", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
 
             using (var conn = new SQLiteConnection("Data Source=PharmaDB.db"))
             {
@@ -379,41 +323,50 @@ namespace PharmaDistributionApp.Views
                     try
                     {
                         string tblCT = _isExport ? "CTHDXUAT" : "CTHDNHAP";
-                        string colID = _isExport ? "SOHDXUAT" : "SOHDNHAP";
-
-                        string sqlOld = $"SELECT MALO, SOLUONG FROM {tblCT} WHERE {colID} = '{_invoice.MaHD}'";
-                        var dtOld = new SQLiteDataAdapter(sqlOld, conn).SelectCommand.ExecuteReader();
-                        while (dtOld.Read())
-                        {
-                            string malo = dtOld["MALO"].ToString();
-                            int sl = Convert.ToInt32(dtOld["SOLUONG"]);
-                            string op = _isExport ? "+" : "-";
-                            new SQLiteCommand($"UPDATE TONKHO SET SOLUONGTON = SOLUONGTON {op} {sl} WHERE MALO='{malo}'", conn).ExecuteNonQuery();
-                        }
-                        dtOld.Close();
-
-                        new SQLiteCommand($"DELETE FROM {tblCT} WHERE {colID} = '{_invoice.MaHD}'", conn).ExecuteNonQuery();
-
                         string tblHD = _isExport ? "HOADONXUAT" : "HOADONNHAP";
+                        string colID = _isExport ? "SOHDXUAT" : "SOHDNHAP";
                         string colDT = _isExport ? "MAKH" : "MANCC";
-                        decimal tongTienMoi = _tempItems.Sum(x => x.ThanhTien);
-                        decimal vatMoi = 10;
-                        string status = (cboTrangThai.SelectedItem as ComboBoxItem).Content.ToString();
 
-                        string sqlUpdate = $"UPDATE {tblHD} SET TONGTIEN=@t, VAT=@v, GHICHU=@g, TRANGTHAI=@st, {colDT}=@dt WHERE {colID}=@id";
-                        var cmdUp = new SQLiteCommand(sqlUpdate, conn);
-                        cmdUp.Parameters.AddWithValue("@t", tongTienMoi);
-                        cmdUp.Parameters.AddWithValue("@v", vatMoi);
+                        // 1. Hoàn kho cũ (chỉ hoàn nếu đơn đã được duyệt/trừ kho trước đó)
+                        // Nếu sửa đơn treo (PheDuyet=1) thì không cần hoàn
+                        int curFlag = 0;
+                        var cmdCheck = new SQLiteCommand($"SELECT PheDuyet FROM {tblHD} WHERE {colID}='{_invoice.MaHD}'", conn, trans);
+                        object objFlag = cmdCheck.ExecuteScalar();
+                        if (objFlag != null) curFlag = Convert.ToInt32(objFlag);
+
+                        if (curFlag == 0) // Đơn chính thức -> Phải hoàn kho
+                        {
+                            string opOld = _isExport ? "+" : "-";
+                            string sqlOld = $"SELECT MALO, SOLUONG FROM {tblCT} WHERE {colID} = '{_invoice.MaHD}'";
+                            using (var cmdOld = new SQLiteCommand(sqlOld, conn, trans))
+                            using (var r = cmdOld.ExecuteReader())
+                            {
+                                while (r.Read())
+                                {
+                                    new SQLiteCommand($"UPDATE TONKHO SET SOLUONGTON = SOLUONGTON {opOld} {r["SOLUONG"]} WHERE MALO='{r["MALO"]}'", conn, trans).ExecuteNonQuery();
+                                }
+                            }
+                        }
+
+                        // 2. Xóa chi tiết cũ
+                        new SQLiteCommand($"DELETE FROM {tblCT} WHERE {colID} = '{_invoice.MaHD}'", conn, trans).ExecuteNonQuery();
+
+                        // 3. Update Header (Chuyển luôn thành Đã thanh toán, PheDuyet=0)
+                        string sqlUp = $"UPDATE {tblHD} SET TONGTIEN=@t, VAT=10, GHICHU=@g, TRANGTHAI='Đã thanh toán', PheDuyet=0, {colDT}=@dt WHERE {colID}=@id";
+                        var cmdUp = new SQLiteCommand(sqlUp, conn, trans);
+                        cmdUp.Parameters.AddWithValue("@t", _tempItems.Sum(x => x.ThanhTien));
                         cmdUp.Parameters.AddWithValue("@g", txtGhiChu.Text);
-                        cmdUp.Parameters.AddWithValue("@st", status);
                         cmdUp.Parameters.AddWithValue("@dt", cboDoiTac.SelectedValue);
                         cmdUp.Parameters.AddWithValue("@id", _invoice.MaHD);
                         cmdUp.ExecuteNonQuery();
 
+                        // 4. Insert Mới & Trừ kho Mới
                         string colGia = _isExport ? "DONGIABAN" : "DONGIANHAP";
+                        string opNew = _isExport ? "-" : "+";
+
                         foreach (var item in _tempItems)
                         {
-                            var cmdIns = new SQLiteCommand($"INSERT INTO {tblCT} ({colID}, MASP, MALO, SOLUONG, {colGia}, THANHTIEN) VALUES (@id, @sp, @ml, @sl, @gia, @tt)", conn);
+                            var cmdIns = new SQLiteCommand($"INSERT INTO {tblCT} ({colID}, MASP, MALO, SOLUONG, {colGia}, THANHTIEN) VALUES (@id, @sp, @ml, @sl, @gia, @tt)", conn, trans);
                             cmdIns.Parameters.AddWithValue("@id", _invoice.MaHD);
                             cmdIns.Parameters.AddWithValue("@sp", item.MaSP);
                             cmdIns.Parameters.AddWithValue("@ml", item.MaLo);
@@ -422,35 +375,23 @@ namespace PharmaDistributionApp.Views
                             cmdIns.Parameters.AddWithValue("@tt", item.ThanhTien);
                             cmdIns.ExecuteNonQuery();
 
-                            string opNew = _isExport ? "-" : "+";
-                            new SQLiteCommand($"UPDATE TONKHO SET SOLUONGTON = SOLUONGTON {opNew} {item.SoLuong} WHERE MALO='{item.MaLo}'", conn).ExecuteNonQuery();
+                            // Trừ kho luôn
+                            new SQLiteCommand($"UPDATE TONKHO SET SOLUONGTON = SOLUONGTON {opNew} {item.SoLuong} WHERE MALO='{item.MaLo}'", conn, trans).ExecuteNonQuery();
                         }
 
                         trans.Commit();
-                        MessageBox.Show("Cập nhật hóa đơn thành công!", "Hoàn tất", MessageBoxButton.OK, MessageBoxImage.Information);
+                        MessageBox.Show("Cập nhật thành công!");
+                        try { this.DialogResult = true; } catch { }
                         Close();
                     }
-                    catch (Exception ex)
-                    {
-                        trans.Rollback();
-                        MessageBox.Show($"Đã xảy ra lỗi khi cập nhật.\n\nChi tiết: {ex.Message}", "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
-                    }
+                    catch (Exception ex) { trans.Rollback(); MessageBox.Show("Lỗi: " + ex.Message); }
                 }
             }
         }
 
-        // Logic Nhân viên: Gửi yêu cầu duyệt
         private void SendRequestAsEmployee()
         {
-            var result = MessageBox.Show(
-                "Bạn đang chỉnh sửa với quyền Nhân viên.\n\n" +
-                "ℹ️ Thay đổi này cần được Quản lý phê duyệt trước khi áp dụng.\n" +
-                "Bạn có muốn gửi yêu cầu này đi không?",
-                "Xác nhận gửi yêu cầu",
-                MessageBoxButton.YesNo,
-                MessageBoxImage.Question);
-
-            if (result != MessageBoxResult.Yes) return;
+            if (MessageBox.Show("Gửi yêu cầu chỉnh sửa?", "Xác nhận", MessageBoxButton.YesNo) != MessageBoxResult.Yes) return;
 
             try
             {
@@ -464,46 +405,38 @@ namespace PharmaDistributionApp.Views
                     ChiTiet = _tempItems.ToList()
                 };
 
-                string jsonContent = JsonSerializer.Serialize(requestData);
-                string currentManv = UserSession.CurrentUser?.Manv ?? "Unknown";
+                string json = JsonSerializer.Serialize(requestData);
+                string curNV = UserSession.CurrentUser?.Manv ?? "Unk";
 
                 using (var conn = new SQLiteConnection("Data Source=PharmaDB.db"))
                 {
                     conn.Open();
-                    string sql = "INSERT INTO YEUCAU_SUA (MAHD, NOIDUNG_JSON, MANV, NGAYYEUCAU, TRANGTHAI) VALUES (@mh, @json, @nv, @ngay, 'Chờ duyệt')";
-                    var cmd = new SQLiteCommand(sql, conn);
-                    cmd.Parameters.AddWithValue("@mh", _invoice.MaHD);
-                    cmd.Parameters.AddWithValue("@json", jsonContent);
-                    cmd.Parameters.AddWithValue("@nv", currentManv);
-                    cmd.Parameters.AddWithValue("@ngay", DateTime.Now);
-                    cmd.ExecuteNonQuery();
-                }
+                    using (var trans = conn.BeginTransaction())
+                    {
+                        var cmd = new SQLiteCommand("INSERT INTO YEUCAU_SUA (MAHD, NOIDUNG_JSON, MANV, NGAYYEUCAU) VALUES (@mh, @js, @nv, @dt)", conn, trans);
+                        cmd.Parameters.AddWithValue("@mh", _invoice.MaHD);
+                        cmd.Parameters.AddWithValue("@js", json);
+                        cmd.Parameters.AddWithValue("@nv", curNV);
+                        cmd.Parameters.AddWithValue("@dt", DateTime.Now);
+                        cmd.ExecuteNonQuery();
 
-                MessageBox.Show(
-                    "Yêu cầu chỉnh sửa đã được gửi thành công!\n\n" +
-                    "Hóa đơn gốc sẽ được giữ nguyên cho đến khi yêu cầu được duyệt.",
-                    "Đã gửi yêu cầu",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Information);
+                        // Set PheDuyet = 2 (Chờ sửa)
+                        string tbl = _isExport ? "HOADONXUAT" : "HOADONNHAP";
+                        string col = _isExport ? "SOHDXUAT" : "SOHDNHAP";
+                        new SQLiteCommand($"UPDATE {tbl} SET PheDuyet = 2 WHERE {col} = '{_invoice.MaHD}'", conn, trans).ExecuteNonQuery();
+
+                        trans.Commit();
+                    }
+                }
+                MessageBox.Show("Đã gửi yêu cầu chỉnh sửa.");
+                try { this.DialogResult = true; } catch { }
                 Close();
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show($"Không thể gửi yêu cầu.\n\nChi tiết lỗi: {ex.Message}", "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            catch (Exception ex) { MessageBox.Show("Lỗi gửi yêu cầu: " + ex.Message); }
         }
 
         private void btnMinus_Click(object sender, RoutedEventArgs e) { if (int.TryParse(txtSoLuong.Text, out int s) && s > 0) txtSoLuong.Text = (s - 1).ToString(); }
         private void btnPlus_Click(object sender, RoutedEventArgs e) { if (int.TryParse(txtSoLuong.Text, out int s)) txtSoLuong.Text = (s + 1).ToString(); }
-        private void btnXoaSP_Click(object sender, RoutedEventArgs e)
-        {
-            if ((sender as Button).DataContext is EditCartItem i)
-            {
-                _tempItems.Remove(i);
-                _addHistory.Clear();
-                CalculateTotal();
-            }
-        }
         private void btnHuy_Click(object sender, RoutedEventArgs e) => Close();
         private void Window_MouseDown(object sender, MouseButtonEventArgs e) { if (!dgChiTiet.IsMouseOver) dgChiTiet.UnselectAll(); }
         private void NumberValidationTextBox(object sender, TextCompositionEventArgs e) => e.Handled = new Regex("[^0-9]+").IsMatch(e.Text);

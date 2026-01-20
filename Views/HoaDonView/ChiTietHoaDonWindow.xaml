@@ -13,7 +13,6 @@
             <Setter Property="VerticalAlignment" Value="Center"/>
             <Setter Property="Padding" Value="0,0,10,0"/>
         </Style>
-
         <Style x:Key="CenterAlignCell" TargetType="TextBlock">
             <Setter Property="HorizontalAlignment" Value="Center"/>
             <Setter Property="VerticalAlignment" Value="Center"/>
@@ -32,7 +31,7 @@
 
             <Grid Grid.Row="0" Background="#4C70BA" MouseDown="Header_MouseLeftButtonDown">
                 <TextBlock Text="CHI TIẾT HÓA ĐƠN" Foreground="White" FontWeight="Bold" FontSize="18" VerticalAlignment="Center" Margin="20,0"/>
-                <Button x:Name="btnClose" Click="btnClose_Click" Width="40" Height="40" HorizontalAlignment="Right" Margin="0,0,5,0" Style="{StaticResource MaterialDesignIconForegroundButton}" Foreground="White">
+                <Button x:Name="btnCloseHeader" Click="btnClose_Click" Width="40" Height="40" HorizontalAlignment="Right" Margin="0,0,5,0" Style="{StaticResource MaterialDesignIconForegroundButton}" Foreground="White">
                     <materialDesign:PackIcon Kind="Close" Width="24" Height="24"/>
                 </Button>
             </Grid>
@@ -53,9 +52,15 @@
                         <materialDesign:PackIcon Kind="MapMarker" Foreground="#666" Margin="0,0,10,0" VerticalAlignment="Center"/>
                         <TextBlock x:Name="txtDiaChi" Text="---" TextWrapping="Wrap" MaxWidth="400" VerticalAlignment="Center"/>
                     </StackPanel>
-                    <StackPanel Orientation="Horizontal">
+                    <StackPanel Orientation="Horizontal" Margin="0,0,0,8">
                         <materialDesign:PackIcon Kind="Phone" Foreground="#666" Margin="0,0,10,0" VerticalAlignment="Center"/>
                         <TextBlock x:Name="txtSDT" Text="---" VerticalAlignment="Center"/>
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal">
+                        <materialDesign:PackIcon Kind="AccountTie" Foreground="#666" Margin="0,0,10,0" VerticalAlignment="Center"/>
+                        <TextBlock Text="Người lập: " Foreground="Gray"/>
+                        <TextBlock x:Name="txtNhanVien" Text="---" FontWeight="SemiBold"/>
                     </StackPanel>
                 </StackPanel>
 
@@ -129,54 +134,56 @@
                     </Style>
                 </DataGrid.ColumnHeaderStyle>
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="STT" Binding="{Binding STT}" Width="60" ElementStyle="{StaticResource CenterAlignCell}"/>
+                    <DataGridTextColumn Header="STT" Binding="{Binding STT}" Width="50" ElementStyle="{StaticResource CenterAlignCell}"/>
                     <DataGridTextColumn Header="Mã SP" Binding="{Binding MaSP}" Width="80" ElementStyle="{StaticResource CenterAlignCell}"/>
                     <DataGridTextColumn Header="Tên sản phẩm" Binding="{Binding TenSP}" Width="*"/>
-                    <DataGridTextColumn Header="Đơn vị" Binding="{Binding DonVi}" Width="80" ElementStyle="{StaticResource CenterAlignCell}"/>
+                    <DataGridTextColumn Header="ĐVT" Binding="{Binding DonVi}" Width="80" ElementStyle="{StaticResource CenterAlignCell}"/>
                     <DataGridTextColumn Header="SL" Binding="{Binding SoLuong}" Width="60" ElementStyle="{StaticResource CenterAlignCell}"/>
-                    <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGiaStr}" Width="120" ElementStyle="{StaticResource RightAlignCell}"/>
-                    <DataGridTextColumn Header="Thành tiền" Binding="{Binding ThanhTienStr}" Width="140" FontWeight="Bold" ElementStyle="{StaticResource RightAlignCell}"/>
+                    <DataGridTextColumn Header="Đơn giá" Binding="{Binding DonGia, StringFormat={}{0:N0}}" Width="120" ElementStyle="{StaticResource RightAlignCell}"/>
+                    <DataGridTextColumn Header="Thành tiền" Binding="{Binding ThanhTien, StringFormat={}{0:N0}}" Width="140" FontWeight="Bold" ElementStyle="{StaticResource RightAlignCell}"/>
                 </DataGrid.Columns>
             </DataGrid>
 
             <Grid Grid.Row="3" Margin="20,15,20,0">
                 <StackPanel HorizontalAlignment="Left">
-                    <Grid Width="350" Margin="0,0,0,5">
+
+                    <Grid Width="500" Margin="0,0,0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
-                        <TextBlock Text="Tổng tiền hàng:" Foreground="Gray" VerticalAlignment="Center"/>
+                        <TextBlock Text="Tiền hàng:" Foreground="Gray" VerticalAlignment="Center"/>
                         <TextBlock x:Name="txtTienHang" Text="0 VND" FontWeight="Bold" Grid.Column="1" HorizontalAlignment="Left" FontSize="14"/>
                     </Grid>
 
-                    <Grid Width="350" Margin="0,5">
+                    <Grid Width="500" Margin="0,5">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock x:Name="lblVAT" Text="VAT (10%):" Foreground="Gray" VerticalAlignment="Center"/>
                         <TextBlock x:Name="txtVAT" Text="0 VND" FontWeight="Bold" Grid.Column="1" HorizontalAlignment="Left" FontSize="14"/>
                     </Grid>
 
-                    <Separator Width="350" HorizontalAlignment="Left" Margin="0,5"/>
+                    <Separator Width="500" HorizontalAlignment="Left" Margin="0,5"/>
 
-                    <Grid Width="350">
+                    <Grid Width="500">
                         <Grid.ColumnDefinitions>
-                            <ColumnDefinition Width="130"/>
+                            <ColumnDefinition Width="150"/>
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="TỔNG CỘNG:" FontWeight="Bold" FontSize="15" VerticalAlignment="Center"/>
-                        <TextBlock x:Name="txtTongTien" Text="0 VND" FontWeight="Bold" FontSize="22" Foreground="#E53E3E" Grid.Column="1" HorizontalAlignment="Left"/>
+                        <TextBlock x:Name="txtTongTien" Text="0 VND" FontWeight="Bold" FontSize="24" Foreground="#E53E3E" Grid.Column="1" HorizontalAlignment="Left"/>
                     </Grid>
                 </StackPanel>
             </Grid>
 
             <Grid Grid.Row="4" Margin="20,0">
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center">
-                    <StackPanel x:Name="pnlApprovalButtons" Orientation="Horizontal" Visibility="Collapsed">
-                        <Button x:Name="btnApprove" Click="btnApprove_Click" Content="DUYỆT" Background="#38A169" BorderBrush="{x:Null}" Width="110" Margin="0,0,10,0"/>
-                        <Button x:Name="btnReject" Click="btnReject_Click" Content="TỪ CHỐI" Background="#E53E3E" BorderBrush="{x:Null}" Width="110" Margin="0,0,10,0"/>
+
+                    <StackPanel x:Name="pnlApprovalButtons" Orientation="Horizontal" Visibility="Collapsed" Margin="0,0,10,0">
+                        <Button x:Name="btnReject" Click="btnReject_Click" Content="TỪ CHỐI" Background="#E57373" BorderBrush="#E57373" Width="100" Margin="0,0,10,0"/>
+                        <Button x:Name="btnApprove" Click="btnApprove_Click" Content="DUYỆT ĐƠN" Background="#4CAF50" BorderBrush="#4CAF50" Width="120"/>
                     </StackPanel>
 
                     <Button x:Name="btnExportPDF" Click="btnExportPDF_Click" Background="#D32F2F" BorderBrush="{x:Null}" Width="130">
@@ -185,6 +192,7 @@
                             <TextBlock Text="Xuất PDF" VerticalAlignment="Center"/>
                         </StackPanel>
                     </Button>
+
                     <Button Click="btnClose_Click" Content="Đóng" Margin="10,0,0,0" Style="{StaticResource MaterialDesignOutlinedButton}" BorderBrush="Gray" Foreground="Gray" Width="100"/>
                 </StackPanel>
             </Grid>

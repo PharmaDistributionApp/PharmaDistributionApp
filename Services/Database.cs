@@ -1,25 +1,30 @@
 ﻿using System;
 using System.Data;
-using System.Data.SQLite; // Thư viện bạn đã cài
+using System.Data.SQLite;
 using System.IO;
+// ĐÃ XÓA: using iTextSharp.text.pdf.parser; (Nguyên nhân gây lỗi Ambiguous)
 
 namespace PharmaDistributionApp.Services
 {
     public class Database
     {
-        // |DataDirectory| tự động trỏ vào thư mục bin/Debug khi chạy App
-        // Tên file của bạn là PharmaDB.db
-        private static string _connectionString = "Data Source=|DataDirectory|\\PharmaDB.db;Version=3;New=False;Compress=True;";
+        // 1. Xác định đường dẫn tuyệt đối đến file DB (Fix lỗi dữ liệu không đồng bộ)
+        // Dùng System.IO.Path để tránh nhầm lẫn
+        private static readonly string _dbPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PharmaDB.db");
 
-        // 1. Hàm lấy kết nối (Dùng khi cần xử lý phức tạp)
+        // 2. Chuỗi kết nối CHUẨN (Dùng chung cho cả hàm nội bộ và bên ngoài)
+        public static string ConnectionString => $"Data Source={_dbPath};Version=3;";
+
+        // 3. Hàm lấy kết nối (Đã sửa để dùng chung ConnectionString chuẩn)
         public static SQLiteConnection GetConnection()
         {
-            return new SQLiteConnection(_connectionString);
+            return new SQLiteConnection(ConnectionString);
         }
 
-        // 2. Hàm lấy bảng dữ liệu (Dùng cho SELECT: Đăng nhập, Hiện danh sách...)
+        // 4. Hàm lấy bảng dữ liệu (SELECT)
         public static DataTable GetTable(string sql, SQLiteParameter[] parameters = null)
         {
+            // Sử dụng GetConnection để đảm bảo đồng bộ
             using (SQLiteConnection conn = GetConnection())
             {
                 conn.Open();
@@ -38,7 +43,7 @@ namespace PharmaDistributionApp.Services
             }
         }
 
-        // 3. Hàm thực thi lệnh (Dùng cho INSERT, UPDATE, DELETE)
+        // 5. Hàm thực thi lệnh (INSERT, UPDATE, DELETE)
         public static int ExecuteNonQuery(string sql, SQLiteParameter[] parameters = null)
         {
             using (SQLiteConnection conn = GetConnection())
@@ -53,13 +58,18 @@ namespace PharmaDistributionApp.Services
                 }
             }
         }
-        public static object ExecuteScalar(string sql)
+
+        // 6. Hàm lấy giá trị đơn (VD: Lấy tổng tiền, lấy số lượng...)
+        public static object ExecuteScalar(string sql, SQLiteParameter[] parameters = null)
         {
             using (var connection = GetConnection())
             {
                 connection.Open();
                 using (var command = new SQLiteCommand(sql, connection))
                 {
+                    if (parameters != null)
+                        command.Parameters.AddRange(parameters);
+
                     return command.ExecuteScalar();
                 }
             }
