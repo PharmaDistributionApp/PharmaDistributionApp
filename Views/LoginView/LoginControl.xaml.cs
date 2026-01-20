@@ -110,8 +110,15 @@ namespace PharmaDistributionApp.Views.LoginView
         private void ShowError(string msg) { txbErrorMessage.Text = msg; txbErrorMessage.Visibility = Visibility.Visible; }
         private void ResetUI() { txbErrorMessage.Visibility = Visibility.Collapsed; txtUsername.BorderBrush = _defaultBorder; txtPassword.BorderBrush = _defaultBorder; }
         private void SetErrorState(Control c, string msg) { c.BorderBrush = _errorBorder; c.Focus(); ShowError(msg); }
-        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e) { /* Code Quên mật khẩu */ }
+        private void TextBlock_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
+        {
+            var parentWindow = Window.GetWindow(this) as LoginWindow;
+            if (parentWindow != null)
+            {
+                parentWindow.NavigateToForgotPass();
+            }
+        }
         private void txtUsername_TextChanged(object sender, TextChangedEventArgs e) { if (txtUsername.BorderBrush == _errorBorder) ResetUI(); }
         private void txtPassword_PasswordChanged(object sender, RoutedEventArgs e) { if (txtPassword.BorderBrush == _errorBorder) ResetUI(); }
     }
-}
+}   
