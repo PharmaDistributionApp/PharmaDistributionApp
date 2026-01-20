@@ -608,7 +608,7 @@ namespace PharmaDistributionApp.Views.ProductView
                         {
                             if (phieu.Trangthai == "Đã duyệt" || phieu.Trangthai == "Hoàn thành")
                             {
-                                MessageBox.Show("Không thể xóa phiếu đã được Duyệt/Hoàn thành vì đã ảnh hưởng đến kho hàng.\nBạn chỉ có thể Hủy phiếu.", "Cảnh báo Lỗi Nghiệp Vụ");
+                                MessageBox.Show("Không thể xóa phiếu đã được Duyệt/Hoàn thành vì đã ảnh hưởng đến kho hàng.\nBạn chỉ có thể Hủy phiếu.", "Cảnh báo lỗi");
                                 return;
                             }
 
@@ -624,7 +624,7 @@ namespace PharmaDistributionApp.Views.ProductView
                         {
                             if (phieu.Trangthai == "Đã duyệt" || phieu.Trangthai == "Hoàn thành")
                             {
-                                MessageBox.Show("Không thể xóa phiếu xuất đã Duyệt/Hoàn thành.", "Cảnh báo Lỗi Nghiệp Vụ");
+                                MessageBox.Show("Không thể xóa phiếu xuất đã Duyệt/Hoàn thành.", "Cảnh báo lỗi");
                                 return;
                             }
 
