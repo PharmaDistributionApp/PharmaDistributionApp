@@ -372,9 +372,8 @@
                             <Style TargetType="TextBlock">
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="HorizontalAlignment" Value="Center"/>
-
                                 <Setter Property="Foreground" Value="Black"/>
-                                <Setter Property="FontWeight" Value="Normal"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
 
                                 <Style.Triggers>
                                     <DataTrigger Binding="{Binding LoaiRow}" Value="PHIEUNHAP">
@@ -398,7 +397,21 @@
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                                 <Setter Property="HorizontalAlignment" Value="Left"/>
                                 <Setter Property="Padding" Value="10,0,0,0"/>
-                                <Setter Property="FontWeight" Value="SemiBold"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+
+                                <Style.Triggers>
+                                    <DataTrigger Binding="{Binding LoaiRow}" Value="PHIEUNHAP">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+
+                                    <DataTrigger Binding="{Binding LoaiRow}" Value="PHIEUXUAT">
+                                        <Setter Property="HorizontalAlignment" Value="Center"/>
+                                        <Setter Property="Padding" Value="0"/>
+                                        <Setter Property="FontWeight" Value="Bold"/>
+                                    </DataTrigger>
+                                </Style.Triggers>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
@@ -406,12 +419,21 @@
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
                                 <Setter Property="VerticalAlignment" Value="Center"/>
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTextColumn Header="Hạn Dùng" Binding="{Binding HSD}" Width="100"/>
-                    <DataGridTextColumn Header="Tồn Kho" Binding="{Binding SoLuongTon, StringFormat={}{0:N0}}" Width="90">
+                    <DataGridTextColumn Header="Hạn Dùng" Binding="{Binding HSD}" Width="180">
+                        <DataGridTextColumn.ElementStyle>
+                            <Style TargetType="TextBlock">
+                                <Setter Property="HorizontalAlignment" Value="Center"/>
+                                <Setter Property="FontWeight" Value="Bold"/>
+                                <Setter Property="VerticalAlignment" Value="Center"/>
+                            </Style>
+                        </DataGridTextColumn.ElementStyle>
+                    </DataGridTextColumn>
+                    <DataGridTextColumn Header="Tồn Kho" Binding="{Binding HienThiCotSoLuong}" Width="90">
                         <DataGridTextColumn.ElementStyle>
                             <Style TargetType="TextBlock">
                                 <Setter Property="FontWeight" Value="Bold"/>
@@ -420,7 +442,7 @@
                             </Style>
                         </DataGridTextColumn.ElementStyle>
                     </DataGridTextColumn>
-                    <DataGridTemplateColumn Header="Trạng thái" Width="140">
+                    <DataGridTemplateColumn Header="Trạng thái" Width="180">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
                                 <Border Background="{Binding MauNenTrangThai}" CornerRadius="12" Padding="10,4" HorizontalAlignment="Center" VerticalAlignment="Center">
