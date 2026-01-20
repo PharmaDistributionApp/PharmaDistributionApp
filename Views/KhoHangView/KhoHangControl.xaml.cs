@@ -203,7 +203,7 @@ namespace PharmaDistributionApp.Views.ProductView
             dgvKhoHang.Columns[2].Visibility = Visibility.Visible; 
             dgvKhoHang.Columns[5].Visibility = Visibility.Visible;
             dgvKhoHang.Columns[6].Visibility = Visibility.Visible;
-            Visibility actionVisibility = Visibility.Collapsed; // Mặc định là ẩn
+            Visibility actionVisibility = Visibility.Collapsed; 
 
             if (UserSession.CurrentUser != null)
             {
@@ -245,7 +245,6 @@ namespace PharmaDistributionApp.Views.ProductView
                         });
                     }
 
-                    // 2. LẤY PHIẾU XUẤT (Giữ nguyên)
                     var listXuat = context.Phieuxuats.ToList()
                         .Where(p => !string.IsNullOrEmpty(p.Trangthai) && p.Trangthai.ToLower().Contains("chờ duyệt"))
                         .ToList();
@@ -292,10 +291,10 @@ namespace PharmaDistributionApp.Views.ProductView
                             NoiDung = $"ĐÃ HẾT HẠN! - {sp.Tensp}",
                             ChiTiet = $"Lô: {item.t.Malo}",
                             ThoiGian = item.l.Hsd.HasValue ? item.l.Hsd.Value.ToString("dd/MM/yyyy") : "---",
-                            SortDate = DateTime.Now.AddDays(-1), // Ưu tiên cao
-                            IconKind = "CalendarRemove",         // Icon lịch có dấu X
-                            Color = "#D32F2F",                   // Chữ Đỏ
-                            BgColor = "#212121"                  // Nền Đen (Cảnh báo nguy hiểm/Hủy)
+                            SortDate = DateTime.Now.AddDays(-1), 
+                            IconKind = "CalendarRemove",      
+                            Color = "#D32F2F",                   
+                            BgColor = "#212121"                  
                         });
                     }
 
@@ -308,17 +307,11 @@ namespace PharmaDistributionApp.Views.ProductView
                         var sp = context.Sanphams.FirstOrDefault(s => s.Masp == t.Masp);
                         var kho = context.Khos.FirstOrDefault(k => k.Makho == t.Makho);
 
-                        // --- THÊM ĐOẠN NÀY ---
-                        // Nếu không tìm thấy sản phẩm trong danh mục (đã bị xóa), 
-                        // thì BỎ QUA dòng tồn kho này, không hiện thông báo rác nữa.
                         if (sp == null) continue;
-                        // ---------------------
 
                         string tenSP = sp.Tensp;
                         string dvt = sp.Dvt;
                         string tenKho = kho != null ? kho.Tenkho : t.Makho;
-
-                        // --- PHÂN LOẠI MÀU SẮC ---
                         string loaiTB, icon, color, bgColor, noiDungTB;
 
                         if (t.Soluongton == 0)
@@ -353,8 +346,6 @@ namespace PharmaDistributionApp.Views.ProductView
                             BgColor = bgColor
                         });
                     }
-
-                    // 4. HIỂN THỊ
                     var finalData = notiList.OrderByDescending(x => x.SortDate).ToList();
                     lbThongBao.ItemsSource = finalData;
 
@@ -418,7 +409,7 @@ namespace PharmaDistributionApp.Views.ProductView
         {
             if (e.Key == Key.Escape && btnBell.IsChecked == true)
             {
-                btnBell.IsChecked = false; // Tắt nút -> Popup tự đóng
+                btnBell.IsChecked = false; 
                 this.Focus();
             }
         }
@@ -440,7 +431,6 @@ namespace PharmaDistributionApp.Views.ProductView
   
                 if (_currentMode == ViewMode.TonKho)
                 {
-                    // Đã đổi tên class ở đây
                     var editWindow = new ChinhSuaTonKho(rowData.Masp, rowData.Malo, rowData.Makho);
                     editWindow.ShowDialog();
                     LoadData();
@@ -529,56 +519,114 @@ namespace PharmaDistributionApp.Views.ProductView
         private void lbThongBao_MouseDoubleClick(object sender, MouseButtonEventArgs e)
         {
             var item = lbThongBao.SelectedItem as ThongBaoItem;
+            if (item == null || string.IsNullOrEmpty(item.LoaiThongBao)) return;
+            btnBell.IsChecked = false;
+            string loai = item.LoaiThongBao.ToUpper();
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
+            {
+                if (loai == "PHIEU_NHAP")
+                {
+                    RadPhieuNhap.IsChecked = true;
+                    _currentMode = ViewMode.PhieuNhap;
+                    LoadData();
+                    var window = new ChiTietPhieuNhapWindow(item.MaRef);
+                    window.Owner = Window.GetWindow(this);
+                    window.ShowDialog();
+
+                    LoadData();
+                }
+                else if (loai == "PHIEU_XUAT")
+                {
+                    RadPhieuXuat.IsChecked = true;
+                    _currentMode = ViewMode.PhieuXuat;
+                    LoadData();
+                    var window = new ChiTietPhieuXuatWindow(item.MaRef);
+                    window.Owner = Window.GetWindow(this);
+                    window.ShowDialog();
+
+                    LoadData();
+                }
+                else if (loai.Contains("CANH_BAO"))
+                {
+                    RadTonKho.IsChecked = true;
+                    _currentMode = ViewMode.TonKho;
+                    txtTimKiem.Text = "";
+                    LoadData();
+                    UpdateColumnVisibility();
+                    var list = dgvKhoHang.ItemsSource as List<KhoHangDisplayItem>;
+                    if (list != null)
+                    {
+                        var target = list.FirstOrDefault(x => x.Masp == item.MaRef && x.Malo == item.MaKhoRef);
+                        if (target != null)
+                        {
+                            dgvKhoHang.SelectedItem = target;
+                            dgvKhoHang.UpdateLayout();
+                            dgvKhoHang.ScrollIntoView(target);
+                            dgvKhoHang.Focus();
+                        }
+                    }
+                }
+            }), System.Windows.Threading.DispatcherPriority.Background);
+            e.Handled = true;
+        }
+
+        private void NotificationItem_Click(object sender, MouseButtonEventArgs e)
+        {
+            var element = sender as FrameworkElement;
+            var item = element?.DataContext as ThongBaoItem;
             if (item == null) return;
             btnBell.IsChecked = false;
-            txtTimKiem.Text = "";
-            if (item.LoaiThongBao == "PHIEU_NHAP")
+            string loai = (item.LoaiThongBao ?? "").ToUpper();
+            Application.Current.Dispatcher.BeginInvoke(new Action(() =>
             {
-                RadPhieuNhap.IsChecked = true;
-                _currentMode = ViewMode.PhieuNhap;
-            }
-            else if (item.LoaiThongBao == "PHIEU_XUAT")
-            {
-                RadPhieuXuat.IsChecked = true;
-                _currentMode = ViewMode.PhieuXuat;
-            }
-            else if (item.LoaiThongBao == "CANH_BAO_HET" || item.LoaiThongBao == "CANH_BAO_SAP_HET" || item.LoaiThongBao == "CANH_BAO_HET_HAN")
-            {
-                RadTonKho.IsChecked = true;
-                _currentMode = ViewMode.TonKho;
-            }
-            LoadData();
-            UpdateColumnVisibility();
+                if (loai == "PHIEU_NHAP")
+                {
+                    RadPhieuNhap.IsChecked = true;
+                    _currentMode = ViewMode.PhieuNhap;
+                    LoadData();
 
-            var listHienTai = dgvKhoHang.ItemsSource as List<KhoHangDisplayItem>;
-            if (listHienTai != null)
-            {
-                KhoHangDisplayItem targetRow = null;
+                    var window = new ChiTietPhieuNhapWindow(item.MaRef);
+                    window.Owner = Window.GetWindow(this);
+                    window.ShowDialog(); 
+                    LoadData();         
+                    LoadCanhBaoCount();   
+                }
+                else if (loai == "PHIEU_XUAT")
+                {
+                    RadPhieuXuat.IsChecked = true;
+                    _currentMode = ViewMode.PhieuXuat;
+                    LoadData();
 
-                if (_currentMode == ViewMode.PhieuNhap)
-                {
-                    targetRow = listHienTai.FirstOrDefault(x => x.Mapn == item.MaRef);
+                    var window = new ChiTietPhieuXuatWindow(item.MaRef);
+                    window.Owner = Window.GetWindow(this);
+                    window.ShowDialog();
+                    LoadData();
+                    LoadCanhBaoCount();
                 }
-                else if (_currentMode == ViewMode.PhieuXuat)
+                else if (loai.Contains("CANH_BAO"))
                 {
-                    targetRow = listHienTai.FirstOrDefault(x => x.Mapx == item.MaRef);
-                }
-                else 
-                {
-                    targetRow = listHienTai.FirstOrDefault(x => x.Masp == item.MaRef && x.Malo == item.MaKhoRef);
-                    if (targetRow == null)
-                        targetRow = listHienTai.FirstOrDefault(x => x.Masp == item.MaRef);
-                }
+                    RadTonKho.IsChecked = true;
+                    _currentMode = ViewMode.TonKho;
+                    txtTimKiem.Text = "";
+                    LoadData();
+                    LoadCanhBaoCount(); 
+                    UpdateColumnVisibility();
+                    var list = dgvKhoHang.ItemsSource as List<KhoHangDisplayItem>;
+                    if (list != null)
+                    {
+                        var target = list.FirstOrDefault(x => x.Masp == item.MaRef && x.Malo == item.MaKhoRef);
+                        if (target == null) target = list.FirstOrDefault(x => x.Masp == item.MaRef);
 
-                // 6. Thực hiện Focus
-                if (targetRow != null)
-                {
-                    dgvKhoHang.SelectedItem = targetRow;   
-                    dgvKhoHang.UpdateLayout();               
-                    dgvKhoHang.ScrollIntoView(targetRow);     
-                    dgvKhoHang.Focus();                       
+                        if (target != null)
+                        {
+                            dgvKhoHang.SelectedItem = target;
+                            dgvKhoHang.UpdateLayout();
+                            dgvKhoHang.ScrollIntoView(target);
+                            dgvKhoHang.Focus();
+                        }
+                    }
                 }
-            }
+            }), System.Windows.Threading.DispatcherPriority.Background);
         }
         private void BtnHanhDong_Click(object sender, RoutedEventArgs e) 
         {

@@ -1,7 +1,8 @@
-﻿using System;
+﻿using PharmaDistributionApp.Models;
+using System;
 using System.Linq;
 using System.Windows;
-using PharmaDistributionApp.Models;
+using System.Windows.Input;
 
 namespace PharmaDistributionApp.Views.ProductView
 {
@@ -46,34 +47,20 @@ namespace PharmaDistributionApp.Views.ProductView
         // --- HÀM LOAD DỮ LIỆU CŨ KHI SỬA ---
         private void LoadDataDeSua()
         {
-            try
+            using (var context = new QuanlyphanphoiduocphamContext())
             {
-                using (var context = new QuanlyphanphoiduocphamContext())
+                var sp = context.Sanphams.FirstOrDefault(x => x.Masp == _maSPSua);
+                if (sp != null)
                 {
-                    var sp = context.Sanphams.FirstOrDefault(x => x.Masp == _maSPSua);
-                    if (sp != null)
-                    {
-                        txtMaSP.Text = sp.Masp;
-                        txtMaSP.IsReadOnly = true;
+                    txtMaSP.Text = sp.Masp;
+                    txtTenSP.Text = sp.Tensp;
+                    txtGiaBan.Text = sp.Giaban.ToString("N0");
+                    cboDVT.SelectedItem = sp.Dvt;
+                    cboNuocSX.SelectedItem = sp.Nuocsx;
 
-                        txtTenSP.Text = sp.Tensp;
-                        txtDVT.Text = sp.Dvt;
-
-                        // Xử lý hiển thị giá
-                        txtGiaBan.Text = sp.Giaban.ToString("N0");
-
-                        txtNuocSX.Text = sp.Nuocsx;
-
-                        cboLoaiThuoc.SelectedValue = sp.Maloai;
-                        cboNhaCungCap.SelectedValue = sp.Nhacungcap;
-
-                        // Đã xóa phần gán txtSoLuong
-                    }
+                    cboLoaiThuoc.SelectedValue = sp.Maloai;
+                    cboNhaCungCap.SelectedValue = sp.Nhacungcap;
                 }
-            }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi tải dữ liệu sửa: " + ex.Message);
             }
         }
 
@@ -114,32 +101,23 @@ namespace PharmaDistributionApp.Views.ProductView
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
                     cboLoaiThuoc.ItemsSource = context.Loaisps.ToList();
-
-                    // Logic cũ của bạn
                     cboNhaCungCap.ItemsSource = context.Nhacungcaps
                                                        .Select(x => new { x.Mancc, TenNCC = x.Tenncc })
                                                        .ToList();
+                    var listDVT = new List<string> { "Hộp", "Vỉ", "Lọ", "Chai", "Ống", "Viên" };
+                    cboDVT.ItemsSource = listDVT;
+
+                    var listNuoc = new List<string> { "Việt Nam", "Trung Quốc", "Mỹ", "Pháp", "Đức", "Ấn Độ", "Hàn Quốc", "Nhật Bản" };
+                    cboNuocSX.ItemsSource = listNuoc;
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
-            }
+            catch (Exception ex) { MessageBox.Show("Lỗi tải danh mục: " + ex.Message); }
         }
-
-        // --- HÀM LƯU (XỬ LÝ CẢ THÊM VÀ SỬA) ---
         private void BtnLuu_Click(object sender, RoutedEventArgs e)
         {
-            if (string.IsNullOrWhiteSpace(txtTenSP.Text))
+            if (cboDVT.SelectedItem == null || cboNuocSX.SelectedItem == null)
             {
-                MessageBox.Show("Vui lòng nhập Tên sản phẩm!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
-                txtTenSP.Focus();
-                return;
-            }
-
-            if (cboNhaCungCap.SelectedValue == null)
-            {
-                MessageBox.Show("Vui lòng chọn Nhà cung cấp!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Vui lòng chọn đầy đủ Đơn vị tính và Nước sản xuất!");
                 return;
             }
 
@@ -147,69 +125,45 @@ namespace PharmaDistributionApp.Views.ProductView
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    // =========================================================
-                    // TRƯỜNG HỢP 1: THÊM MỚI (Logic cũ của bạn)
-                    // =========================================================
-                    if (_maSPSua == null)
+                    if (_maSPSua == null) 
                     {
-                        string finalMaSP = txtMaSP.Text;
-
-                        // Check trùng và tự +1 nếu trùng (chỉ dùng khi thêm mới)
-                        if (context.Sanphams.Any(x => x.Masp == finalMaSP))
-                        {
-                            TaoMaTuDong();
-                            finalMaSP = txtMaSP.Text;
-                        }
-
                         var spMoi = new Sanpham
                         {
-                            Masp = finalMaSP,
+                            Masp = txtMaSP.Text,
                             Tensp = txtTenSP.Text.Trim(),
-                            Dvt = txtDVT.Text.Trim(),
+                            Dvt = cboDVT.SelectedItem.ToString(),     
+                            Nuocsx = cboNuocSX.SelectedItem.ToString(), 
                             Giaban = decimal.TryParse(txtGiaBan.Text, out decimal gia) ? gia : 0,
-                            Nuocsx = txtNuocSX.Text.Trim(),
                             Maloai = cboLoaiThuoc.SelectedValue?.ToString(),
-                            Nhacungcap = cboNhaCungCap.SelectedValue?.ToString(), // Lưu ý: Xem lại DB lưu Mã hay Tên
-                            Ghichu = "Đang nhập",
+                            Nhacungcap = cboNhaCungCap.SelectedValue?.ToString(),
+                            Ghichu = "Đang nhập"
                         };
-
                         context.Sanphams.Add(spMoi);
-                        context.SaveChanges();
-
-                        MessageBox.Show($"Thêm thành công! Mã: {finalMaSP}", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
                     }
-                    // =========================================================
-                    // TRƯỜNG HỢP 2: CẬP NHẬT (Logic Mới)
-                    // =========================================================
-                    else
+                    else // CẬP NHẬT
                     {
-                        // Tìm sản phẩm cũ theo mã
                         var spCu = context.Sanphams.FirstOrDefault(x => x.Masp == _maSPSua);
                         if (spCu != null)
                         {
-                            // Cập nhật các trường thông tin
                             spCu.Tensp = txtTenSP.Text.Trim();
-                            spCu.Dvt = txtDVT.Text.Trim();
+                            spCu.Dvt = cboDVT.SelectedItem.ToString();
+                            spCu.Nuocsx = cboNuocSX.SelectedItem.ToString();
                             spCu.Giaban = decimal.TryParse(txtGiaBan.Text, out decimal gia) ? gia : 0;
-                            spCu.Nuocsx = txtNuocSX.Text.Trim();
                             spCu.Maloai = cboLoaiThuoc.SelectedValue?.ToString();
                             spCu.Nhacungcap = cboNhaCungCap.SelectedValue?.ToString();
-
-                            // Không sửa Masp, Ghichu, Trangthai nếu không cần thiết
-
-                            context.SaveChanges();
-                            MessageBox.Show("Cập nhật thông tin thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
                         }
                     }
-
-                    OnProductAdded?.Invoke(); // Gọi sự kiện reload dữ liệu ở màn hình chính
+                    context.SaveChanges();
+                    OnProductAdded?.Invoke();
                     this.Close();
                 }
             }
-            catch (Exception ex)
-            {
-                MessageBox.Show("Lỗi khi lưu: " + ex.Message, "Lỗi", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
+            catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
+        }
+        private void Border_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == MouseButton.Left)
+                this.DragMove();
         }
 
         private void BtnThoat_Click(object sender, RoutedEventArgs e)
