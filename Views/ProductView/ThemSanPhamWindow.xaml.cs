@@ -9,42 +9,29 @@ namespace PharmaDistributionApp.Views.ProductView
     public partial class ThemSanPhamWindow : Window
     {
         public event Action OnProductAdded;
-        private string _maSPSua = null; // Biến này: null = Thêm mới, Có giá trị = Đang sửa
-
-        // -----------------------------------------------------------
-        // 1. CONSTRUCTOR MẶC ĐỊNH (Dùng cho THÊM MỚI)
-        // -----------------------------------------------------------
+        private string _maSPSua = null;
         public ThemSanPhamWindow()
         {
             InitializeComponent();
             LoadComboBoxData();
 
-            // Logic cũ của bạn: Tự động tạo mã khi thêm mới
             TaoMaTuDong();
 
             _maSPSua = null;
         }
 
-        // -----------------------------------------------------------
-        // 2. CONSTRUCTOR MỚI (Dùng cho CHỈNH SỬA)
-        // -----------------------------------------------------------
         public ThemSanPhamWindow(string maSP)
         {
             InitializeComponent();
             LoadComboBoxData();
 
-            _maSPSua = maSP; // Lưu lại mã đang sửa
-
-            // Ở chế độ sửa:
-            // 1. Không gọi TaoMaTuDong()
-            // 2. Load dữ liệu cũ lên form
+            _maSPSua = maSP; 
             LoadDataDeSua();
 
             txtTitle.Text = "CẬP NHẬT SẢN PHẨM";
             btnLuu.Content = "Lưu thay đổi";
         }
 
-        // --- HÀM LOAD DỮ LIỆU CŨ KHI SỬA ---
         private void LoadDataDeSua()
         {
             using (var context = new QuanlyphanphoiduocphamContext())
@@ -75,7 +62,7 @@ namespace PharmaDistributionApp.Views.ProductView
 
                     foreach (var ma in danhSachMa)
                     {
-                        if (ma != null && ma.StartsWith("SP_") && ma.Length > 3)
+                        if (ma != null && ma.StartsWith("SP") && ma.Length > 3)
                         {
                             string phanSo = ma.Substring(3);
                             if (int.TryParse(phanSo, out int number))
@@ -85,12 +72,12 @@ namespace PharmaDistributionApp.Views.ProductView
                         }
                     }
                     int nextNumber = maxNumber + 1;
-                    txtMaSP.Text = "SP_" + nextNumber.ToString("D3");
+                    txtMaSP.Text = "SP" + nextNumber.ToString("D3");
                 }
             }
             catch (Exception)
             {
-                txtMaSP.Text = "SP_001";
+                txtMaSP.Text = "SP001";
             }
         }
 
@@ -140,7 +127,7 @@ namespace PharmaDistributionApp.Views.ProductView
                         };
                         context.Sanphams.Add(spMoi);
                     }
-                    else // CẬP NHẬT
+                    else
                     {
                         var spCu = context.Sanphams.FirstOrDefault(x => x.Masp == _maSPSua);
                         if (spCu != null)
