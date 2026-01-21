@@ -45,7 +45,6 @@ namespace PharmaDistributionApp.Views.LoginView
 
             try
             {
-                // Truy vấn lấy cả thông tin tài khoản và nhân viên
                 string sql = @"
                     SELECT T.MANV, T.MATKHAU, T.TRANGTHAI, 
                            N.TENNV, N.CHUCVU, N.EMAIL, N.AVATAR 
@@ -65,9 +64,6 @@ namespace PharmaDistributionApp.Views.LoginView
                 if (row["MATKHAU"].ToString() != pass) { SetErrorState(txtPassword, "Mật khẩu không đúng"); return; }
                 if (Convert.ToInt32(row["TRANGTHAI"]) == 0) { ShowError("Tài khoản đã bị khóa!"); return; }
 
-                // --- ĐĂNG NHẬP THÀNH CÔNG ---
-
-                // 1. Lưu session (Sẽ hết lỗi vì đã có using ở trên)
                 UserSession.CurrentUser = new Employee
                 {
                     Manv = row["MANV"].ToString(),
@@ -78,10 +74,8 @@ namespace PharmaDistributionApp.Views.LoginView
                 };
                 UserSession.IsLoggedIn = true;
 
-                // 2. Lưu ghi nhớ
                 SaveRememberMe(input, pass);
 
-                // 3. Chuyển màn hình
                 MainWindow main = new MainWindow();
                 main.Show();
 
@@ -107,7 +101,6 @@ namespace PharmaDistributionApp.Views.LoginView
             Properties.Settings.Default.Save();
         }
 
-        // Các hàm giao diện phụ trợ
         private void ShowError(string msg) { txbErrorMessage.Text = msg; txbErrorMessage.Visibility = Visibility.Visible; }
         private void ResetUI() { txbErrorMessage.Visibility = Visibility.Collapsed; txtUsername.BorderBrush = _defaultBorder; txtPassword.BorderBrush = _defaultBorder; }
         private void SetErrorState(Control c, string msg) { c.BorderBrush = _errorBorder; c.Focus(); ShowError(msg); }

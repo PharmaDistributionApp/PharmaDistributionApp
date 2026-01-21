@@ -9,8 +9,6 @@ namespace PharmaDistributionApp.Models
         public string GhiChu { get; set; }
         public string TrangThai { get; set; }
         public string MaDoiTac { get; set; }
-
-        // Danh sách chi tiết sản phẩm
         public List<EditCartItem> ChiTiet { get; set; }
     }
 }

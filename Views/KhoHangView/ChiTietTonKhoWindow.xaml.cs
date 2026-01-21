@@ -1,4 +1,4 @@
-﻿using PharmaDistributionApp.Models; // Đảm bảo dùng đúng namespace Models của bạn
+﻿using PharmaDistributionApp.Models; 
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,7 +11,6 @@ namespace PharmaDistributionApp.Views.KhoHangView
     {
         private string _maSP;
 
-        // Constructor nhận vào Mã Sản Phẩm cần xem
         public ChiTietTonKhoWindow(string masp)
         {
             InitializeComponent();
@@ -19,7 +18,6 @@ namespace PharmaDistributionApp.Views.KhoHangView
             LoadData();
         }
 
-        // Class DTO để hiển thị lên lưới
         public class ChiTietTonKhoItem
         {
             public string TenKho { get; set; }
@@ -37,7 +35,6 @@ namespace PharmaDistributionApp.Views.KhoHangView
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    // 1. Lấy thông tin cơ bản Sản Phẩm (Header)
                     var sp = context.Sanphams.FirstOrDefault(s => s.Masp == _maSP);
                     if (sp != null)
                     {
@@ -46,13 +43,12 @@ namespace PharmaDistributionApp.Views.KhoHangView
                         txtDVT.Text = sp.Dvt;
                     }
 
-                    // 2. Lấy dữ liệu chi tiết từ 3 bảng: Tonkho - Kho - Lohang
-                    // Logic: Tìm tất cả dòng trong Tonkho có Masp trùng khớp
+    
                     var rawData = (from tk in context.Tonkhos
                                    where tk.Masp == _maSP
                                    join k in context.Khos on tk.Makho equals k.Makho
                                    join lh in context.Lohangs on tk.Malo equals lh.Malo into lhGroup
-                                   from subLh in lhGroup.DefaultIfEmpty() // Left Join Lô hàng
+                                   from subLh in lhGroup.DefaultIfEmpty() 
                                    select new
                                    {
                                        MaLo = tk.Malo,
@@ -61,11 +57,9 @@ namespace PharmaDistributionApp.Views.KhoHangView
                                        SoLuong = tk.Soluongton
                                    }).ToList();
 
-                    // 3. Tính tổng tồn kho hiển thị lên Header
                     int tongTon = rawData.Sum(x => x.SoLuong);
                     txtTongTon.Text = tongTon.ToString("N0");
 
-                    // 4. Xử lý Logic màu sắc trạng thái cho từng dòng
                     var listHienThi = new List<ChiTietTonKhoItem>();
                     var homNay = DateOnly.FromDateTime(DateTime.Now);
 
@@ -74,33 +68,31 @@ namespace PharmaDistributionApp.Views.KhoHangView
                         string tt, bg, fg;
                         string hsdStr = item.HanDung.HasValue ? item.HanDung.Value.ToString("dd/MM/yyyy") : "---";
 
-                        // 1. Ưu tiên cao nhất: HẾT HÀNG (Tồn kho = 0)
                         if (item.SoLuong == 0)
                         {
                             tt = "Hết hàng";
-                            bg = "#FFEBEE"; fg = "#C62828"; // Đỏ nhạt
+                            bg = "#FFEBEE"; fg = "#C62828"; 
                         }
-                        // 2. Ưu tiên nhì: ĐÃ HẾT HẠN (Dù còn hàng cũng không bán được -> Nguy hiểm)
+
                         else if (item.HanDung.HasValue && item.HanDung.Value < homNay)
                         {
                             tt = "Đã hết hạn";
-                            bg = "#263238"; fg = "#FF5252"; // Nền Đen xám, Chữ Đỏ tươi
+                            bg = "#263238"; fg = "#FF5252"; 
                         }
-                        // 3. Ưu tiên ba: SẮP HẾT HẠN (Trong vòng 30 ngày tới)
                         else if (item.HanDung.HasValue && item.HanDung.Value <= homNay.AddDays(30))
                         {
                             tt = "Sắp hết hạn";
-                            bg = "#FBE9E7"; fg = "#D84315"; // Cam đỏ
+                            bg = "#FBE9E7"; fg = "#D84315"; 
                         }
                         else if (item.SoLuong <= 10)
                         {
                             tt = "Sắp hết hàng";
-                            bg = "#FFF3E0"; fg = "#EF6C00"; // Cam
+                            bg = "#FFF3E0"; fg = "#EF6C00"; 
                         }
                         else
                         {
                             tt = "Còn hàng";
-                            bg = "#E8F5E9"; fg = "#2E7D32"; // Xanh
+                            bg = "#E8F5E9"; fg = "#2E7D32";
                         }
 
                         listHienThi.Add(new ChiTietTonKhoItem
@@ -115,7 +107,6 @@ namespace PharmaDistributionApp.Views.KhoHangView
                         });
                     }
 
-                    // 5. Gán dữ liệu vào lưới (Sắp xếp ưu tiên nơi nào còn hàng nhiều nhất)
                     dgvChiTietTon.ItemsSource = listHienThi.OrderByDescending(x => x.SoLuong).ToList();
                 }
             }

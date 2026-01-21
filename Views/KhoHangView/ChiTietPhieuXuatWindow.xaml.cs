@@ -26,7 +26,6 @@ namespace PharmaDistributionApp.Views.ProductView
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    // 1. Lấy thông tin phiếu xuất
                     var px = context.Phieuxuats.FirstOrDefault(p => p.Mapx == _mapx);
                     if (px == null) return;
 
@@ -35,23 +34,19 @@ namespace PharmaDistributionApp.Views.ProductView
                     txtTrangThai.Text = px.Trangthai;
                     txtSoHD.Text = px.Sohdxuat;
 
-                    // Lấy tên kho
                     var kho = context.Khos.FirstOrDefault(k => k.Makho == px.Makho);
                     txtKho.Text = kho != null ? kho.Tenkho : px.Makho;
 
-                    // Lấy tên nhân viên
                     var nv = context.Nhanviens.FirstOrDefault(n => n.Manv == px.Manv);
                     txtNhanVien.Text = nv != null ? nv.Tennv : px.Manv;
 
-                    // 2. Lấy thông tin Hóa đơn xuất để lấy tên Khách hàng
                     var hdx = context.Hoadonxuats.FirstOrDefault(h => h.Sohdxuat == px.Sohdxuat);
                     txtKhachHang.Text = hdx?.Makh ?? "---";
 
                     bool coQuyen = false;
                     if (UserSession.CurrentUser != null)
                     {
-                        // Kiểm tra chức vụ (Role)
-                        string chucVu = UserSession.CurrentUser.Chucvu; // Kiểm tra lại tên cột trong DB của bạn (Chucvu hay Vaitro?)
+                        string chucVu = UserSession.CurrentUser.Chucvu; 
                         string[] cacSep = { "Admin", "Giám đốc", "Quản lý kho" };
                         coQuyen = cacSep.Contains(chucVu);
                     }
@@ -67,7 +62,6 @@ namespace PharmaDistributionApp.Views.ProductView
                         btnPheDuyet.Visibility = Visibility.Collapsed;
                     }
 
-                    // 3. Lấy chi tiết sản phẩm từ CTHDXUAT (vì Phiếu xuất liên kết qua Số HĐ)
                     var query = from ct in context.Cthdxuats
                                 join sp in context.Sanphams on ct.Masp equals sp.Masp
                                 join lh in context.Lohangs on ct.Malo equals lh.Malo into lhGroup
@@ -96,10 +90,7 @@ namespace PharmaDistributionApp.Views.ProductView
 
         private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            // Bỏ chọn dòng hiện tại trong DataGrid
             dgvChiTiet.UnselectAll();
-
-            // Xóa focus vật lý khỏi DataGrid để mất các viền focus (nếu còn)
             Keyboard.ClearFocus();
         }
 
@@ -127,7 +118,6 @@ namespace PharmaDistributionApp.Views.ProductView
                             return;
                         }
 
-                        // Lấy danh sách chi tiết (Sản phẩm cần xuất)
                         var listChiTiet = context.Cthdxuats.Where(ct => ct.Sohdxuat == px.Sohdxuat).ToList();
 
                         if (listChiTiet.Count == 0 && trangThaiMoi == "Đã duyệt")
@@ -136,10 +126,8 @@ namespace PharmaDistributionApp.Views.ProductView
                             return;
                         }
 
-                        // --- TRƯỜNG HỢP 1: DUYỆT (TRỪ KHO) ---
                         if (trangThaiMoi == "Đã duyệt")
                         {
-                            // Bước A: Kiểm tra đủ hàng không?
                             foreach (var item in listChiTiet)
                             {
                                 var tonKho = context.Tonkhos.FirstOrDefault(t =>
@@ -148,11 +136,10 @@ namespace PharmaDistributionApp.Views.ProductView
                                 if (tonKho == null || tonKho.Soluongton < item.Soluong)
                                 {
                                     MessageBox.Show($"Lỗi: Không đủ hàng!\nSP: {item.Masp} - Lô: {item.Malo}\nTồn: {tonKho?.Soluongton ?? 0} < Cần: {item.Soluong}", "Lỗi");
-                                    return; // Dừng ngay
+                                    return;
                                 }
                             }
 
-                            // Bước B: Trừ kho thật
                             foreach (var item in listChiTiet)
                             {
                                 var tonKho = context.Tonkhos.FirstOrDefault(t =>
@@ -161,9 +148,6 @@ namespace PharmaDistributionApp.Views.ProductView
                                 if (tonKho != null)
                                 {
                                     tonKho.Soluongton -= item.Soluong;
-
-                                    // [QUAN TRỌNG] Nếu hết hàng (sl = 0) -> Xóa dòng tồn kho này luôn cho sạch
-                                    // Nếu bạn muốn giữ dòng tồn = 0 thì comment đoạn if này lại.
                                     if (tonKho.Soluongton == 0)
                                     {
                                         context.Tonkhos.Remove(tonKho);
@@ -176,14 +160,11 @@ namespace PharmaDistributionApp.Views.ProductView
                             }
                         }
 
-                        // --- TRƯỜNG HỢP 2: HỦY ---
                         else if (trangThaiMoi == "Đã hủy")
                         {
-                            // Nếu phiếu xuất chỉ là nháp (chưa trừ kho) thì Hủy đơn giản là đổi trạng thái.
-                            // Không cần làm gì thêm ở đây.
+
                         }
 
-                        // Cập nhật trạng thái phiếu
                         px.Trangthai = trangThaiMoi;
                         context.Entry(px).State = EntityState.Modified;
 
@@ -196,7 +177,7 @@ namespace PharmaDistributionApp.Views.ProductView
             }
             catch (Exception ex)
             {
-                // Hiển thị lỗi chi tiết (Inner Exception) để dễ debug nếu dính khóa ngoại
+               
                 string msg = ex.Message;
                 if (ex.InnerException != null) msg += "\nChi tiết: " + ex.InnerException.Message;
                 MessageBox.Show("Lỗi cập nhật: " + msg);

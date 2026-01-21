@@ -17,7 +17,6 @@ namespace PharmaDistributionApp.Views.KhachHangView
         private readonly Brush _errorBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D32F2F"));
         private readonly Brush _defaultBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#89000000"));
 
-        // Constructor Thêm mới
         public ThemSuaKhachHangWindow()
         {
             InitializeComponent();
@@ -27,7 +26,6 @@ namespace PharmaDistributionApp.Views.KhachHangView
             GenerateNewKHCode();
         }
 
-        // Constructor Chỉnh sửa
         public ThemSuaKhachHangWindow(Khachhang kh)
         {
             InitializeComponent();
@@ -47,7 +45,6 @@ namespace PharmaDistributionApp.Views.KhachHangView
 
             this.Loaded += (s, e) => txtTenKH.Focus();
 
-            // Clear error events
             txtTenKH.TextChanged += (s, e) => ClearSingleError(txtTenKH, errTenKH);
             txtSdt.TextChanged += (s, e) => ClearSingleError(txtSdt, errSdt);
             txtEmail.TextChanged += (s, e) => ClearSingleError(txtEmail, errEmail);
@@ -146,7 +143,6 @@ namespace PharmaDistributionApp.Views.KhachHangView
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    // Lấy loại KH từ ComboBox
                     string loaiKH = (cbbLoaiKH.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "Thường";
 
                     if (_isEditMode)
@@ -159,7 +155,7 @@ namespace PharmaDistributionApp.Views.KhachHangView
                             dbKH.Email = txtEmail.Text.Trim();
                             dbKH.Diachi = txtDiaChi.Text.Trim();
                             dbKH.Loaikh = loaiKH;
-                            // Doanh số thường được tính tự động từ Hóa đơn, không nên sửa thủ công ở đây
+   
 
                             context.SaveChanges();
                             MessageBox.Show("Cập nhật thành công!", "Thông báo");
@@ -180,7 +176,7 @@ namespace PharmaDistributionApp.Views.KhachHangView
                             Email = txtEmail.Text.Trim(),
                             Diachi = txtDiaChi.Text.Trim(),
                             Loaikh = loaiKH,
-                            Doanhso = 0 // Mặc định 0 khi mới tạo
+                            Doanhso = 0 
                         };
                         context.Khachhangs.Add(newKH);
                         context.SaveChanges();
@@ -207,7 +203,7 @@ namespace PharmaDistributionApp.Views.KhachHangView
                     int nextNumber = 1;
                     while (true)
                     {
-                        string candidateCode = $"KH{nextNumber:D3}"; // Tạo mã dạng KH001, KH002...
+                        string candidateCode = $"KH{nextNumber:D3}"; 
                         if (!allCodes.Any(c => c.Equals(candidateCode, StringComparison.OrdinalIgnoreCase)))
                         {
                             txtMaKH.Text = candidateCode;
@@ -230,7 +226,6 @@ namespace PharmaDistributionApp.Views.KhachHangView
                 txtEmail.Text = _currentKH.Email;
                 txtDiaChi.Text = _currentKH.Diachi;
 
-                // Set ComboBox Loại KH
                 foreach (ComboBoxItem item in cbbLoaiKH.Items)
                 {
                     if (item.Content.ToString() == _currentKH.Loaikh)
@@ -240,7 +235,6 @@ namespace PharmaDistributionApp.Views.KhachHangView
                     }
                 }
 
-                // Hiển thị doanh số (Read-only)
                 txtDoanhSo.Text = $"{_currentKH.Doanhso:N0}";
             }
         }
