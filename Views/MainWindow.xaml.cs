@@ -32,8 +32,6 @@ namespace PharmaDistributionApp.Views
             }
 
             LoadUserData();
-
-            // Mặc định chọn Menu Tổng quan
             SetActiveMenu(btnTongQuan);
             MainContent.Content = new DashBoardViewControl();
         }
@@ -81,7 +79,6 @@ namespace PharmaDistributionApp.Views
 
         private void SetActiveMenu(Border activeBtn)
         {
-            // Reset tất cả nút
             ResetButtonStyle(btnTongQuan);
             ResetButtonStyle(btnKho);
             ResetButtonStyle(btnNhanSu);
@@ -90,11 +87,8 @@ namespace PharmaDistributionApp.Views
             ResetButtonStyle(btnKhachHang);
             ResetButtonStyle(btnSanPham);
             ResetButtonStyle(btnAccount);
-
-            // Active nút được chọn (Nền trắng)
             activeBtn.Background = Brushes.White;
 
-            // Đổi màu icon và chữ sang xanh
             if (activeBtn.Child is StackPanel sp)
             {
                 var blueBrush = (Brush)new BrushConverter().ConvertFrom("#4C70BA");
@@ -109,7 +103,6 @@ namespace PharmaDistributionApp.Views
         private void ResetButtonStyle(Border btn)
         {
             btn.Background = Brushes.Transparent;
-            // Đổi màu icon và chữ về trắng
             if (btn.Child is StackPanel sp)
             {
                 foreach (var child in sp.Children)

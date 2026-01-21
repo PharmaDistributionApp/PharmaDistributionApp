@@ -45,7 +45,7 @@
                 <ComboBox x:Name="cboTrangThai" Width="150" materialDesign:HintAssist.Hint="Trạng thái">
                     <ComboBoxItem Content="Chờ duyệt"/>
                     <ComboBoxItem Content="Đã duyệt"/>
-                    <ComboBoxItem Content="Hoàn thành"/>
+                    <ComboBoxItem Content="Đã hủy"/>
                 </ComboBox>
             </StackPanel>
         </Grid>

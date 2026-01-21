@@ -10,7 +10,6 @@ namespace PharmaDistributionApp.Services
     {
         public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
         {
-            // Nếu dữ liệu null hoặc không phải là byte[] thì trả về null
             if (value is not byte[] bytes || bytes.Length == 0)
             {
                 return null;
@@ -18,7 +17,6 @@ namespace PharmaDistributionApp.Services
 
             try
             {
-                // Tạo ảnh từ mảng byte
                 var image = new BitmapImage();
                 using (var mem = new MemoryStream(bytes))
                 {
@@ -30,7 +28,7 @@ namespace PharmaDistributionApp.Services
                     image.StreamSource = mem;
                     image.EndInit();
                 }
-                image.Freeze(); // Giúp ảnh không bị lỗi khi xử lý đa luồng
+                image.Freeze(); 
                 return image;
             }
             catch

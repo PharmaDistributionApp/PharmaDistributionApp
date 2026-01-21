@@ -12,7 +12,6 @@ namespace PharmaDistributionApp.Views.KhoHangView
         private string _malo;
         private string _makho;
 
-        // Constructor nhận đủ 3 tham số khóa chính
         public ChinhSuaTonKho(string masp, string malo, string makho)
         {
             InitializeComponent();
@@ -28,7 +27,6 @@ namespace PharmaDistributionApp.Views.KhoHangView
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    // Tìm dòng tồn kho cần sửa
                     var tonKho = context.Tonkhos.FirstOrDefault(t => t.Masp == _masp && t.Malo == _malo && t.Makho == _makho);
 
                     var sp = context.Sanphams.FirstOrDefault(s => s.Masp == _masp);
@@ -63,14 +61,12 @@ namespace PharmaDistributionApp.Views.KhoHangView
 
         private void BtnLuu_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Kiểm tra tính hợp lệ của số lượng (Giữ nguyên của bạn)
             if (!int.TryParse(txtSoLuong.Text, out int soLuongMoi) || soLuongMoi < 0)
             {
                 MessageBox.Show("Số lượng phải là số nguyên dương!", "Cảnh báo");
                 return;
             }
 
-            // [BỔ SUNG] Kiểm tra tính hợp lệ của ngày tháng
             if (dpHSD.SelectedDate == null)
             {
                 MessageBox.Show("Vui lòng chọn Hạn sử dụng!", "Cảnh báo");

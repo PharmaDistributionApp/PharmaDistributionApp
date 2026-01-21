@@ -19,7 +19,6 @@ namespace PharmaDistributionApp.Views.KhachHangView
 
         private void SetupEvents()
         {
-            // SỬA: Xử lý phím ESC để đóng
             this.KeyDown += (s, e) => {
                 if (e.Key == Key.Escape) this.Close();
             };
@@ -58,29 +57,23 @@ namespace PharmaDistributionApp.Views.KhachHangView
             }
         }
 
-        // SỬA: Click ra ngoài bảng để hủy chọn dòng
+
         private void Window_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            // Kiểm tra xem chuột có click vào trong DataGrid hay không
-            // Sử dụng VisualTreeHelper để kiểm tra chính xác phần tử được click
             var hitResult = VisualTreeHelper.HitTest(dgHoadon, e.GetPosition(dgHoadon));
 
-            // Nếu click ra ngoài bảng hoàn toàn (hitResult == null)
-            // HOẶC click vào vùng trống trong bảng (không trúng dòng dữ liệu)
             if (hitResult == null || !IsClickOnRow(e.OriginalSource as DependencyObject))
             {
-                dgHoadon.SelectedItem = null; // Bỏ chọn dòng
-                Keyboard.ClearFocus(); // Bỏ focus bàn phím
+                dgHoadon.SelectedItem = null; 
+                Keyboard.ClearFocus(); 
             }
         }
         private bool IsClickOnRow(DependencyObject target)
         {
             while (target != null)
             {
-                // Nếu duyệt lên gặp DataGridRow -> Đang click trúng dòng -> Return true
                 if (target is DataGridRow) return true;
 
-                // Nếu duyệt lên gặp DataGrid mà chưa thấy Row -> Click vào vùng trắng -> Return false
                 if (target is DataGrid) return false;
 
                 target = VisualTreeHelper.GetParent(target);

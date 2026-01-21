@@ -335,14 +335,11 @@ namespace PharmaDistributionApp.Views.EmployeeView
                     try
                     {
                         string sql = "DELETE FROM NHANVIEN WHERE MANV = @Manv";
-
-                        // SỬA: Tạo mảng SqliteParameter (chữ 'l' thường)
                         var parameters = new SqliteParameter[]
                         {
                             new SqliteParameter("@Manv", selectedEmp.Manv)
                         };
 
-                        // Gọi hàm chuẩn trong Database.cs
                         Database.ExecuteNonQuery(sql, parameters);
 
                         LoadEmployeeData();

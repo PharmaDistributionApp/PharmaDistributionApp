@@ -9,9 +9,9 @@ namespace PharmaDistributionApp.Services
 {
     public enum EmployeeStatus
     {
-        Resigned = 0,   // Đã nghỉ việc
-        Active = 1,     // Đang làm việc
-        OnLeave = 2     // Tạm nghỉ
+        Resigned = 0,   
+        Active = 1,    
+        OnLeave = 2     
     }
     public class Employee
     {
@@ -25,7 +25,7 @@ namespace PharmaDistributionApp.Services
         public string Diachi { get; set; }      
         public DateTime? Ngaysinh { get; set; }
         public int TrangThai { get; set; }
-        public byte[] AvatarBlob { get; set; }  // Dữ liệu BLOB từ SQL
+        public byte[] AvatarBlob { get; set; }
 
         public BitmapImage AvatarSource
         {
@@ -51,7 +51,6 @@ namespace PharmaDistributionApp.Services
         {
             get
             {
-                // Ép kiểu int sang Enum để switch
                 switch ((EmployeeStatus)TrangThai)
                 {
                     case EmployeeStatus.Active:
@@ -71,9 +70,9 @@ namespace PharmaDistributionApp.Services
             {
                 switch ((EmployeeStatus)TrangThai)
                 {
-                    case EmployeeStatus.Active: return "#4CAF50"; // Xanh lá
-                    case EmployeeStatus.Resigned: return "#F44336"; // Đỏ
-                    case EmployeeStatus.OnLeave: return "#FFC107"; // Vàng cam
+                    case EmployeeStatus.Active: return "#4CAF50"; 
+                    case EmployeeStatus.Resigned: return "#F44336"; 
+                    case EmployeeStatus.OnLeave: return "#FFC107"; 
                     default: return "Gray";
                 }
             }

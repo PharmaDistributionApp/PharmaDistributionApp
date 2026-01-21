@@ -1,13 +1,18 @@
-﻿using PharmaDistributionApp.Models;
+﻿using MaterialDesignThemes.Wpf;
+using PharmaDistributionApp.Models;
 using System;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 
 namespace PharmaDistributionApp.Views.ProductView
 {
     public partial class ThemSanPhamWindow : Window
     {
+        private readonly Brush _errorBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#D32F2F"));
+        private readonly Brush _defaultBorderBrush = new SolidColorBrush((Color)ColorConverter.ConvertFromString("#89000000"));
         public event Action OnProductAdded;
         private string _maSPSua = null;
         public ThemSanPhamWindow()
@@ -51,6 +56,25 @@ namespace PharmaDistributionApp.Views.ProductView
             }
         }
 
+        private void ShowVisualError(Control control, TextBlock errorBlock, string message)
+        {
+            if (control is TextBox tb) tb.BorderBrush = _errorBorderBrush;
+            else if (control is ComboBox cb) cb.BorderBrush = _errorBorderBrush;
+
+            errorBlock.Text = message;
+            errorBlock.Visibility = Visibility.Visible;
+        }
+
+        private void ClearSingleError(Control control, TextBlock errorBlock)
+        {
+            if (errorBlock.Visibility == Visibility.Visible)
+            {
+                if (control is TextBox tb) tb.BorderBrush = _defaultBorderBrush;
+                else if (control is ComboBox cb) cb.BorderBrush = _defaultBorderBrush;
+
+                errorBlock.Visibility = Visibility.Collapsed;
+            }
+        }
         private void TaoMaTuDong()
         {
             try
@@ -102,6 +126,19 @@ namespace PharmaDistributionApp.Views.ProductView
         }
         private void BtnLuu_Click(object sender, RoutedEventArgs e)
         {
+            if (string.IsNullOrWhiteSpace(txtTenSP.Text))
+            {
+                MaterialDesignThemes.Wpf.ValidationAssist.SetHasError(txtTenSP, true);
+                MaterialDesignThemes.Wpf.HintAssist.SetHelperText(txtTenSP, "Vui lòng nhập đủ tên sản phẩm");
+
+                txtTenSP.Focus();
+                return;
+            }
+            else
+            {
+                MaterialDesignThemes.Wpf.ValidationAssist.SetHasError(txtTenSP, false);
+                MaterialDesignThemes.Wpf.HintAssist.SetHelperText(txtTenSP, "");
+            }
             if (cboDVT.SelectedItem == null || cboNuocSX.SelectedItem == null)
             {
                 MessageBox.Show("Vui lòng chọn đầy đủ Đơn vị tính và Nước sản xuất!");

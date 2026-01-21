@@ -32,15 +32,13 @@ namespace PharmaDistributionApp.Views.LoginView
 
             foreach (var box in _boxes)
             {
-                // Gán các sự kiện
                 box.TextChanged += TxtCode_TextChanged;
                 box.PreviewKeyDown += TxtCode_PreviewKeyDown;
                 box.PreviewTextInput += TxtCode_PreviewTextInput;
 
-                // Xử lý giao diện khi click chuột
                 box.GotFocus += (s, e) => {
                     (s as TextBox).SelectAll();
-                    ClearError(); // [QUAN TRỌNG] Click vào là xóa báo lỗi ngay
+                    ClearError();
                 };
 
                 box.PreviewMouseDown += (s, e) =>
@@ -56,31 +54,24 @@ namespace PharmaDistributionApp.Views.LoginView
             this.Loaded += (s, e) => txtC1.Focus();
         }
 
-        // --- HÀM UI: HIỂN THỊ & XÓA LỖI (GIỐNG GOOGLE) ---
-
         private void ShowError(string message)
         {
-            // 1. Hiện dòng chữ đỏ
             txbError.Text = message;
             txbError.Visibility = Visibility.Visible;
 
-            // 2. Tô viền đỏ tất cả các ô
             foreach (var box in _boxes)
             {
                 box.BorderBrush = Brushes.Red;
             }
 
-            // 3. Rung nhẹ (Tuỳ chọn - nếu muốn làm sau)
         }
 
         private void ClearError()
         {
-            // Chỉ chạy nếu đang hiện lỗi
             if (txbError.Visibility == Visibility.Visible)
             {
                 txbError.Visibility = Visibility.Collapsed;
 
-                // Trả lại quyền kiểm soát màu cho Style (Xám/Xanh)
                 foreach (var box in _boxes)
                 {
                     box.ClearValue(BorderBrushProperty);
@@ -88,11 +79,10 @@ namespace PharmaDistributionApp.Views.LoginView
             }
         }
 
-        // --- LOGIC SỰ KIỆN ---
 
         private void TxtCode_PreviewTextInput(object sender, TextCompositionEventArgs e)
         {
-            ClearError(); // Người dùng nhập lại -> Xóa lỗi
+            ClearError(); 
             Regex regex = new Regex("[^0-9]+");
             e.Handled = regex.IsMatch(e.Text);
         }
@@ -117,7 +107,7 @@ namespace PharmaDistributionApp.Views.LoginView
 
         private void TxtCode_PreviewKeyDown(object sender, KeyEventArgs e)
         {
-            ClearError(); // Người dùng nhấn phím (kể cả xóa) -> Xóa lỗi
+            ClearError(); 
 
             TextBox currentBox = sender as TextBox;
             int index = Array.IndexOf(_boxes, currentBox);
@@ -126,7 +116,7 @@ namespace PharmaDistributionApp.Views.LoginView
 
             if (e.Key == Key.Back)
             {
-                if (!string.IsNullOrEmpty(currentBox.Text)) return; // Để tự xóa
+                if (!string.IsNullOrEmpty(currentBox.Text)) return; 
 
                 if (index > 0)
                 {
@@ -147,22 +137,17 @@ namespace PharmaDistributionApp.Views.LoginView
                 e.Handled = true;
             }
         }
-
-        // --- XỬ LÝ NÚT XÁC NHẬN ---
-
         private void btnConfirm_Click(object sender, RoutedEventArgs e)
         {
             string inputCode = "";
             foreach (var box in _boxes) inputCode += box.Text;
 
-            // 1. Kiểm tra thiếu số
             if (inputCode.Length < 6)
             {
                 ShowError("Vui lòng nhập đủ 6 số.");
                 return;
             }
 
-            // 2. Kiểm tra sai mã
             if (inputCode == _systemCode)
             {
                 var parentWindow = Window.GetWindow(this) as LoginWindow;
@@ -172,8 +157,6 @@ namespace PharmaDistributionApp.Views.LoginView
             {
                 ShowError("Mã xác minh không chính xác");
 
-                // Mẹo UX: Focus lại ô đầu và bôi đen (hoặc xóa trắng tuỳ bạn)
-                // Ở đây mình chọn SelectAll ô đầu tiên để người dùng dễ nhập lại
                 _boxes[0].Focus();
             }
         }

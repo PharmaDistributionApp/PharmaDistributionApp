@@ -389,28 +389,33 @@
                                     <materialDesign:PopupBox.ToggleContent>
                                         <materialDesign:PackIcon Kind="DotsVertical" Width="24" Height="24"/>
                                     </materialDesign:PopupBox.ToggleContent>
-                                    <StackPanel Width="150">
+                                    <StackPanel Width="160">
                                         <Button Click="btnEdit_Click" Tag="{Binding}" 
-        Style="{StaticResource MaterialDesignFlatButton}"
-        Visibility="{Binding ElementName=Root, Path=UserActionVisibility}">
+                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            HorizontalContentAlignment="Left"
+                                            Visibility="{Binding ElementName=Root, Path=UserActionVisibility}">
                                             <StackPanel Orientation="Horizontal">
-                                                <materialDesign:PackIcon Kind="Pencil" Margin="0,0,10,0" Foreground="#4C70BA"/>
-                                                <TextBlock Text="Sửa"/>
+                                                <materialDesign:PackIcon Kind="Pencil" Width="20" Height="20" Margin="0,0,12,0" Foreground="#4C70BA"/>
+                                                <TextBlock Text="Chỉnh sửa" VerticalAlignment="Center" FontSize="14"/>
                                             </StackPanel>
                                         </Button>
 
                                         <Button Click="btnDelete_Click" Tag="{Binding}" 
-                                                Style="{StaticResource MaterialDesignFlatButton}"
-                                                Visibility="{Binding ElementName=Root, Path=UserActionVisibility}">
+                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            HorizontalContentAlignment="Left"
+                                            Visibility="{Binding ElementName=Root, Path=UserActionVisibility}">
                                             <StackPanel Orientation="Horizontal">
-                                                <materialDesign:PackIcon Kind="Delete" Margin="0,0,10,0" Foreground="#E53E3E"/>
-                                                <TextBlock Text="Xóa"/>
+                                                <materialDesign:PackIcon Kind="Delete" Width="20" Height="20" Margin="0,0,12,0" Foreground="#E53E3E"/>
+                                                <TextBlock Text="Xóa" VerticalAlignment="Center" FontSize="14"/>
                                             </StackPanel>
                                         </Button>
-                                        <Button Click="btnPrint_Click" Tag="{Binding}" Style="{StaticResource MaterialDesignFlatButton}" Height="Auto" Padding="10,8" HorizontalContentAlignment="Left">
+
+                                        <Button Click="btnPrint_Click" Tag="{Binding}" 
+                                            Style="{StaticResource MaterialDesignFlatButton}"   
+                                            HorizontalContentAlignment="Left">
                                             <StackPanel Orientation="Horizontal">
-                                                <materialDesign:PackIcon Kind="FilePdfBox" Margin="0,0,10,0" Foreground="#D32F2F"/>
-                                                <TextBlock Text="Xuất PDF"/>
+                                                <materialDesign:PackIcon Kind="FilePdfBox" Width="20" Height="20" Margin="0,0,12,0" Foreground="#D32F2F"/>
+                                                <TextBlock Text="Xuất file PDF" VerticalAlignment="Center" FontSize="14"/>
                                             </StackPanel>
                                         </Button>
                                     </StackPanel>

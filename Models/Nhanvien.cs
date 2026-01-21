@@ -8,8 +8,6 @@
     public string? Email { get; set; }
     public string? Sdt { get; set; }
     public string? Diachi { get; set; }
-
-    // ĐỔI DateOnly? THÀNH DateTime? Ở ĐÂY
     public DateTime? Ngaysinh { get; set; }
 
     public byte[]? Avatar { get; set; }

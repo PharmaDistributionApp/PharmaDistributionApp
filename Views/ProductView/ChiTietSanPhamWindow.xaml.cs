@@ -2,7 +2,7 @@
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
-using System.Windows.Media; // Bắt buộc có để dùng BrushConverter
+using System.Windows.Media; 
 
 namespace PharmaDistributionApp.Views.ProductView
 {

@@ -45,7 +45,6 @@ namespace PharmaDistributionApp.Views
                 using (var conn = new SQLiteConnection("Data Source=PharmaDB.db"))
                 {
                     conn.Open();
-                    // Lấy thông tin Header
                     string sqlH = $"SELECT H.*, P.{colName} as DoiTac, P.DIACHI FROM {tblHead} H LEFT JOIN {tblPartner} P ON H.{colPartner}=P.{colPartner} WHERE H.{colID}=@id";
                     var cmdH = new SQLiteCommand(sqlH, conn);
                     cmdH.Parameters.AddWithValue("@id", _invoice.MaHD);
@@ -63,7 +62,6 @@ namespace PharmaDistributionApp.Views
                     }
                     reader.Close();
 
-                    // Lấy thông tin Chi tiết
                     string sqlD = $"SELECT CT.MASP, SP.TENSP, SP.DVT, CT.MALO, CT.SOLUONG, CT.{colGia} as Gia, CT.THANHTIEN FROM {tblCT} CT LEFT JOIN SANPHAM SP ON CT.MASP=SP.MASP WHERE CT.{colID}=@id";
                     var cmdD = new SQLiteCommand(sqlD, conn);
                     cmdD.Parameters.AddWithValue("@id", _invoice.MaHD);
@@ -94,8 +92,6 @@ namespace PharmaDistributionApp.Views
                         }
                         dgChiTiet.ItemsSource = list;
 
-                        // --- PHẦN SỬA ĐỔI ĐỊNH DẠNG TIỀN TỆ ---
-                        // Tạo CultureInfo en-US để bắt buộc dùng dấu phẩy (,) làm dấu phân cách hàng nghìn
                         var culture = System.Globalization.CultureInfo.GetCultureInfo("en-US");
 
                         if (txtTienHang != null)
@@ -107,7 +103,6 @@ namespace PharmaDistributionApp.Views
 
                         if (txtTongTien != null)
                             txtTongTien.Text = (total + vat).ToString("#,##0", culture) + " VND";
-                        // ----------------------------------------
                     }
                 }
             }
@@ -158,7 +153,7 @@ namespace PharmaDistributionApp.Views
             string tblH = isExport ? "HOADONXUAT" : "HOADONNHAP";
             string colID = isExport ? "SOHDXUAT" : "SOHDNHAP";
 
-            bool updateSuccess = false; // Cờ đánh dấu cập nhật DB thành công
+            bool updateSuccess = false; 
 
             using (var conn = new SQLiteConnection(Database.ConnectionString))
             {
@@ -171,7 +166,6 @@ namespace PharmaDistributionApp.Views
 
                         if (isApproved)
                         {
-                            // Cập nhật trạng thái
                             string sqlUpdate = $"UPDATE {tblH} SET PheDuyet=0, TRANGTHAI='Đã thanh toán' WHERE {colID}=@id";
                             var cmdUpdate = new SQLiteCommand(sqlUpdate, conn, trans);
                             cmdUpdate.Parameters.AddWithValue("@id", cleanID);
@@ -179,7 +173,6 @@ namespace PharmaDistributionApp.Views
                         }
                         else
                         {
-                            // Hủy đơn
                             string sqlReject = $"UPDATE {tblH} SET PheDuyet=0, TRANGTHAI='Đã hủy' WHERE {colID}=@id";
                             var cmdReject = new SQLiteCommand(sqlReject, conn, trans);
                             cmdReject.Parameters.AddWithValue("@id", cleanID);
@@ -193,7 +186,7 @@ namespace PharmaDistributionApp.Views
                             return;
                         }
 
-                        trans.Commit(); // [QUAN TRỌNG] Lưu và nhả khóa DB ngay tại đây
+                        trans.Commit(); 
                         updateSuccess = true;
                     }
                     catch (Exception ex)
@@ -207,7 +200,6 @@ namespace PharmaDistributionApp.Views
             {
                 try
                 {
-                    // Bây giờ mới gọi ông Kho
                     WarehouseRequestService.GuiYeuCauTaoPhieuKho(cleanID, isExport, _invoice.MaDT, UserSession.CurrentUser.Manv);
 
                     MessageBox.Show("Đã duyệt đơn và gửi yêu cầu sang Kho thành công!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
@@ -216,7 +208,6 @@ namespace PharmaDistributionApp.Views
                 }
                 catch (Exception ex)
                 {
-                    // Nếu lỗi ở đây thì chỉ báo lỗi Service, còn Hóa đơn thì đã duyệt rồi (không Rollback nữa)
                     MessageBox.Show("Đã duyệt hóa đơn, NHƯNG lỗi gửi sang Kho: " + ex.Message, "Cảnh báo", MessageBoxButton.OK, MessageBoxImage.Warning);
                     this.DialogResult = true;
                     Close();
@@ -314,6 +305,7 @@ namespace PharmaDistributionApp.Views
 
         private void btnExportPDF_Click(object sender, RoutedEventArgs e)
         {
+            System.Text.Encoding.RegisterProvider(System.Text.CodePagesEncodingProvider.Instance);
             try
             {
                 string timestamp = DateTime.Now.ToString("ddMMyy_HHmmss");

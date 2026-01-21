@@ -6,7 +6,5 @@
     public string? Diachi { get; set; }
     public string? Loaikh { get; set; }
     public decimal? Doanhso { get; set; }
-
-    // Thêm dòng này
     public string? Email { get; set; }
 }

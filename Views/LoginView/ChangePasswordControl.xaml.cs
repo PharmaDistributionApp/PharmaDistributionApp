@@ -10,7 +10,6 @@ namespace PharmaDistributionApp.Views.LoginView
     {
         private string _currentManv;
 
-        // Sự kiện để báo cho AccountControl biết là đã xong việc (để đóng cửa sổ này lại)
         public event EventHandler CloseRequested;
 
         public ChangePasswordControl(string manv)
@@ -21,7 +20,6 @@ namespace PharmaDistributionApp.Views.LoginView
 
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
-            // Báo hiệu đóng cửa sổ
             CloseRequested?.Invoke(this, EventArgs.Empty);
         }
 
@@ -31,7 +29,6 @@ namespace PharmaDistributionApp.Views.LoginView
             string newPass = pbNewPass.Password;
             string confirmPass = pbConfirmPass.Password;
 
-            // 1. Kiểm tra nhập liệu
             if (string.IsNullOrEmpty(oldPass) || string.IsNullOrEmpty(newPass) || string.IsNullOrEmpty(confirmPass))
             {
                 MessageBox.Show("Vui lòng nhập đầy đủ thông tin!", "Cảnh báo");
@@ -44,12 +41,10 @@ namespace PharmaDistributionApp.Views.LoginView
                 return;
             }
 
-            // 2. Kiểm tra DB
             try
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    // Tìm tài khoản theo Mã NV
                     var tk = context.Taikhoans.FirstOrDefault(x => x.Manv == _currentManv);
 
                     if (tk == null)
@@ -58,18 +53,15 @@ namespace PharmaDistributionApp.Views.LoginView
                         return;
                     }
 
-                    // Kiểm tra mật khẩu cũ
                     if (tk.Matkhau != oldPass)
                     {
                         MessageBox.Show("Mật khẩu hiện tại không đúng!", "Lỗi");
                         return;
                     }
 
-                    // 3. Lưu mật khẩu mới
                     tk.Matkhau = newPass;
                     context.SaveChanges();
 
-                    // Đóng cửa sổ
                     CloseRequested?.Invoke(this, EventArgs.Empty);
                 }
             }

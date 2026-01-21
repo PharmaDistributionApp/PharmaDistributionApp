@@ -14,13 +14,12 @@ using System.Windows.Media;
 
 namespace PharmaDistributionApp.Views
 {
-    // --- CÁC CLASS HỖ TRỢ --
     public class EditProductItem
     {
         public string MaSP { get; set; }
         public string TenSP { get; set; }
         public string DVT { get; set; }
-        public decimal GIABAN { get; set; } // Sử dụng đúng tên cột GIABAN từ Database
+        public decimal GIABAN { get; set; } 
     }
 
     public class EditLotInfo
@@ -46,8 +45,8 @@ namespace PharmaDistributionApp.Views
             _isExport = (_invoice.LoaiHD == "Xuất" || _invoice.MaHD.StartsWith("HDX", StringComparison.OrdinalIgnoreCase));
 
             InitUI();
-            LoadData(); // Load chi tiết hóa đơn cũ
-            LoadProducts(); // Load danh sách SP vào ComboBox
+            LoadData();
+            LoadProducts(); 
         }
 
         private void InitUI()
@@ -79,7 +78,6 @@ namespace PharmaDistributionApp.Views
             txtMaHD.Text = _invoice.MaHD;
             txtNgayLap.Text = _invoice.NgayLap.ToString("dd/MM/yyyy HH:mm");
 
-            // Chọn đúng trạng thái cũ
             foreach (ComboBoxItem item in cboTrangThai.Items)
             {
                 if (item.Content.ToString() == _invoice.TrangThai) { cboTrangThai.SelectedItem = item; break; }
@@ -89,7 +87,6 @@ namespace PharmaDistributionApp.Views
             dgChiTiet.ItemsSource = _tempItems;
         }
 
-        // --- SỬA HÀM LOAD ĐỐI TÁC (3 THAM SỐ) ---
         private void LoadPartners(string table, string idCol, string nameCol)
         {
             try
@@ -124,7 +121,7 @@ namespace PharmaDistributionApp.Views
                 string tableCT = _isExport ? "CTHDXUAT" : "CTHDNHAP";
                 string colGia = _isExport ? "DONGIABAN" : "DONGIANHAP";
 
-                // Header
+                
                 var dtHead = Database.GetTable($"SELECT GHICHU, {colDT} FROM {table} WHERE {colID} = '{_invoice.MaHD}'");
                 if (dtHead.Rows.Count > 0)
                 {
@@ -132,7 +129,7 @@ namespace PharmaDistributionApp.Views
                     cboDoiTac.SelectedValue = dtHead.Rows[0][colDT].ToString();
                 }
 
-                // Details
+                
                 var dtDet = Database.GetTable($"SELECT CT.MASP, SP.TENSP, SP.DVT, CT.SOLUONG, CT.{colGia}, CT.MALO FROM {tableCT} CT LEFT JOIN SANPHAM SP ON CT.MASP = SP.MASP WHERE CT.{colID} = '{_invoice.MaHD}'");
                 _tempItems.Clear();
                 foreach (DataRow r in dtDet.Rows)
@@ -192,7 +189,7 @@ namespace PharmaDistributionApp.Views
             string tenSP = row["TENSP"].ToString();
             string dvt = row["DVT"].ToString();
 
-            if (!_isExport) // NHẬP HÀNG
+            if (!_isExport) 
             {
                 if (dpNSX.SelectedDate == null || dpHSD.SelectedDate == null) return;
                 int.TryParse(txtSoLoTach.Text, out int soLo); if (soLo <= 0) soLo = 1;
@@ -205,7 +202,7 @@ namespace PharmaDistributionApp.Views
                     _tempItems.Add(new EditCartItem { MaSP = maSP, TenSP = tenSP, DonVi = dvt, MaLo = codes[i], SoLuong = sl, DonGia = donGia, ThanhTien = sl * donGia });
                 }
             }
-            else // XUẤT HÀNG
+            else 
             {
                 if (slDat > _totalAvailableStock) { if (MessageBox.Show("Không đủ hàng, xuất âm?", "Cảnh báo", MessageBoxButton.YesNo) == MessageBoxResult.No) return; }
                 int canLay = slDat; int added = 0;
@@ -223,11 +220,6 @@ namespace PharmaDistributionApp.Views
             }
             CalculateTotal(); txtSoLuong.Text = "0";
         }
-        // Khi thay đổi số lượng lô tách, hệ thống sẽ tự động tính toán và hiển thị mã lô dự kiến
-        // --- HÀM LOGIC: TÌM MÃ LÔ TRỐNG (L001, L002...) ---
-        // Hàm này quét Database và danh sách tạm để tìm các mã Lxxx chưa sử dụng
-
-        // --- HÀM LOGIC MỚI: TÌM MÃ LÔ TRỐNG (L001, L002...) ---
         private List<string> GetNextBatchCodes(int countNeeded)
         {
             var usedNumbers = new HashSet<int>();
@@ -235,7 +227,6 @@ namespace PharmaDistributionApp.Views
 
             try
             {
-                // 1. Lấy tất cả mã lô hiện có trong Database (bắt đầu bằng L)
                 DataTable dt = Database.GetTable("SELECT MALO FROM LOHANG WHERE MALO LIKE 'L%'");
                 foreach (DataRow row in dt.Rows)
                 {
@@ -245,8 +236,6 @@ namespace PharmaDistributionApp.Views
                         usedNumbers.Add(num);
                     }
                 }
-
-                // 2. Lấy các mã lô đang nằm trong danh sách tạm trên lưới (chưa lưu)
                 foreach (var item in _tempItems)
                 {
                     if (!string.IsNullOrEmpty(item.MaLo) && item.MaLo.StartsWith("L"))
@@ -258,31 +247,26 @@ namespace PharmaDistributionApp.Views
                     }
                 }
 
-                // 3. TÌM ĐỦ SỐ LƯỢNG MÃ TRỐNG
                 int currentCheck = 1;
                 while (result.Count < countNeeded)
                 {
                     if (!usedNumbers.Contains(currentCheck))
                     {
                         result.Add($"L{currentCheck:D3}");
-                        // QUAN TRỌNG: Thêm số vừa tìm được vào usedNumbers để vòng lặp sau không lấy trùng số này nữa
                         usedNumbers.Add(currentCheck);
                     }
                     currentCheck++;
-                    if (currentCheck > 9999) break; // Giới hạn an toàn
+                    if (currentCheck > 9999) break; 
                 }
             }
             catch (Exception ex)
             {
-                // Nếu lỗi DB, tạo mã dựa trên thời gian thực làm fallback
                 for (int i = 0; i < countNeeded; i++)
                     result.Add($"L{DateTime.Now.ToString("ssfff")}{i}");
             }
 
             return result;
         }
-
-        // --- SỰ KIỆN TEXT CHANGED: HIỂN THỊ PREVIEW MÃ LÔ ---
         private void txtSoLoTach_TextChanged(object sender, TextChangedEventArgs e)
         {
             GenerateBatchCodesPreview();
@@ -294,7 +278,6 @@ namespace PharmaDistributionApp.Views
 
             if (int.TryParse(txtSoLoTach.Text, out int count) && count > 0)
             {
-                // Gọi hàm logic mới để xem trước các mã sẽ được tạo
                 List<string> codes = GetNextBatchCodes(count);
                 txtMaLoList.Text = string.Join(", ", codes);
             }

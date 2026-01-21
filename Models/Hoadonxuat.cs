@@ -10,9 +10,7 @@
         public string? Makh { get; set; }
         public string? Trangthai { get; set; }
 
-        // --- THÊM DÒNG NÀY ---
-        public string? Ghichu { get; set; } // Thêm dòng này
-        // ---------------------
+        public string? Ghichu { get; set; }
 
         public virtual Khachhang? MakhNavigation { get; set; }
         public virtual Nhanvien? ManvNavigation { get; set; }

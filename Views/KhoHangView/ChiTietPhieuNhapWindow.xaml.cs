@@ -11,17 +11,14 @@ namespace PharmaDistributionApp.Views.ProductView
 {
     public partial class ChiTietPhieuNhapWindow : Window
     {
-        // --- 1. KHAI BÁO BIẾN TOÀN CỤC Ở ĐÂY (SỬA LỖI 1) ---
         private string _maPN;
 
         public ChiTietPhieuNhapWindow(string maPhieuNhap)
         {
             InitializeComponent();
 
-            // 2. Lưu giá trị vào biến
             this._maPN = maPhieuNhap;
 
-            // Tải dữ liệu lên
             LoadData(_maPN);
         }
 
@@ -29,7 +26,6 @@ namespace PharmaDistributionApp.Views.ProductView
         {
             using (var context = new QuanlyphanphoiduocphamContext())
             {
-                // Lấy thông tin phiếu nhập
                 var phieu = context.Phieunhaps.FirstOrDefault(p => p.Mapn == maPN);
                 if (phieu == null) return;
 
@@ -38,11 +34,9 @@ namespace PharmaDistributionApp.Views.ProductView
                 txtTrangThai.Text = phieu.Trangthai;
                 txtSoHD.Text = phieu.Sohdnhap;
 
-                // Lấy tên Kho
                 var kho = context.Khos.FirstOrDefault(k => k.Makho == phieu.Makho);
                 txtKho.Text = kho != null ? kho.Tenkho : phieu.Makho;
 
-                // Lấy thông tin từ Hóa đơn gốc
                 var hd = context.Hoadonnhaps.FirstOrDefault(h => h.Sohdnhap == phieu.Sohdnhap);
                 if (hd != null)
                 {
@@ -50,7 +44,6 @@ namespace PharmaDistributionApp.Views.ProductView
                     txtNCC.Text = ncc != null ? ncc.Tenncc : hd.Mancc;
                 }
 
-                // Lấy chi tiết sản phẩm
                 var listChiTiet = context.Cthdnhaps
                  .Include(ct => ct.MaspNavigation)
                  .Include(ct => ct.MaloNavigation)
@@ -61,10 +54,8 @@ namespace PharmaDistributionApp.Views.ProductView
                      ct.MaspNavigation.Tensp,
                      ct.MaspNavigation.Dvt,
 
-                     // [QUAN TRỌNG] Thêm dòng này để lấy Mã Lô
                      ct.Malo,
 
-                     // Xử lý null cho HSD để tránh lỗi
                      Hsd = ct.MaloNavigation.Hsd.HasValue ? ct.MaloNavigation.Hsd.Value.ToString("dd/MM/yyyy") : "---",
 
                      ct.Soluong,
@@ -73,7 +64,6 @@ namespace PharmaDistributionApp.Views.ProductView
                  })
                  .ToList();
 
-                // Logic ẩn hiện nút duyệt
                 bool coQuyen = false;
                 if (UserSession.CurrentUser != null)
                 {
@@ -126,16 +116,12 @@ namespace PharmaDistributionApp.Views.ProductView
 
                         var listChiTiet = context.Cthdnhaps.Where(ct => ct.Sohdnhap == phieu.Sohdnhap).ToList();
 
-                        // ---------------------------------------------------------
-                        // TRƯỜNG HỢP 1: DUYỆT (YES) - Logic cũ (Không đổi)
-                        // ---------------------------------------------------------
                         if (trangThaiMoi == "Đã duyệt")
                         {
                             if (listChiTiet.Count == 0) { MessageBox.Show("Phiếu rỗng!"); return; }
 
                             foreach (var item in listChiTiet)
                             {
-                                // 1. Tạo/Update Lô (Giữ nguyên)
                                 var loHangCheck = context.Lohangs.FirstOrDefault(l => l.Malo == item.Malo);
                                 var nsxDefault = DateOnly.FromDateTime(DateTime.Now);
                                 var hsdDefault = DateOnly.FromDateTime(DateTime.Now.AddYears(2));
@@ -150,7 +136,6 @@ namespace PharmaDistributionApp.Views.ProductView
                                     context.Entry(loHangCheck).State = EntityState.Modified;
                                 }
 
-                                // 2. Cộng kho (Giữ nguyên)
                                 var tonKho = context.Tonkhos.FirstOrDefault(t => t.Masp == item.Masp && t.Malo == item.Malo && t.Makho == phieu.Makho);
                                 if (tonKho != null)
                                 {
@@ -180,11 +165,9 @@ namespace PharmaDistributionApp.Views.ProductView
                             }
                         }
 
-                        // Cập nhật trạng thái phiếu
                         phieu.Trangthai = trangThaiMoi;
                         context.Entry(phieu).State = EntityState.Modified;
 
-                        // Lưu tất cả
                         context.SaveChanges();
 
                         MessageBox.Show($"Đã {trangThaiMoi} thành công!", "Thông báo");

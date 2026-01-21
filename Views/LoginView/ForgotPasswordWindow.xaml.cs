@@ -11,46 +11,39 @@ using PharmaDistributionApp.Views.LoginView;
 
 namespace PharmaDistributionApp.Views
 {
-    /// <summary>
-    /// Interaction logic for ForgotPasswordWindow.xaml
-    /// </summary>
-    public partial class ForgotPasswordWindow : UserControl // 1. Đổi từ Window sang UserControl
+
+    public partial class ForgotPasswordWindow : UserControl 
     {
         public ForgotPasswordWindow()
         {
             InitializeComponent();
         }
 
-        // XỬ LÝ QUAY LẠI ĐĂNG NHẬP
         private void btnBackToLogin_Click(object sender, RoutedEventArgs e)
         {
             var parent = Window.GetWindow(this) as LoginWindow;
             if (parent != null)
             {
-                parent.NavigateToLogin(); // Gọi hàm điều hướng của cha
+                parent.NavigateToLogin(); 
             }
         }
 
-        // XỬ LÝ GỬI MÃ
         private void btnSend_Click(object sender, RoutedEventArgs e)
         {
             string email = txtRecoveryEmail.Text.Trim();
 
-            // 1. Kiểm tra rỗng
             if (string.IsNullOrEmpty(email))
             {
                 HienThiLoi("Vui lòng nhập email của bạn");
                 return;
             }
 
-            // 2. Kiểm tra định dạng Email cơ bản
             if (!email.Contains("@") || !email.Contains("."))
             {
                 HienThiLoi("Email không hợp lệ");
                 return;
             }
 
-            // Hiển thị con trỏ xoay (Loading)
             Mouse.OverrideCursor = Cursors.Wait;
 
             try
@@ -76,13 +69,11 @@ namespace PharmaDistributionApp.Views
                     return;
                 }
 
-                // 3. NẾU CÓ EMAIL -> TIẾN HÀNH GỬI MÃ
                 EmailService emailService = new EmailService();
                 string otpCode = emailService.GenerateOTP();
 
                 emailService.SendVerificationCode(email, otpCode);
 
-                // 4. Chuyển màn hình
                 var parent = Window.GetWindow(this) as LoginWindow;
                 if (parent != null)
                 {
@@ -104,20 +95,14 @@ namespace PharmaDistributionApp.Views
             if (pnlErrorMessage.Visibility == Visibility.Visible)
             {
                 pnlErrorMessage.Visibility = Visibility.Collapsed;
-                // Trả lại màu viền xám mặc định
                 txtRecoveryEmail.BorderBrush = (Brush)new BrushConverter().ConvertFrom("#DDDDDD");
             }
         }
 
-        // HÀM HIỂN THỊ LỖI
         private void HienThiLoi(string noiDung)
         {
             txbErrorContent.Text = noiDung;
-
-            // 2. Viền đỏ ô nhập
             txtRecoveryEmail.BorderBrush = Brushes.Red;
-
-            // 3. Hiện thông báo
             pnlErrorMessage.Visibility = Visibility.Visible;
         }
         private void btnExit_Click(object sender, RoutedEventArgs e)

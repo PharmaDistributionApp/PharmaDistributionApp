@@ -8,7 +8,6 @@ using System.Windows.Media;
 
 namespace PharmaDistributionApp.Views.DashBoardView
 {
-    // Model cho tồn kho (Giữ nguyên)
     public class StockItemModel
     {
         public string TenSP { get; set; }
@@ -17,15 +16,13 @@ namespace PharmaDistributionApp.Views.DashBoardView
         public SolidColorBrush ColorCode { get; set; }
     }
 
-    // Model MỚI cho Nhật ký hoạt động
     public class ActivityLogModel
     {
         public DateTime ThoiGian { get; set; }
         public string NguoiThucHien { get; set; }
         public string HanhDong { get; set; }
-        public string LoaiHoatDong { get; set; } // 'NHẬP', 'XUẤT', 'HỦY'
+        public string LoaiHoatDong { get; set; } 
 
-        // Màu sắc hiển thị badge
         public SolidColorBrush MauNen { get; set; }
         public SolidColorBrush MauChu { get; set; }
     }
@@ -39,7 +36,7 @@ namespace PharmaDistributionApp.Views.DashBoardView
 
             LoadDashboardData();
             LoadStockInventory();
-            LoadRecentActivities(); // <--- Gọi hàm này
+            LoadRecentActivities(); 
         }
 
         private void BtnRefresh_Click(object sender, RoutedEventArgs e)
@@ -53,32 +50,28 @@ namespace PharmaDistributionApp.Views.DashBoardView
         {
             LoadDashboardData();
             LoadStockInventory();
-            LoadRecentActivities(); // Hàm mới thay cho LoadRecentOrders
+            LoadRecentActivities(); 
         }
 
-        // --- HÀM 1: Load số liệu tổng quan (GIỮ NGUYÊN) ---
         private void LoadDashboardData()
         {
             try
             {
-                // Tổng doanh thu
                 string sqlRevenue = "SELECT SUM(TONGTIEN) FROM HOADONXUAT";
                 object revenueObj = Database.ExecuteScalar(sqlRevenue);
                 double revenue = (revenueObj != null && revenueObj != DBNull.Value) ? Convert.ToDouble(revenueObj) : 0;
                 txtRevenue.Text = revenue.ToString("#,##0") + " đ";
 
-                // Chi phí nhập
+ 
                 string sqlExpense = "SELECT SUM(TONGTIEN) FROM HOADONNHAP";
                 object expenseObj = Database.ExecuteScalar(sqlExpense);
                 double expense = (expenseObj != null && expenseObj != DBNull.Value) ? Convert.ToDouble(expenseObj) : 0;
                 txtExpense.Text = expense.ToString("#,##0") + " đ";
 
-                // Sắp hết hàng
                 string sqlLowStock = "SELECT COUNT(*) FROM TONKHO WHERE SOLUONGTON < 20";
                 object lowStockObj = Database.ExecuteScalar(sqlLowStock);
                 txtLowStock.Text = lowStockObj != null ? lowStockObj.ToString() : "0";
 
-                // Khách hàng
                 string sqlCustomer = "SELECT COUNT(*) FROM KHACHHANG";
                 object custObj = Database.ExecuteScalar(sqlCustomer);
                 txtCustomerCount.Text = custObj != null ? custObj.ToString() : "0";
@@ -89,16 +82,10 @@ namespace PharmaDistributionApp.Views.DashBoardView
             }
         }
 
-        // --- HÀM 2 (MỚI): Load Hoạt động gần đây (Truy vết) ---
         private void LoadRecentActivities()
         {
             try
             {
-                // Câu lệnh SQL sử dụng UNION để gộp dữ liệu Nhập và Xuất
-                // Logic:
-                // - Nếu Trạng thái là 'Đã hủy' -> Coi là thao tác XÓA/HỦY
-                // - Hóa đơn Xuất -> Coi là thao tác XUẤT KHO (Bán hàng)
-                // - Hóa đơn Nhập -> Coi là thao tác NHẬP KHO
 
                 string sql = @"
                     SELECT * FROM (
@@ -133,7 +120,7 @@ namespace PharmaDistributionApp.Views.DashBoardView
                         FROM HOADONNHAP
                     ) 
                     ORDER BY ThoiGian DESC 
-                    LIMIT 20"; // Lấy 20 hoạt động mới nhất
+                    LIMIT 20"; 
 
                 DataTable dt = Database.GetTable(sql);
                 var activities = new List<ActivityLogModel>();
@@ -142,18 +129,17 @@ namespace PharmaDistributionApp.Views.DashBoardView
                 {
                     string loai = row["Loai"].ToString();
 
-                    // Cấu hình màu sắc Badge (Tag)
                     string bgCode = "#EEEEEE";
                     string fgCode = "#333333";
 
                     switch (loai)
                     {
                         case "XUẤT KHO":
-                            bgCode = "#E3F2FD"; fgCode = "#1976D2"; break; // Xanh dương
+                            bgCode = "#E3F2FD"; fgCode = "#1976D2"; break;
                         case "NHẬP KHO":
-                            bgCode = "#E8F5E9"; fgCode = "#2E7D32"; break; // Xanh lá
+                            bgCode = "#E8F5E9"; fgCode = "#2E7D32"; break; 
                         case "HỦY BỎ":
-                            bgCode = "#FFEBEE"; fgCode = "#C62828"; break; // Đỏ
+                            bgCode = "#FFEBEE"; fgCode = "#C62828"; break; 
                     }
 
                     activities.Add(new ActivityLogModel
@@ -166,18 +152,14 @@ namespace PharmaDistributionApp.Views.DashBoardView
                         MauChu = (SolidColorBrush)new BrushConverter().ConvertFrom(fgCode)
                     });
                 }
-
-                // Gán vào DataGrid (dgActivities là tên DataGrid trong file XAML)
                 dgActivities.ItemsSource = activities;
             }
             catch (Exception ex)
             {
-                // Ghi log lỗi ra cửa sổ Output để debug nếu cần
                 System.Diagnostics.Debug.WriteLine("Activity Log Error: " + ex.Message);
             }
         }
 
-        // --- HÀM 3: Load tồn kho (GIỮ NGUYÊN) ---
         private void LoadStockInventory()
         {
             try
@@ -210,7 +192,6 @@ namespace PharmaDistributionApp.Views.DashBoardView
                 }
                 icStockList.ItemsSource = list;
 
-                // Tính tổng toàn kho
                 string sqlTotal = "SELECT SUM(T.SOLUONGTON * S.GIABAN) FROM TONKHO T JOIN SANPHAM S ON T.MASP = S.MASP";
                 object objTotal = Database.ExecuteScalar(sqlTotal);
                 double grandTotal = (objTotal != null && objTotal != DBNull.Value) ? Convert.ToDouble(objTotal) : 0;

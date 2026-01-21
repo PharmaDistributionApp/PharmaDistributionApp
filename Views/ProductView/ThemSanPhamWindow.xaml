@@ -7,6 +7,18 @@
         WindowStyle="None" Background="Transparent" AllowsTransparency="True"
         FontFamily="{DynamicResource MaterialDesignFont}">
 
+
+    <Window.Resources>
+        <Style TargetType="TextBlock" x:Key="ErrorTextStyle">
+            <Setter Property="Foreground" Value="#D32F2F"/>
+            <Setter Property="FontSize" Value="11"/>
+            <Setter Property="FontStyle" Value="Italic"/>
+            <Setter Property="Margin" Value="0,2,0,0"/>
+            <Setter Property="Visibility" Value="Collapsed"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+    </Window.Resources>
+    
     <Border Background="White" CornerRadius="20" BorderBrush="#4C70BA" BorderThickness="1.5">
         <Grid>
             <Grid.RowDefinitions>
@@ -42,7 +54,10 @@
                     <TextBox x:Name="txtTenSP" materialDesign:HintAssist.Hint="Tên sản phẩm / Tên thuốc" 
                              Style="{StaticResource MaterialDesignFloatingHintTextBox}" Margin="0,0,0,20"
                              materialDesign:HintAssist.Foreground="#4C70BA" materialDesign:TextFieldAssist.UnderlineBrush="#4C70BA"
-                             FontSize="15"/>
+                             FontSize="15"
+                             Validation.ErrorTemplate="{x:Null}"
+                             materialDesign:HintAssist.HelperText="" 
+                             materialDesign:ValidationAssist.HasError="False"/>
 
                     <Grid Margin="0,0,0,20">
                         <Grid.ColumnDefinitions>

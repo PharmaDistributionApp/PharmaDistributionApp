@@ -8,12 +8,8 @@
         public string? Manv { get; set; }
         public string? Mancc { get; set; }
         public string? Trangthai { get; set; }
-
-        // --- THÊM 2 DÒNG NÀY ---
-        public long? Vat { get; set; }      // Thêm dòng này
-        public string? Ghichu { get; set; } // Thêm dòng này
-        // -----------------------
-
+        public long? Vat { get; set; }      
+        public string? Ghichu { get; set; } 
         public virtual Nhacungcap? ManccNavigation { get; set; }
         public virtual Nhanvien? ManvNavigation { get; set; }
     }
