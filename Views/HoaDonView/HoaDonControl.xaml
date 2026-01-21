@@ -411,7 +411,7 @@
                                         </Button>
 
                                         <Button Click="btnPrint_Click" Tag="{Binding}" 
-                                            Style="{StaticResource MaterialDesignFlatButton}"
+                                            Style="{StaticResource MaterialDesignFlatButton}"   
                                             HorizontalContentAlignment="Left">
                                             <StackPanel Orientation="Horizontal">
                                                 <materialDesign:PackIcon Kind="FilePdfBox" Width="20" Height="20" Margin="0,0,12,0" Foreground="#D32F2F"/>
