@@ -1,28 +1,20 @@
 ﻿using System;
 using System.Data;
 using System.IO;
-using Microsoft.Data.Sqlite; // Thư viện chuẩn
+using Microsoft.Data.Sqlite; 
 
 namespace PharmaDistributionApp.Services
 {
     public class Database
     {
-        // 1. Đường dẫn file DB
         private static readonly string _dbPath = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "PharmaDB.db");
-
-        // 2. Chuỗi kết nối
         public static string ConnectionString => $"Data Source={_dbPath};";
 
-        // 3. Hàm lấy kết nối
         public static SqliteConnection GetConnection()
         {
             return new SqliteConnection(ConnectionString);
         }
 
-        // ==================================================================================
-        // SỬA LỖI TẠI ĐÂY: Viết lại hàm GetTable để không dùng dt.Load(reader)
-        // Cách này giúp tránh lỗi "ConstraintException: Failed to enable constraints"
-        // ==================================================================================
         public static DataTable GetTable(string sql, SqliteParameter[] parameters = null)
         {
             using (var conn = GetConnection())
@@ -82,8 +74,6 @@ namespace PharmaDistributionApp.Services
                 }
             }
         }
-
-        // 6. Hàm lấy giá trị đơn
         public static object ExecuteScalar(string sql, SqliteParameter[] parameters = null)
         {
             using (var connection = GetConnection())

@@ -14,7 +14,6 @@ using PharmaDistributionApp.Services;
 
 namespace PharmaDistributionApp.Views
 {
-    // Class hỗ trợ lưu thông tin lô hàng
     public class LotInfo
     {
         public string MaLo { get; set; }
@@ -130,7 +129,6 @@ namespace PharmaDistributionApp.Views
             string tenSP = rowSP["TenSP"].ToString();
             string dvt = rowSP["DVT"].ToString();
 
-            // === 1. NHẬP HÀNG (Tạo lô mới L001...) ===
             if (rbNhap.IsChecked == true)
             {
                 if (dpNSX.SelectedDate == null || dpHSD.SelectedDate == null) { MessageBox.Show("Chọn NSX và HSD!"); return; }
@@ -143,7 +141,6 @@ namespace PharmaDistributionApp.Views
                 int slMoiLo = tongSL / soLoTach;
                 int slDu = tongSL % soLoTach;
 
-                // [SỬA ĐỔI] Lấy danh sách mã lô trống thực tế
                 List<string> newCodes = GetNextBatchCodes(soLoTach);
 
                 for (int i = 0; i < soLoTach; i++)
@@ -151,7 +148,6 @@ namespace PharmaDistributionApp.Views
                     int slThucTe = slMoiLo;
                     if (i == soLoTach - 1) slThucTe += slDu;
 
-                    // Lấy mã từ danh sách đã tạo
                     string autoMaLo = newCodes[i];
 
                     _tempItems.Add(new InvoiceTempItem
@@ -172,7 +168,6 @@ namespace PharmaDistributionApp.Views
                 return;
             }
 
-            // === 2. XUẤT HÀNG (Logic tách lô tự động FIFO - Đã sửa lỗi Read-only) ===
             if (tongSL > _totalAvailableStock)
             {
                 MessageBox.Show($"Kho không đủ hàng! Hiện có {_totalAvailableStock}, bạn đòi xuất {tongSL}.");
@@ -182,7 +177,6 @@ namespace PharmaDistributionApp.Views
             int canLay = tongSL;
             int countAdded = 0;
 
-            // Sắp xếp lô: Ưu tiên HSD gần nhất (hoặc Lô cũ nhất)
             var sortedLots = _currentProductLots.OrderBy(l => l.HSD).ThenBy(l => l.MaLo).ToList();
 
             foreach (var lot in sortedLots)
@@ -190,42 +184,33 @@ namespace PharmaDistributionApp.Views
                 if (canLay <= 0) break;
                 if (lot.TonKho <= 0) continue;
 
-                // Tính số lượng lấy từ lô này
                 int take = Math.Min(canLay, lot.TonKho);
 
-                // Kiểm tra xem trong lưới đã có dòng của (Sản phẩm + Lô) này chưa
                 var existItem = _tempItems.FirstOrDefault(x => x.MaSP == maSP && x.MaLo == lot.MaLo);
 
                 if (existItem != null)
                 {
-                    // TRƯỜNG HỢP 1: Đã có dòng này -> Chỉ cần cộng thêm số lượng
-                    // [QUAN TRỌNG]: Không cần gán ThanhTien, nó tự nhảy theo SoLuong mới
+
                     existItem.SoLuong += take;
 
-                    // Mẹo: Refresh lại view trên DataGrid (Remove rồi Insert lại) để UI cập nhật số tiền
                     int index = _tempItems.IndexOf(existItem);
                     _tempItems.RemoveAt(index);
                     _tempItems.Insert(index, existItem);
                 }
                 else
                 {
-                    // TRƯỜNG HỢP 2: Chưa có -> Tạo dòng mới
-                    // [QUAN TRỌNG]: Không gán ThanhTien ở đây
                     _tempItems.Add(new InvoiceTempItem
                     {
                         MaSP = maSP,
                         TenSP = tenSP,
                         DonVi = dvt,
-                        MaLo = lot.MaLo, // Lấy đúng mã lô đang xét (L004, L005...)
                         SoLuong = take,
-                        DonGia = donGia, // Gán đơn giá, ThanhTien sẽ tự = take * donGia
-                        NSX = dpNSX.SelectedDate.HasValue ? dpNSX.SelectedDate.Value.ToString("yyyy-MM-dd") : "", // Nếu cần hiển thị
-                        HSD = lot.HSD // Lấy HSD thực tế của lô đó
+                        DonGia = donGia, 
+                        NSX = dpNSX.SelectedDate.HasValue ? dpNSX.SelectedDate.Value.ToString("yyyy-MM-dd") : "", 
+                        HSD = lot.HSD 
                     });
                     countAdded++;
                 }
-
-                // Trừ số lượng cần lấy và trừ tồn kho ảo
                 canLay -= take;
                 lot.TonKho -= take;
             }
@@ -233,13 +218,10 @@ namespace PharmaDistributionApp.Views
             if (countAdded > 0) _addHistory.Push(countAdded);
 
             CalculateTotal();
-
-            // Cập nhật lại UI tồn kho tổng
             _totalAvailableStock -= tongSL;
             lblTonKho.Text = $"Tổng tồn: {_totalAvailableStock:N0}";
             txtSoLuong.Text = "0";
         }
-        // --- CÁC HÀM UI KHÁC GIỮ NGUYÊN ---
         private void InvoiceType_Checked(object sender, RoutedEventArgs e)
         {
             if (txtMaHD == null) return;
@@ -283,7 +265,6 @@ namespace PharmaDistributionApp.Views
         {
             try
             {
-                // [SỬA]: Chỉ lấy GIABAN vì đây là cột giá trị duy nhất bạn dùng
                 string sql = "SELECT MASP, TENSP, DVT, GIABAN FROM SANPHAM";
                 DataTable dt = Database.GetTable(sql);
                 cboSanPham.ItemsSource = dt.DefaultView;
@@ -324,27 +305,21 @@ namespace PharmaDistributionApp.Views
             {
                 string maSP = row["MASP"].ToString();
 
-                // 1. Lấy GIÁ GỐC từ cột GIABAN (Theo yêu cầu của bạn)
                 decimal giaGoc = 0;
                 if (row.DataView.Table.Columns.Contains("GIABAN"))
                 {
                     decimal.TryParse(row["GIABAN"].ToString(), out giaGoc);
                 }
 
-                // 2. Tính toán giá hiển thị
                 decimal giaHienThi = giaGoc;
 
                 if (rbXuat.IsChecked == true)
                 {
-                    // Xuất: Tăng 5% từ giá gốc
+ 
                     giaHienThi = giaGoc * 1.05m;
                 }
-                // Nhập: Giữ nguyên giá gốc (GIABAN)
-
-                // 3. Hiển thị
                 txtDonGia.Text = string.Format("{0:N0} VND", giaHienThi);
 
-                // 4. Load tồn kho (Chỉ cần khi Xuất)
                 if (rbXuat.IsChecked == true)
                 {
                     string sqlLo = $@"SELECT L.MALO, L.HSD, IFNULL(T.SOLUONGTON, 0) AS SOLUONGTON 
@@ -377,11 +352,9 @@ namespace PharmaDistributionApp.Views
 
         private void btnLuu_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Kiểm tra dữ liệu đầu vào
             if (cboDoiTac.SelectedValue == null) { MessageBox.Show("Vui lòng chọn đối tác!"); return; }
             if (_tempItems.Count == 0) { MessageBox.Show("Chưa có sản phẩm!"); return; }
 
-            // 2. Chuẩn bị dữ liệu
             string userStatus = (cboTrangThai.SelectedItem as ComboBoxItem)?.Content.ToString() ?? "Đã thanh toán";
             bool isBoss = UserSession.CurrentUser != null && _highLevelRoles.Any(r => r.Equals(UserSession.CurrentUser.Chucvu, StringComparison.OrdinalIgnoreCase));
             int flag = isBoss ? 0 : 1;
@@ -391,9 +364,8 @@ namespace PharmaDistributionApp.Views
             decimal subTotal = _tempItems.Sum(x => x.ThanhTien);
             decimal finalTotal = subTotal * 1.1m;
 
-            bool isSavedSuccess = false; // Biến cờ để kiểm tra lưu thành công hay chưa
+            bool isSavedSuccess = false; 
 
-            // 3. Thực hiện Giao dịch Lưu Hóa Đơn (Block 1)
             using (var conn = new SQLiteConnection(Database.ConnectionString))
             {
                 conn.Open();
@@ -401,7 +373,6 @@ namespace PharmaDistributionApp.Views
                 {
                     try
                     {
-                        // A. Lưu Header
                         string sqlHead = isExport
                             ? "INSERT INTO HOADONXUAT (SOHDXUAT, NGAYLAP, TONGTIEN, VAT, MANV, MAKH, TRANGTHAI, GHICHU, PheDuyet) VALUES (@ma, @ngay, @tien, 10, @nv, @dt, @tt, @gc, @flag)"
                             : "INSERT INTO HOADONNHAP (SOHDNHAP, NGAYLAP, TONGTIEN, VAT, MANV, MANCC, TRANGTHAI, GHICHU, PheDuyet) VALUES (@ma, @ngay, @tien, 10, @nv, @dt, @tt, @gc, @flag)";
@@ -417,7 +388,6 @@ namespace PharmaDistributionApp.Views
                         cmdH.Parameters.AddWithValue("@flag", flag);
                         cmdH.ExecuteNonQuery();
 
-                        // B. Lưu Chi tiết
                         foreach (var item in _tempItems)
                         {
                             string sqlD = isExport
@@ -434,21 +404,17 @@ namespace PharmaDistributionApp.Views
                             cmdD.ExecuteNonQuery();
                         }
 
-                        trans.Commit(); // Lưu xong Database
-                        isSavedSuccess = true; // Đánh dấu đã thành công
+                        trans.Commit();
+                        isSavedSuccess = true; 
                     }
                     catch (Exception ex)
                     {
-                        trans.Rollback(); // Chỉ Rollback khi lỗi xảy ra trong quá trình Insert
+                        trans.Rollback();
                         MessageBox.Show("Lỗi khi lưu dữ liệu: " + ex.Message, "Lỗi SQL", MessageBoxButton.OK, MessageBoxImage.Error);
-                        return; // Dừng lại
+                        return; 
                     }
                 }
-            } // <-- Tại đây kết nối Database cũ ĐÃ ĐÓNG HOÀN TOÀN
-
-            // 4. Gửi yêu cầu sang kho (Block 2 - Chạy độc lập)
-            // Chỉ chạy khi Block 1 đã thành công và đóng kết nối
-            // 4. GỬI YÊU CẦU SANG KHO (LOGIC MỚI: CHỈ GỬI KHI ĐÃ DUYỆT)
+            } 
             if (isSavedSuccess)
             {
                 if (isBoss || finalStatus == "Đã thanh toán" || finalStatus == "Hoàn thành")
@@ -465,7 +431,6 @@ namespace PharmaDistributionApp.Views
                 }
                 else
                 {
-                    // Trường hợp Nhân viên tạo: Chỉ thông báo đã gửi duyệt
                     MessageBox.Show("Đã tạo hóa đơn và gửi yêu cầu phê duyệt lên cấp trên!", "Thành công", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
 
@@ -476,7 +441,7 @@ namespace PharmaDistributionApp.Views
 
         private void UpdateStockImmediately(InvoiceTempItem item, bool isExport, SQLiteConnection conn, SQLiteTransaction trans)
         {
-            if (!isExport) // Nhập hàng
+            if (!isExport) 
             {
                 var cmdLo = new SQLiteCommand("INSERT OR IGNORE INTO LOHANG (MALO, MASP, NSX, HSD, NHACUNGCAP) VALUES (@ml, @msp, @nsx, @hsd, @ncc)", conn, trans);
                 cmdLo.Parameters.AddWithValue("@ml", item.MaLo);
@@ -493,7 +458,7 @@ namespace PharmaDistributionApp.Views
                 cmdTon.Parameters.AddWithValue("@sl", item.SoLuong);
                 cmdTon.ExecuteNonQuery();
             }
-            else // Xuất hàng
+            else 
             {
                 var cmdTru = new SQLiteCommand("UPDATE TONKHO SET SOLUONGTON = SOLUONGTON - @sl WHERE MALO = @ml", conn, trans);
                 cmdTru.Parameters.AddWithValue("@sl", item.SoLuong);

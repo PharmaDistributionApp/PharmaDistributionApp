@@ -15,9 +15,6 @@ using System.Windows.Shapes;
 
 namespace PharmaDistributionApp.Views.EmployeeView
 {
-    /// <summary>
-    /// Interaction logic for EmployeeDetailWindow.xaml
-    /// </summary>
     public partial class EmployeeDetailWindow : Window
     {
         public EmployeeDetailWindow(Employee employee)

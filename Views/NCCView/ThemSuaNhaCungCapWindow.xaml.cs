@@ -38,43 +38,33 @@ namespace PharmaDistributionApp.Views.NCCView
 
         private void SetupWindowLogic()
         {
-            // 1. Xử lý phím tắt
             this.KeyDown += (s, e) => {
-                // Phím ESC để thoát
                 if (e.Key == Key.Escape)
                 {
                     this.Close();
                 }
-                // Phím ENTER để Lưu (Khôi phục phần này)
                 else if (e.Key == Key.Enter)
                 {
-                    // Gọi hàm lưu, truyền null vì ta không cần đối tượng sender
                     BtnLuu_Click(null, null);
                 }
             };
 
-            // 2. Focus vào ô nhập tên ngay khi mở cửa sổ
             this.Loaded += (s, e) => txtTenNCC.Focus();
 
-            // 3. Tự động xóa thông báo lỗi khi người dùng bắt đầu nhập lại
             txtTenNCC.TextChanged += (s, e) => ClearSingleError(txtTenNCC, errTenNCC);
             txtSdt.TextChanged += (s, e) => ClearSingleError(txtSdt, errSdt);
             txtEmail.TextChanged += (s, e) => ClearSingleError(txtEmail, errEmail);
             txtDiaChi.TextChanged += (s, e) => ClearSingleError(txtDiaChi, errDiaChi);
         }
-
-        // --- HÀM MỚI: Xóa lỗi cho 1 ô cụ thể ---
         private void ClearSingleError(TextBox tb, TextBlock errorBlock)
         {
-            // Chỉ reset nếu hiện tại nó đang bị đỏ (để tránh xử lý thừa)
             if (errorBlock.Visibility == Visibility.Visible)
             {
-                tb.BorderBrush = _defaultBorderBrush; // Trả lại màu viền xám
-                errorBlock.Visibility = Visibility.Collapsed; // Ẩn dòng chữ lỗi
+                tb.BorderBrush = _defaultBorderBrush; 
+                errorBlock.Visibility = Visibility.Collapsed; 
             }
         }
 
-        // --- Các hàm Validate cũ (Giữ nguyên logic) ---
         private void ClearVisualErrors()
         {
             txtTenNCC.BorderBrush = _defaultBorderBrush;
@@ -97,18 +87,12 @@ namespace PharmaDistributionApp.Views.NCCView
 
         private bool ValidateInput()
         {
-            // Lưu ý: Không gọi ClearVisualErrors() ở đầu nữa 
-            // vì ta muốn giữ lại các lỗi khác nếu người dùng chỉ sửa 1 ô.
-            // Tuy nhiên, để đảm bảo logic sạch sẽ mỗi khi bấm Lưu, ta có thể gọi ClearVisualErrors() 
-            // HOẶC để nguyên logic hiển thị lỗi đè lên. 
-
-            // Ở đây tôi chọn cách: Gọi ClearVisualErrors() để validate lại từ đầu
             ClearVisualErrors();
 
             bool isValid = true;
             Control firstErrorControl = null;
 
-            // Kiểm tra Tên
+
             if (string.IsNullOrWhiteSpace(txtTenNCC.Text))
             {
                 ShowVisualError(txtTenNCC, errTenNCC, "Tên nhà cung cấp không được để trống");
@@ -116,7 +100,7 @@ namespace PharmaDistributionApp.Views.NCCView
                 if (firstErrorControl == null) firstErrorControl = txtTenNCC;
             }
 
-            // Kiểm tra SĐT
+
             string sdt = txtSdt.Text.Trim();
             if (string.IsNullOrWhiteSpace(sdt))
             {
@@ -131,7 +115,6 @@ namespace PharmaDistributionApp.Views.NCCView
                 if (firstErrorControl == null) firstErrorControl = txtSdt;
             }
 
-            // Kiểm tra Email
             string email = txtEmail.Text.Trim();
             if (!string.IsNullOrEmpty(email))
             {
@@ -144,7 +127,6 @@ namespace PharmaDistributionApp.Views.NCCView
                 }
             }
 
-            // Kiểm tra Địa chỉ
             if (string.IsNullOrWhiteSpace(txtDiaChi.Text))
             {
                 ShowVisualError(txtDiaChi, errDiaChi, "Vui lòng nhập địa chỉ trụ sở");
@@ -161,7 +143,6 @@ namespace PharmaDistributionApp.Views.NCCView
             return isValid;
         }
 
-        // --- CÁC HÀM XỬ LÝ KHÁC (GIỮ NGUYÊN) ---
         private void Header_MouseLeftButtonDown(object sender, MouseButtonEventArgs e)
         {
             if (e.ButtonState == MouseButtonState.Pressed) this.DragMove();

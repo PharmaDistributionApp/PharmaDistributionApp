@@ -9,7 +9,7 @@ using System.Windows.Media.Imaging;
 using Microsoft.Win32;
 using MaterialDesignThemes.Wpf;
 using PharmaDistributionApp.Models;
-using PharmaDistributionApp.Services; // QUAN TRỌNG: Để dùng UserSession
+using PharmaDistributionApp.Services; 
 namespace PharmaDistributionApp.Views
 {
     public partial class AccountControl : UserControl
@@ -18,7 +18,6 @@ namespace PharmaDistributionApp.Views
         private byte[] _avatarBytes = null;
         private string _currentManv = "";
 
-        // Màu sắc giao diện
         private readonly Brush _grayBackground = (Brush)new BrushConverter().ConvertFrom("#F5F6F8");
         private readonly Brush _whiteBackground = Brushes.White;
         private readonly Brush _transparentBackground = Brushes.Transparent;
@@ -29,13 +28,11 @@ namespace PharmaDistributionApp.Views
         public AccountControl()
         {
             InitializeComponent();
-            // Đăng ký sự kiện Loaded để luôn tải lại dữ liệu mới nhất
             this.Loaded += AccountControl_Loaded;
         }
 
         private void AccountControl_Loaded(object sender, RoutedEventArgs e)
         {
-            // Lấy ID từ UserSession
             if (UserSession.IsLoggedIn && UserSession.CurrentUser != null)
             {
                 _currentManv = UserSession.CurrentUser.Manv;
@@ -43,18 +40,12 @@ namespace PharmaDistributionApp.Views
             }
             else
             {
-                // Nếu đang debug mà chưa login thì gán tạm để không lỗi
                 _currentManv = "NV001";
-                // MessageBox.Show("Chưa đăng nhập!"); // Bỏ comment nếu muốn hiện thông báo
             }
         }
 
-        // --- CÁC HÀM BỊ THIẾU GÂY LỖI CS1061 ---
-
-        // Hàm chuyển sang màn hình đổi mật khẩu
         private void btnSwitchToPassword_Click(object sender, RoutedEventArgs e)
         {
-            // Reset các ô nhập liệu
             pbOldPass.Password = ""; txtOldPass.Text = "";
             pbNewPass.Password = ""; txtNewPass.Text = "";
             pbConfirmPass.Password = ""; txtConfirmPass.Text = "";
@@ -64,20 +55,15 @@ namespace PharmaDistributionApp.Views
             ResetToHiddenMode("Confirm");
 
             ResetPasswordErrorStyles();
-
-            // Ẩn MainView, hiện PasswordView
             if (MainView != null) MainView.Visibility = Visibility.Collapsed;
             if (PasswordView != null) PasswordView.Visibility = Visibility.Visible;
         }
-
-        // Hàm hủy đổi mật khẩu, quay về màn hình chính
         private void btnCancelPassword_Click(object sender, RoutedEventArgs e)
         {
             if (PasswordView != null) PasswordView.Visibility = Visibility.Collapsed;
             if (MainView != null) MainView.Visibility = Visibility.Visible;
         }
 
-        // ----------------------------------------
 
         private void LoadUserData()
         {
@@ -132,9 +118,6 @@ namespace PharmaDistributionApp.Views
                 MessageBox.Show("Lỗi tải dữ liệu: " + ex.Message);
             }
         }
-
-        // --- CÁC HÀM HỖ TRỢ KHÁC (GIỮ NGUYÊN) ---
-
         private static BitmapImage LoadImage(byte[] imageData)
         {
             if (imageData == null || imageData.Length == 0) return null;
@@ -189,6 +172,9 @@ namespace PharmaDistributionApp.Views
             else
             {
                 ResetMainErrorStyles();
+                LoadUserData();
+                _avatarBytes = null;
+
                 secPassword.Visibility = Visibility.Visible;
                 btnSave.Visibility = Visibility.Collapsed;
                 btnChangeAvatar.Visibility = Visibility.Collapsed;
@@ -201,7 +187,6 @@ namespace PharmaDistributionApp.Views
 
                 txtDobDisplay.Visibility = Visibility.Visible;
                 dpDob.Visibility = Visibility.Collapsed;
-                if (dpDob.SelectedDate.HasValue) txtDobDisplay.Text = dpDob.SelectedDate.Value.ToString("dd/MM/yyyy");
             }
         }
 
@@ -233,7 +218,6 @@ namespace PharmaDistributionApp.Views
                         context.SaveChanges();
                         MessageBox.Show("Cập nhật thành công!");
 
-                        // Cập nhật lại Session để các nơi khác thấy ảnh mới
                         if (UserSession.CurrentUser != null) UserSession.CurrentUser.AvatarBlob = nv.Avatar;
 
                         btnEdit_Click(null, null);
@@ -275,8 +259,6 @@ namespace PharmaDistributionApp.Views
             }
             catch (Exception ex) { MessageBox.Show("Lỗi: " + ex.Message); }
         }
-
-        // --- CÁC HÀM HELPER UI ---
         private void ToggleEye_Click(object sender, RoutedEventArgs e)
         {
             var btn = sender as Button; if (btn == null) return;

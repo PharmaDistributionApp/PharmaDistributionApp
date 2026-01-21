@@ -45,7 +45,6 @@ namespace PharmaDistributionApp.Views
                 using (var conn = new SQLiteConnection("Data Source=PharmaDB.db"))
                 {
                     conn.Open();
-                    // Lấy thông tin Header
                     string sqlH = $"SELECT H.*, P.{colName} as DoiTac, P.DIACHI FROM {tblHead} H LEFT JOIN {tblPartner} P ON H.{colPartner}=P.{colPartner} WHERE H.{colID}=@id";
                     var cmdH = new SQLiteCommand(sqlH, conn);
                     cmdH.Parameters.AddWithValue("@id", _invoice.MaHD);
@@ -63,7 +62,6 @@ namespace PharmaDistributionApp.Views
                     }
                     reader.Close();
 
-                    // Lấy thông tin Chi tiết
                     string sqlD = $"SELECT CT.MASP, SP.TENSP, SP.DVT, CT.MALO, CT.SOLUONG, CT.{colGia} as Gia, CT.THANHTIEN FROM {tblCT} CT LEFT JOIN SANPHAM SP ON CT.MASP=SP.MASP WHERE CT.{colID}=@id";
                     var cmdD = new SQLiteCommand(sqlD, conn);
                     cmdD.Parameters.AddWithValue("@id", _invoice.MaHD);

@@ -1,4 +1,4 @@
-﻿// File: Services/LogService.cs
+﻿
 using System;
 using System.Data.SQLite;
 
@@ -10,7 +10,7 @@ namespace PharmaDistributionApp.Services
         {
             try
             {
-                using (var conn = new SQLiteConnection("Data Source=PharmaDB.db")) // Đảm bảo đúng chuỗi kết nối
+                using (var conn = new SQLiteConnection("Data Source=PharmaDB.db")) 
                 {
                     conn.Open();
                     string sql = "INSERT INTO SYSTEM_LOG (THOIGIAN, MANV, HANHDONG, DOITUONG, MOTA) VALUES (@time, @manv, @act, @obj, @desc)";

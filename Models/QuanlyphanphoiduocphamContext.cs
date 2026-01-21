@@ -8,8 +8,6 @@ namespace PharmaDistributionApp.Models
     {
         public QuanlyphanphoiduocphamContext() { }
         public QuanlyphanphoiduocphamContext(DbContextOptions<QuanlyphanphoiduocphamContext> options) : base(options) { }
-
-        // --- 1. KHAI BÁO DBSET ---
         public virtual DbSet<Cthdnhap> Cthdnhaps { get; set; }
         public virtual DbSet<Cthdxuat> Cthdxuats { get; set; }
         public virtual DbSet<Hoadonnhap> Hoadonnhaps { get; set; }
@@ -26,8 +24,6 @@ namespace PharmaDistributionApp.Models
         public virtual DbSet<Taikhoan> Taikhoans { get; set; }
         public virtual DbSet<Thanhtoan> Thanhtoans { get; set; }
         public virtual DbSet<Tonkho> Tonkhos { get; set; }
-
-        // --- 2. CẤU HÌNH SQLITE ---
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)

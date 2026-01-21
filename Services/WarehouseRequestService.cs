@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-// SỬA: Dùng thư viện có sẵn của EF Core, không cài thêm System.Data.SQLite
 using Microsoft.Data.Sqlite;
 
 namespace PharmaDistributionApp.Services
@@ -9,7 +8,6 @@ namespace PharmaDistributionApp.Services
     {
         public static void GuiYeuCauTaoPhieuKho(string maHoaDon, bool isXuatHang, string maDoiTac, string maNV)
         {
-            // SỬA: Dùng SqliteConnection (chữ 'l' thường)
             using (var conn = new SqliteConnection(Database.ConnectionString))
             {
                 conn.Open();
@@ -22,11 +20,11 @@ namespace PharmaDistributionApp.Services
                         string colRef = isXuatHang ? "SOHDXUAT" : "SOHDNHAP";
                         string prefix = isXuatHang ? "PX" : "PN";
 
-                        // 1. ĐỒNG BỘ LÔ HÀNG (Tự động tạo lô tạm để có HSD hiển thị)
+
                         if (!isXuatHang)
                         {
                             string hsdTam = DateTime.Now.AddYears(2).ToString("yyyy-MM-dd");
-                            // Thêm dòng này để xử lý NSX luôn cho đủ bộ
+ 
                             string nsxTam = DateTime.Now.ToString("yyyy-MM-dd");
 
                             string sqlSyncLot = @"
@@ -35,7 +33,6 @@ namespace PharmaDistributionApp.Services
                                 FROM CTHDNHAP 
                                 WHERE SOHDNHAP = @ref AND MALO IS NOT NULL AND MALO <> ''";
 
-                            // SỬA: Dùng SqliteCommand (chữ 'l' thường)
                             var cmdSync = new SqliteCommand(sqlSyncLot, conn, transaction);
                             cmdSync.Parameters.AddWithValue("@ncc", maDoiTac);
                             cmdSync.Parameters.AddWithValue("@hsd", hsdTam);
@@ -43,8 +40,6 @@ namespace PharmaDistributionApp.Services
                             cmdSync.Parameters.AddWithValue("@ref", maHoaDon);
                             cmdSync.ExecuteNonQuery();
                         }
-
-                        // 2. KIỂM TRA PHIẾU ĐÃ TỒN TẠI CHƯA
                         string sqlCheck = $"SELECT COUNT(*) FROM {table} WHERE {colRef} = @ref";
                         var cmdCheck = new SqliteCommand(sqlCheck, conn, transaction);
                         cmdCheck.Parameters.AddWithValue("@ref", maHoaDon);
@@ -59,7 +54,6 @@ namespace PharmaDistributionApp.Services
                         }
                         else
                         {
-                            // 3. TẠO MÃ PHIẾU MỚI
                             int maxNum = 0;
                             string sqlGetIDs = $"SELECT {colID} FROM {table}";
                             using (var cmdIDs = new SqliteCommand(sqlGetIDs, conn, transaction))

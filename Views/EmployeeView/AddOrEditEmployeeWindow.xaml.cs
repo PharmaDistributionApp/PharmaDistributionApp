@@ -13,11 +13,9 @@ namespace PharmaDistributionApp.Views.EmployeeView
 {
     public partial class AddOrEditEmployeeWindow : Window
     {
-        // Biến lưu trữ nhân viên đang thao tác
         public Employee CurrentEmployee { get; set; }
-        private bool _isEditMode = false; // Cờ đánh dấu chế độ Sửa
+        private bool _isEditMode = false; 
 
-        // CONSTRUCTOR 1: Dùng cho THÊM MỚI (Không tham số)
         public AddOrEditEmployeeWindow()
         {
             InitializeComponent();
@@ -27,12 +25,11 @@ namespace PharmaDistributionApp.Views.EmployeeView
             txtHeaderTitle.Text = "THÊM NHÂN VIÊN MỚI";
 
             CurrentEmployee = new Employee();
-            CurrentEmployee.TrangThai = 1; // Mặc định: Đang hoạt động
+            CurrentEmployee.TrangThai = 1; 
 
             this.DataContext = CurrentEmployee;
         }
 
-        // CONSTRUCTOR 2: Dùng cho SỬA (Có tham số Employee)
         public AddOrEditEmployeeWindow(Employee empToEdit)
         {
             InitializeComponent();
@@ -41,13 +38,12 @@ namespace PharmaDistributionApp.Views.EmployeeView
             Title = "Cập nhật thông tin nhân viên";
             txtHeaderTitle.Text = "CẬP NHẬT NHÂN VIÊN";
 
-            // QUAN TRỌNG: Clone dữ liệu ra một object mới
-            // Để tránh việc chỉnh sửa trực tiếp vào danh sách gốc khi chưa bấm Lưu
+
             CurrentEmployee = new Employee()
             {
                 Manv = empToEdit.Manv,
                 Tennv = empToEdit.Tennv,
-                Cccd = empToEdit.Cccd, // Đừng quên copy CCCD
+                Cccd = empToEdit.Cccd, 
                 GioiTinh = empToEdit.GioiTinh,
                 Chucvu = empToEdit.Chucvu,
                 Email = empToEdit.Email,
@@ -58,14 +54,13 @@ namespace PharmaDistributionApp.Views.EmployeeView
                 AvatarBlob = empToEdit.AvatarBlob
             };
 
-            // Khóa ô Mã nhân viên (Không cho sửa khóa chính)
             txtManv.IsReadOnly = true;
             txtManv.Background = Brushes.WhiteSmoke;
 
             this.DataContext = CurrentEmployee;
         }
 
-        // Sự kiện: Tải ảnh lên
+
         private void btnUploadImage_Click(object sender, RoutedEventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog();
@@ -78,7 +73,6 @@ namespace PharmaDistributionApp.Views.EmployeeView
                     byte[] imageBytes = File.ReadAllBytes(openFileDialog.FileName);
                     CurrentEmployee.AvatarBlob = imageBytes;
 
-                    // Refresh lại DataContext để cập nhật hình ảnh trên giao diện
                     var temp = CurrentEmployee;
                     this.DataContext = null;
                     this.DataContext = temp;
@@ -90,17 +84,15 @@ namespace PharmaDistributionApp.Views.EmployeeView
             }
         }
 
-        // Sự kiện: Nút Lưu
+
         private void btnSave_Click(object sender, RoutedEventArgs e)
         {
-            // 1. Kiểm tra dữ liệu bắt buộc
             if (string.IsNullOrWhiteSpace(CurrentEmployee.Manv) || string.IsNullOrWhiteSpace(CurrentEmployee.Tennv))
             {
                 MessageBox.Show("Vui lòng nhập Mã nhân viên và Họ tên!", "Thiếu thông tin", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            // 2. Lấy giá trị Trạng thái từ ComboBox (nếu Binding không tự nhận)
             if (cboTrangThai.SelectedValue != null)
             {
                 if (int.TryParse(cboTrangThai.SelectedValue.ToString(), out int status))
@@ -122,7 +114,7 @@ namespace PharmaDistributionApp.Views.EmployeeView
                     MessageBox.Show("Thêm mới thành công!");
                 }
 
-                this.DialogResult = true; // Trả về true để màn hình danh sách biết mà reload
+                this.DialogResult = true; 
                 this.Close();
             }
             catch (Exception ex)
@@ -131,15 +123,13 @@ namespace PharmaDistributionApp.Views.EmployeeView
             }
         }
 
-        // Sự kiện: Nút Hủy
         private void btnCancel_Click(object sender, RoutedEventArgs e)
         {
             this.DialogResult = false;
             this.Close();
         }
 
-        // --- CÁC HÀM TƯƠNG TÁC DATABASE ---
-
+        
         private void InsertEmployeeToDatabase()
         {
             string sql = "INSERT INTO NHANVIEN (MANV, TENNV, CCCD, GIOITINH, CHUCVU, EMAIL, SDT, DIACHI, NGAYSINH, TRANGTHAI, AVATAR) " +
