@@ -133,9 +133,8 @@ namespace PharmaDistributionApp.Views.ProductView
 
                     cboHoaDon.ItemsSource = list;
                 }
-                else // Mode.Xuat
+                else 
                 {
-                    // Tương tự cho phiếu xuất
                     var listDaCoPhieu = context.Phieuxuats
                         .Where(p => p.Trangthai != "Đã hủy")
                         .Select(p => p.Sohdxuat)
@@ -249,8 +248,7 @@ namespace PharmaDistributionApp.Views.ProductView
         }
 
         private void BtnLuu_Click(object sender, RoutedEventArgs e)
-        {
-            // 1. Kiểm tra đầu vào
+        {            
             if (cboHoaDon.SelectedValue == null)
             {
                 MessageBox.Show("Vui lòng chọn một hóa đơn để tạo phiếu!");
@@ -267,11 +265,9 @@ namespace PharmaDistributionApp.Views.ProductView
                 return;
             }
 
-            // 2. Xác định quyền hạn và trạng thái
             string maNhanVien = UserSession.CurrentUser?.Manv ?? "NV01";
             string chucVu = UserSession.CurrentUser?.Chucvu ?? "";
 
-            // Danh sách các chức vụ được quyền duyệt thẳng (Auto-Approve)
             string[] ssep = { "Admin", "Giám đốc", "Quản lý kho" };
             bool isBoss = ssep.Any(r => r.Equals(chucVu, StringComparison.OrdinalIgnoreCase));
 
@@ -281,15 +277,12 @@ namespace PharmaDistributionApp.Views.ProductView
             {
                 using (var context = new QuanlyphanphoiduocphamContext())
                 {
-                    // --- LOGIC XỬ LÝ PHIẾU NHẬP ---
                     if (_currentMode == Mode.Nhap)
                     {
-                        // Kiểm tra xem đã có phiếu chưa để update hoặc tạo mới
                         var phieuHienTai = context.Phieunhaps.FirstOrDefault(p => p.Sohdnhap == soHD);
 
                         if (phieuHienTai != null)
                         {
-                            // Update phiếu cũ
                             phieuHienTai.Makho = khoDaiDien;
                             phieuHienTai.Ngaynhap = ngay;
                             phieuHienTai.Manv = maNhanVien;
@@ -297,11 +290,10 @@ namespace PharmaDistributionApp.Views.ProductView
                         }
                         else
                         {
-                            // Tạo mã phiếu mới tự động (PN001...)
                             var maxPn = context.Phieunhaps
                                 .Where(p => p.Mapn.StartsWith("PN"))
                                 .Select(p => p.Mapn)
-                                .AsEnumerable() // Chuyển về client để parse số
+                                .AsEnumerable() 
                                 .Select(m => int.TryParse(m.Substring(2), out int n) ? n : 0)
                                 .DefaultIfEmpty(0)
                                 .Max();
@@ -320,14 +312,11 @@ namespace PharmaDistributionApp.Views.ProductView
                             context.Phieunhaps.Add(pn);
                         }
 
-                        // [QUAN TRỌNG] NẾU LÀ SẾP -> CẬP NHẬT KHO NGAY LẬP TỨC
                         if (isBoss)
                         {
-                            // Lấy chi tiết nhập để cộng kho
                             var listChiTiet = context.Cthdnhaps.Where(ct => ct.Sohdnhap == soHD).ToList();
                             foreach (var item in listChiTiet)
                             {
-                                // 1. Update/Tạo Lô hàng
                                 var loHang = context.Lohangs.FirstOrDefault(l => l.Malo == item.Malo);
                                 var hsdDef = DateOnly.FromDateTime(DateTime.Now.AddYears(2));
                                 var nsxDef = DateOnly.FromDateTime(DateTime.Now);
@@ -342,7 +331,7 @@ namespace PharmaDistributionApp.Views.ProductView
                                     context.Entry(loHang).State = EntityState.Modified;
                                 }
 
-                                // 2. Cộng Tồn kho
+
                                 var tonKho = context.Tonkhos.FirstOrDefault(t => t.Masp == item.Masp && t.Malo == item.Malo && t.Makho == khoDaiDien);
                                 if (tonKho != null)
                                 {
@@ -356,7 +345,6 @@ namespace PharmaDistributionApp.Views.ProductView
                             }
                         }
                     }
-                    // --- LOGIC XỬ LÝ PHIẾU XUẤT ---
                     else
                     {
                         var phieuHienTai = context.Phieuxuats.FirstOrDefault(p => p.Sohdxuat == soHD);
@@ -392,27 +380,24 @@ namespace PharmaDistributionApp.Views.ProductView
                             context.Phieuxuats.Add(px);
                         }
 
-                        // [QUAN TRỌNG] NẾU LÀ SẾP -> TRỪ KHO NGAY LẬP TỨC
+
                         if (isBoss)
                         {
                             var listChiTiet = context.Cthdxuats.Where(ct => ct.Sohdxuat == soHD).ToList();
 
-                            // Kiểm tra đủ hàng trước
                             foreach (var item in listChiTiet)
                             {
                                 var tongTon = context.Tonkhos.Where(t => t.Masp == item.Masp && t.Malo == item.Malo).Sum(t => (int?)t.Soluongton) ?? 0;
                                 if (tongTon < item.Soluong)
                                 {
                                     MessageBox.Show($"Không đủ hàng để xuất ngay!\nSP: {item.Masp} (Lô {item.Malo})\nTồn: {tongTon} < Cần: {item.Soluong}", "Lỗi Kho");
-                                    return; // Ngưng transaction
+                                    return;
                                 }
                             }
 
-                            // Trừ kho thật
                             foreach (var item in listChiTiet)
                             {
                                 int canTru = item.Soluong;
-                                // Tìm các dòng kho có hàng để trừ (ưu tiên kho nào nhiều hàng hoặc theo thứ tự)
                                 var cacDongTon = context.Tonkhos
                                     .Where(t => t.Masp == item.Masp && t.Malo == item.Malo && t.Soluongton > 0)
                                     .OrderByDescending(t => t.Soluongton)
@@ -433,7 +418,6 @@ namespace PharmaDistributionApp.Views.ProductView
                         }
                     }
                         
-                    // Lưu tất cả thay đổi (Phiếu + Kho) vào Database
                     context.SaveChanges();
 
                     string msg = isBoss

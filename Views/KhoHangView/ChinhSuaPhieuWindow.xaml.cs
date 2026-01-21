@@ -34,10 +34,9 @@ namespace PharmaDistributionApp.Views.KhoHangView
             LoadData();
             this.GotFocus += (s, e) =>
             {
-                // Nếu cái đang được Focus không phải là DataGrid hoặc thành phần con của DataGrid
                 if (!(e.OriginalSource is DataGrid) && !(e.OriginalSource is DataGridCell))
                 {
-                    dgvChiTiet.UnselectAll(); // Bỏ chọn dòng
+                    dgvChiTiet.UnselectAll(); 
                 }
             };
         }
@@ -50,7 +49,7 @@ namespace PharmaDistributionApp.Views.KhoHangView
                 {
                     txtMaPhieu.Text = _maPhieu;
 
-                    if (!_isXuat) // LOGIC CHO PHIẾU NHẬP
+                    if (!_isXuat) 
                     {
                         txtTieuDe.Text = "CHỈNH SỬA PHIẾU NHẬP";
                         lblDoiTuong.Visibility = Visibility.Collapsed;
@@ -62,7 +61,6 @@ namespace PharmaDistributionApp.Views.KhoHangView
                             cboTrangThai.Text = phieu.Trangthai;
                             dpNgayLap.SelectedDate = DateTime.Parse(phieu.Ngaynhap);
 
-                            // Load danh sách thuốc từ chi tiết hóa đơn nhập
                             var queryNhap = from ct in context.Cthdnhaps
                                             join sp in context.Sanphams on ct.Masp equals sp.Masp
                                             where ct.Sohdnhap == phieu.Sohdnhap
@@ -72,13 +70,13 @@ namespace PharmaDistributionApp.Views.KhoHangView
                                                 Tensp = sp.Tensp,
                                                 Dvt = sp.Dvt,
                                                 Malo = ct.Malo,
-                                                Soluong = ct.Soluong,     // Model là int, gán trực tiếp
-                                                Dongia = ct.Dongianhap    // Dùng đúng tên Dongianhap
+                                                Soluong = ct.Soluong,     
+                                                Dongia = ct.Dongianhap  
                                             };
                             _listChiTiet = new ObservableCollection<ChiTietPhieuEditItem>(queryNhap.ToList());
                         }
                     }
-                    else // LOGIC CHO PHIẾU XUẤT
+                    else
                     {
                         txtTieuDe.Text = "CHỈNH SỬA PHIẾU XUẤT";
                         lblDoiTuong.Text = "Khách hàng:";
@@ -89,7 +87,6 @@ namespace PharmaDistributionApp.Views.KhoHangView
                             cboTrangThai.Text = phieu.Trangthai;
                             dpNgayLap.SelectedDate = DateTime.Parse(phieu.Ngayxuat);
 
-                            // Lấy tên khách hàng từ hóa đơn xuất
                             var hd = context.Hoadonxuats.FirstOrDefault(h => h.Sohdxuat == phieu.Sohdxuat);
                             txtDoiTuong.Text = hd?.Makh ?? "---";
 
@@ -102,8 +99,8 @@ namespace PharmaDistributionApp.Views.KhoHangView
                                                 Tensp = sp.Tensp,
                                                 Dvt = sp.Dvt,
                                                 Malo = ct.Malo,
-                                                Soluong = ct.Soluong,     // Model là int, gán trực tiếp
-                                                Dongia = ct.Dongiaban     // Dùng đúng tên Dongiaban
+                                                Soluong = ct.Soluong,    
+                                                Dongia = ct.Dongiaban     
                                             };
                             _listChiTiet = new ObservableCollection<ChiTietPhieuEditItem>(queryXuat.ToList());
                         }
