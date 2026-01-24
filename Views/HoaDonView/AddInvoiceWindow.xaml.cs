@@ -207,7 +207,8 @@ namespace PharmaDistributionApp.Views
                         SoLuong = take,
                         DonGia = donGia, 
                         NSX = dpNSX.SelectedDate.HasValue ? dpNSX.SelectedDate.Value.ToString("yyyy-MM-dd") : "", 
-                        HSD = lot.HSD 
+                        HSD = lot.HSD,
+                        MaLo = lot.MaLo
                     });
                     countAdded++;
                 }
@@ -312,21 +313,29 @@ namespace PharmaDistributionApp.Views
                 }
 
                 decimal giaHienThi = giaGoc;
-
                 if (rbXuat.IsChecked == true)
                 {
- 
                     giaHienThi = giaGoc * 1.05m;
                 }
                 txtDonGia.Text = string.Format("{0:N0} VND", giaHienThi);
 
                 if (rbXuat.IsChecked == true)
                 {
-                    string sqlLo = $@"SELECT L.MALO, L.HSD, IFNULL(T.SOLUONGTON, 0) AS SOLUONGTON 
-                                      FROM LOHANG L LEFT JOIN TONKHO T ON L.MALO = T.MALO 
-                                      WHERE L.MASP = '{maSP}' ORDER BY L.HSD ASC";
+                    string today = DateTime.Now.ToString("yyyy-MM-dd");
+
+                    string sqlLo = $@"
+                        SELECT T.MALO, 
+                       IFNULL(L.HSD, '') AS HSD, 
+                       T.SOLUONGTON 
+                         FROM TONKHO T 
+                          LEFT JOIN LOHANG L ON T.MALO = L.MALO 
+                          WHERE T.MASP = '{maSP}' 
+                            AND T.SOLUONGTON > 0 
+                            AND L.HSD >= '{today}'
+                         ORDER BY L.HSD ASC, T.MALO ASC";
 
                     DataTable dtLo = Database.GetTable(sqlLo);
+
                     _currentProductLots.Clear();
                     _totalAvailableStock = 0;
 
@@ -334,21 +343,33 @@ namespace PharmaDistributionApp.Views
                     {
                         int ton = 0;
                         int.TryParse(r["SOLUONGTON"].ToString(), out ton);
-                        if (ton <= 0) continue;
 
-                        _currentProductLots.Add(new LotInfo { MaLo = r["MALO"].ToString(), HSD = r["HSD"].ToString(), TonKho = ton });
-                        _totalAvailableStock += ton;
+                        string maLo = r["MALO"] != DBNull.Value ? r["MALO"].ToString() : "";
+                        string hsd = r["HSD"] != DBNull.Value ? r["HSD"].ToString() : "";
+
+                        if (ton > 0 && !string.IsNullOrEmpty(maLo))
+                        {
+                            _currentProductLots.Add(new LotInfo
+                            {
+                                MaLo = maLo,
+                                HSD = hsd,
+                                TonKho = ton
+                            });
+                            _totalAvailableStock += ton;
+                        }
                     }
                     lblTonKho.Text = $"Tổng tồn: {_totalAvailableStock:N0}";
                 }
                 else
                 {
                     lblTonKho.Text = "Nhập hàng mới";
+                    _currentProductLots.Clear();
+                    _totalAvailableStock = 0;
                 }
                 txtSoLuong.Text = "0";
             }
         }
-        
+
 
         private void btnLuu_Click(object sender, RoutedEventArgs e)
         {
