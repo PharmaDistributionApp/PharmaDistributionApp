@@ -141,7 +141,7 @@
                                 </DataGridTemplateColumn.CellTemplate>
                             </DataGridTemplateColumn>
 
-                            <DataGridTemplateColumn Header="Loại" Width="90">
+                            <DataGridTemplateColumn Header="Loại" Width="100">
                                 <DataGridTemplateColumn.CellTemplate>
                                     <DataTemplate>
                                         <Border CornerRadius="4" Padding="6,2" HorizontalAlignment="Center" VerticalAlignment="Center" 

@@ -46,23 +46,36 @@ namespace PharmaDistributionApp.Views.LoginView
             try
             {
                 string sql = @"
-                    SELECT T.MANV, T.MATKHAU, T.TRANGTHAI, 
+                    SELECT T.MANV, T.MATKHAU, 
+                           T.TRANGTHAI AS T_TRANGTHAI, 
+                           N.TRANGTHAI AS N_TRANGTHAI,
                            N.TENNV, N.CHUCVU, N.EMAIL, N.AVATAR 
                     FROM TAIKHOAN T 
                     LEFT JOIN NHANVIEN N ON T.MANV = N.MANV 
                     WHERE (T.MANV = @user OR N.EMAIL = @user)";
 
                 var parameters = new SqliteParameter[]
-                 {
+                {
                     new SqliteParameter("@user", input)
-                 };
+                };
                 DataTable dt = Database.GetTable(sql, parameters);
 
                 if (dt.Rows.Count == 0) { SetErrorState(txtUsername, "Tài khoản không tồn tại"); return; }
 
                 DataRow row = dt.Rows[0];
+
                 if (row["MATKHAU"].ToString() != pass) { SetErrorState(txtPassword, "Mật khẩu không đúng"); return; }
-                if (Convert.ToInt32(row["TRANGTHAI"]) == 0) { ShowError("Tài khoản đã bị khóa!"); return; }
+                if (row["T_TRANGTHAI"] != DBNull.Value && Convert.ToInt32(row["T_TRANGTHAI"]) == 0)
+                {
+                    ShowError("Tài khoản đã bị khóa!");
+                    return;
+                }
+
+                if (row["N_TRANGTHAI"] != DBNull.Value && Convert.ToInt32(row["N_TRANGTHAI"]) == 0)
+                {
+                    ShowError("Nhân viên này đã nghỉ việc, không được phép truy cập hệ thống!");
+                    return;
+                }
 
                 UserSession.CurrentUser = new Employee
                 {

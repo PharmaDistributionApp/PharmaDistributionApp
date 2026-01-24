@@ -47,13 +47,22 @@ namespace PharmaDistributionApp.Views
             if (user.AvatarSource != null)
             {
                 imgAvatarBrush.ImageSource = user.AvatarSource;
-                if (iconAvatar != null) iconAvatar.Visibility = Visibility.Collapsed;
             }
             else
             {
-                imgAvatarBrush.ImageSource = null;
-                if (iconAvatar != null) iconAvatar.Visibility = Visibility.Visible;
+                try
+                {
+                    var uri = new Uri("pack://application:,,,/PharmaDistributionApp;component/Images/default_avatar.jpg");
+                    imgAvatarBrush.ImageSource = new System.Windows.Media.Imaging.BitmapImage(uri);
+                }
+                catch
+                {
+                    imgAvatarBrush.ImageSource = null;
+                }
             }
+
+            // Nếu dùng cách này, bạn nên ẩn luôn iconAvatar trong XAML hoặc code
+            if (iconAvatar != null) iconAvatar.Visibility = Visibility.Collapsed;
         }
 
         private void Menu_Click(object sender, MouseButtonEventArgs e)

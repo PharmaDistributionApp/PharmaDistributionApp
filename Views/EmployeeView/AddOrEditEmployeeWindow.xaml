@@ -14,11 +14,8 @@
 
     <Window.Resources>
         <SolidColorBrush x:Key="PrimaryHueMidBrush" Color="#4C70BA"/>
-
         <SolidColorBrush x:Key="PrimaryHueLightBrush" Color="#6F8BC7"/>
-
         <SolidColorBrush x:Key="PrimaryHueDarkBrush" Color="#305296"/>
-
         <SolidColorBrush x:Key="PrimaryHueMidForegroundBrush" Color="White"/>
     </Window.Resources>
 
@@ -86,11 +83,11 @@
 
                         <TextBox x:Name="txtManv" Grid.Column="0" 
                                  Text="{Binding Manv, UpdateSourceTrigger=PropertyChanged}" 
-                                 materialDesign:HintAssist.Hint="Mã nhân viên (Bắt buộc)" 
+                                 materialDesign:HintAssist.Hint="Mã nhân viên" IsReadOnly="True" 
                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}" 
                                  FontWeight="Bold"/>
 
-                        <TextBox Grid.Column="2" 
+                        <TextBox x:Name="txtTennv" Grid.Column="2" 
                                  Text="{Binding Tennv, UpdateSourceTrigger=PropertyChanged}" 
                                  materialDesign:HintAssist.Hint="Họ và tên (Bắt buộc)" 
                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
@@ -109,7 +106,10 @@
                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"
                                  MaxLength="12"/>
 
-                        <ComboBox Grid.Column="2" Text="{Binding GioiTinh}" materialDesign:HintAssist.Hint="Giới tính" Style="{StaticResource MaterialDesignFloatingHintComboBox}">
+                        <ComboBox x:Name="cboGioiTinh" Grid.Column="2" 
+                                  Text="{Binding GioiTinh}" 
+                                  materialDesign:HintAssist.Hint="Giới tính" 
+                                  Style="{StaticResource MaterialDesignFloatingHintComboBox}">
                             <ComboBoxItem Content="Nam"/>
                             <ComboBoxItem Content="Nữ"/>
                             <ComboBoxItem Content="Khác"/>
@@ -137,25 +137,23 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <ComboBox Grid.Column="0"
+                        <ComboBox x:Name="cboChucVu" Grid.Column="0"
                                   materialDesign:HintAssist.Hint="Chức vụ / Vị trí"
                                   Style="{StaticResource MaterialDesignFloatingHintComboBox}"
                                   SelectedValuePath="Content"
                                   SelectedValue="{Binding Chucvu}">
-
+                            <ComboBoxItem Content="Admin"/>
                             <ComboBoxItem Content="Giám đốc"/>
                             <ComboBoxItem Content="Quản lý kho"/>
                             <ComboBoxItem Content="Kế toán"/>
                             <ComboBoxItem Content="Nhân viên"/>
-
                         </ComboBox>
 
-                        <ComboBox Grid.Column="2" x:Name="cboTrangThai"
+                        <ComboBox x:Name="cboTrangThai" Grid.Column="2" 
                                   materialDesign:HintAssist.Hint="Trạng thái làm việc" 
                                   Style="{StaticResource MaterialDesignFloatingHintComboBox}"
                                   SelectedValuePath="Tag"
                                   SelectedValue="{Binding TrangThai}">
-
                             <ComboBoxItem Content="Đang hoạt động" Tag="1" Foreground="Green"/>
                             <ComboBoxItem Content="Tạm nghỉ" Tag="2" Foreground="#FFC107"/>
                             <ComboBoxItem Content="Đã nghỉ việc" Tag="0" Foreground="Red"/>
@@ -171,12 +169,13 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
 
-                        <TextBox Grid.Column="0" 
+                        <TextBox x:Name="txtSdt" Grid.Column="0" 
                                  Text="{Binding Sdt}" 
                                  materialDesign:HintAssist.Hint="Số điện thoại" 
-                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>
+                                 Style="{StaticResource MaterialDesignFloatingHintTextBox}"
+                                 MaxLength="10"/>
 
-                        <TextBox Grid.Column="2" 
+                        <TextBox x:Name="txtEmail" Grid.Column="2" 
                                  Text="{Binding Email}" 
                                  materialDesign:HintAssist.Hint="Email cá nhân" 
                                  Style="{StaticResource MaterialDesignFloatingHintTextBox}"/>

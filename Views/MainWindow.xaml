@@ -12,7 +12,8 @@
         WindowStartupLocation="CenterScreen"
         FontFamily="{DynamicResource MaterialDesignFont}"
         TextElement.Foreground="{DynamicResource MaterialDesignBody}"
-        Background="{DynamicResource MaterialDesignPaper}">
+        Background="{DynamicResource MaterialDesignPaper}"
+        UseLayoutRounding="True">
 
     <Window.Resources>
         <Style x:Key="FadeTextStyle" TargetType="TextBlock">
@@ -93,13 +94,16 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
 
-                        <Border x:Name="bdrAvatar" Width="50" Height="50" CornerRadius="25" BorderBrush="White" BorderThickness="1">
+                        <Border x:Name="bdrAvatar" Width="50" Height="50" CornerRadius="25" 
+                                BorderBrush="White" BorderThickness="1"
+                                ClipToBounds="True">
                             <Border.Background>
                                 <ImageBrush x:Name="imgAvatarBrush" Stretch="UniformToFill"/>
                             </Border.Background>
+
                             <materialDesign:PackIcon x:Name="iconAvatar" Kind="AccountCircle" 
-                                                     Width="48" Height="48" Foreground="White" 
-                                                     HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                             Width="48" Height="48" Foreground="White" 
+                             HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
 
                         <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">

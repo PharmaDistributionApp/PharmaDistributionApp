@@ -1,17 +1,18 @@
-﻿using PharmaDistributionApp.Services;
+﻿using ClosedXML.Excel; 
+using Microsoft.Data.Sqlite;
+using Microsoft.Win32;
+using PharmaDistributionApp.Services;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel; 
+using System.Data;
+using System.Data.SQLite;
 using System.Runtime.CompilerServices; 
 using System.Windows;
 using System.Windows.Controls;
-using System.Data;
+using System.Windows.Data;   
 using System.Windows.Input;
 using System.Windows.Media;
-using System.Windows.Data;   
-using ClosedXML.Excel; 
-using Microsoft.Win32;
-using Microsoft.Data.Sqlite;
 namespace PharmaDistributionApp.Views.EmployeeView
 {
     public partial class EmployeeViewControl : UserControl, INotifyPropertyChanged
@@ -325,28 +326,52 @@ namespace PharmaDistributionApp.Views.EmployeeView
 
             if (selectedEmp != null)
             {
-                var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa nhân viên {selectedEmp.Tennv}?",
+                if (UserSession.CurrentUser != null && selectedEmp.Manv == UserSession.CurrentUser.Manv)
+                {
+                    MessageBox.Show("Bạn không thể xóa tài khoản đang đăng nhập!", "Cảnh báo",
+                                    MessageBoxButton.OK, MessageBoxImage.Warning);
+                    return;
+                }
+
+                var result = MessageBox.Show($"Bạn có chắc chắn muốn xóa nhân viên {selectedEmp.Tennv}?\n\nLƯU Ý: Tài khoản đăng nhập của nhân viên này cũng sẽ bị xóa vĩnh viễn.",
                                              "Xác nhận xóa",
                                              MessageBoxButton.YesNo,
-                                             MessageBoxImage.Question);
+                                             MessageBoxImage.Warning);
 
                 if (result == MessageBoxResult.Yes)
                 {
-                    try
+                    using (var conn = new SQLiteConnection(Database.ConnectionString))
                     {
-                        string sql = "DELETE FROM NHANVIEN WHERE MANV = @Manv";
-                        var parameters = new SqliteParameter[]
+                        conn.Open();
+                        using (var transaction = conn.BeginTransaction())
                         {
-                            new SqliteParameter("@Manv", selectedEmp.Manv)
-                        };
+                            try
+                            {
+                                string sqlTaiKhoan = "DELETE FROM TAIKHOAN WHERE MANV = @Manv";
+                                using (var cmdTK = new SQLiteCommand(sqlTaiKhoan, conn, transaction))
+                                {
+                                    cmdTK.Parameters.AddWithValue("@Manv", selectedEmp.Manv);
+                                    cmdTK.ExecuteNonQuery();
+                                }
 
-                        Database.ExecuteNonQuery(sql, parameters);
+                                string sqlNhanVien = "DELETE FROM NHANVIEN WHERE MANV = @Manv";
+                                using (var cmdNV = new SQLiteCommand(sqlNhanVien, conn, transaction))
+                                {
+                                    cmdNV.Parameters.AddWithValue("@Manv", selectedEmp.Manv);
+                                    cmdNV.ExecuteNonQuery();
+                                }
 
-                        LoadEmployeeData();
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show("Lỗi khi xóa: " + ex.Message);
+                                transaction.Commit();
+
+                                LoadEmployeeData();
+                                MessageBox.Show("Đã xóa nhân viên và tài khoản liên quan thành công!", "Thông báo", MessageBoxButton.OK, MessageBoxImage.Information);
+                            }
+                            catch (Exception ex)
+                            {
+                                transaction.Rollback();
+                                MessageBox.Show("Lỗi khi xóa dữ liệu: " + ex.Message, "Lỗi hệ thống", MessageBoxButton.OK, MessageBoxImage.Error);
+                            }
+                        }
                     }
                 }
             }
